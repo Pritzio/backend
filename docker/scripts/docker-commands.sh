@@ -95,7 +95,7 @@ dev_start() {
 
 dev_build() {
     echo -e "${GREEN}Construyendo e iniciando entorno de desarrollo...${NC}"
-    docker-compose up -d --build
+    docker-compose -f docker-compose.dev.yml up -d --build
 }
 
 dev_logs() {
