@@ -1,20 +1,24 @@
+require('dotenv').config();
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
 import { AppModule } from './app.module';
-import { appConfig } from './config/app.config';
 
 async function bootstrap() {
+  const logger = new Logger('Main');
+
   const app = await NestFactory.create(AppModule, {
-    logger: appConfig.enableLogging ? ['log', 'error', 'warn', 'debug', 'verbose'] : ['error', 'warn'],
+    logger: process.env.ENABLE_LOGGING === 'true' ? ['log', 'error', 'warn', 'debug', 'verbose'] : ['error', 'warn'],
   });
 
   // Global prefix
-  app.setGlobalPrefix(appConfig.apiPrefix);
+  app.setGlobalPrefix('api/v1');
 
   // CORS
+  const corsOrigins = process.env.CORS_ORIGINS?.split(',') || [];
   app.enableCors({
-    origin: appConfig.corsOrigin,
+    origin: corsOrigins,
     credentials: true,
   });
 
@@ -31,7 +35,7 @@ async function bootstrap() {
   );
 
   // Swagger documentation
-  if (appConfig.enableSwagger) {
+  if (process.env.ENABLE_SWAGGER === 'true') {
     const config = new DocumentBuilder()
       .setTitle('Pritzio API')
       .setDescription('Backend API for Pritzio - Price comparison platform')
@@ -49,11 +53,9 @@ async function bootstrap() {
     SwaggerModule.setup('api/docs', app, document);
   }
 
-  await app.listen(appConfig.port);
-  
-  console.log(`🚀 Pritzio Backend running on port ${appConfig.port}`);
-  console.log(`📚 API Documentation: http://localhost:${appConfig.port}/api/docs`);
-  console.log(`🏥 Health Check: http://localhost:${appConfig.port}/health`);
+  const port = parseInt(process.env.BACKEND_PORT || '3000');
+  await app.listen(port);
+  logger.log(`Application is running on port: ${port}`);
 }
 
 bootstrap();

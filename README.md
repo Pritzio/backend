@@ -134,6 +134,18 @@ npm run start:dev
 
 # Production mode
 npm run start:prod
+
+# Staging mode
+npm run start:staging
+```
+
+### **6. Production Deployment**
+```bash
+# Deploy to production
+./scripts/deploy-production.sh
+
+# Deploy to staging
+./scripts/deploy-staging.sh
 ```
 
 ### **6. Verify Installation**
