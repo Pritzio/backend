@@ -40,6 +40,12 @@ lerna-debug.log*
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+docker-compose.prod.yml
+docker-compose.dev.yml
 .env.local
 
 # Development documentation (excluded from version control)
