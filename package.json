@@ -1,8 +1,8 @@
 {
-  "name": "backend",
+  "name": "pritzio-backend",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Backend for Pritzio - Price comparison platform with geolocation and social features",
+  "author": "Pritzio Development Team",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -17,7 +17,10 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "version:analyze": "node scripts/version-analyzer.js",
+    "version:bump": "node scripts/version-bump.js",
+    "version:create": "npm run version:analyze && npm run version:bump"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

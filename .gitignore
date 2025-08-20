@@ -42,6 +42,9 @@ lerna-debug.log*
 .env.production.local
 .env.local
 
+# Development documentation (excluded from version control)
+.dev/
+
 # temp directory
 .temp
 .tmp
