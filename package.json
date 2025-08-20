@@ -20,7 +20,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "version:analyze": "node scripts/version-analyzer.js",
     "version:bump": "node scripts/version-bump.js",
-    "version:create": "npm run version:analyze && npm run version:bump"
+    "version:create": "npm run version:analyze && npm run version:bump",
+    "version:internal": "node scripts/version-internal.js",
+    "version:release": "npm run version:create"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
