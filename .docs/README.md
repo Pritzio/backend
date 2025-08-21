@@ -48,6 +48,12 @@ Esta carpeta contiene la documentación de uso de todos los módulos y features 
 - **Notification System** - Sistema de notificaciones
 - **Logging System** - Sistema de logs y auditoría
 
+### **🐳 Configuración y Setup**
+- **[Docker Setup](setup/docker-setup.md)** - Configuración completa de Docker
+  - Comandos disponibles para desarrollo y producción
+  - Troubleshooting y mejores prácticas
+  - Guía de instalación y configuración
+
 ## 🚀 **Cómo Usar Esta Documentación**
 
 ### **Para Desarrolladores**

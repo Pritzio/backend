@@ -17,8 +17,8 @@
 ### **2. Setup**
 ```bash
 # Clone and install
-git clone <repository-url>
-cd pritzio-backend
+git clone <https://github.com/Pritzio/backend.git>
+cd backend
 npm install
 
 # Environment configuration
@@ -26,7 +26,7 @@ cp env.example .env
 # Edit .env with your settings
 
 # Start services
-./docker/scripts/docker-commands.sh dev start
+./docker/scripts/docker-commands.sh dev
 
 # Run application
 npm run start:dev
@@ -65,18 +65,9 @@ npm run lint           # Lint code
 
 ## 📚 **Documentation**
 
-- **Development Guide**: [`.dev/README.md`](.dev/README.md)
-- **Production Deployment**: [`.dev/deployment/PRODUCTION_DEPLOYMENT.md`](.dev/deployment/PRODUCTION_DEPLOYMENT.md)
 - **Module Documentation**: [`.docs/README.md`](.docs/README.md)
 - **Authentication Module**: [`.docs/modules/authentication.md`](.docs/modules/authentication.md) ✅ **COMPLETADO Y PROBADO**
 - **API Reference**: [Swagger UI](http://localhost:3000/api/docs)
-
-## 🤝 **Contributing**
-
-1. Follow coding standards in [`.dev/coding-standards.md`](.dev/coding-standards.md)
-2. Write tests for new features
-3. Update documentation as needed
-4. Use conventional commits
 
 ## 📄 **License**
 

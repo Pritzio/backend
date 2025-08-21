@@ -88,23 +88,23 @@ clean_docker() {
 # Función para desarrollo
 dev_start() {
     echo -e "${GREEN}Iniciando entorno de desarrollo...${NC}"
-    docker-compose -f docker-compose.dev.yml up -d
+    docker-compose up -d postgres redis
     echo -e "${GREEN}Base de datos y Redis iniciados.${NC}"
     echo -e "${BLUE}Para desarrollo local, ejecuta: npm run start:dev${NC}"
 }
 
 dev_build() {
     echo -e "${GREEN}Construyendo e iniciando entorno de desarrollo...${NC}"
-    docker-compose -f docker-compose.dev.yml up -d --build
+    docker-compose up -d --build postgres redis
 }
 
 dev_logs() {
-    docker-compose -f docker-compose.dev.yml logs -f
+    docker-compose logs -f postgres redis
 }
 
 dev_stop() {
     echo -e "${YELLOW}Deteniendo entorno de desarrollo...${NC}"
-    docker-compose -f docker-compose.dev.yml down
+    docker-compose stop postgres redis
 }
 
 # Función para producción
