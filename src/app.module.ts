@@ -26,7 +26,13 @@ const isStaging = process.env.NODE_ENV === 'staging';
       database: 'pritzio',
       autoLoadEntities: true,
       synchronize: true,
-      logging: true,
+      // Control de logs de TypeORM
+      logging: process.env.TYPEORM_LOGGING === 'true' ? true : false,
+      // Logs más detallados si se activa
+      ...(process.env.TYPEORM_LOGGING === 'true' && {
+        logger: 'advanced-console',
+        maxQueryExecutionTime: 1000, // Log queries que tomen más de 1 segundo
+      }),
     }),
     RedisModule.forRoot({
       type: 'single',

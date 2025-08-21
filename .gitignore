@@ -53,6 +53,7 @@ docker-compose.dev.yml
 .dev/
 
 # temp directory
+.env.backup
 .temp
 .tmp
 
