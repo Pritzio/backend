@@ -67,6 +67,9 @@ npm run lint           # Lint code
 
 - **Module Documentation**: [`.docs/README.md`](.docs/README.md)
 - **Authentication Module**: [`.docs/modules/authentication.md`](.docs/modules/authentication.md) ✅ **COMPLETADO Y PROBADO**
+- **Environment Configuration**: [`.docs/setup/environment-configuration.md`](.docs/setup/environment-configuration.md) ✅ **DOCUMENTADO**
+- **Docker Setup**: [`.docs/setup/docker-setup.md`](.docs/setup/docker-setup.md)
+- **Security Setup**: [`.docs/setup/security-setup.md`](.docs/setup/security-setup.md) ✅ **IMPLEMENTADO Y FUNCIONANDO**
 - **API Reference**: [Swagger UI](http://localhost:3000/api/docs)
 
 ## 📄 **License**

@@ -39,7 +39,6 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
-    // Check if user already exists
     const existingUser = await this.userRepository.findOne({
       where: [
         { email: registerDto.email },
@@ -51,11 +50,9 @@ export class AuthService {
       throw new ConflictException('User with this email or username already exists');
     }
 
-    // Hash password
-    const saltRounds = 12; // Fixed salt rounds
+    const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(registerDto.password, saltRounds);
 
-    // Create user
     const user = this.userRepository.create({
       ...registerDto,
       password: hashedPassword,
@@ -63,7 +60,6 @@ export class AuthService {
       type: registerDto.type || UserType.INDIVIDUAL,
     });
 
-    // Assign default role based on user type
     const defaultRole = await this.getDefaultRole(registerDto.type || UserType.INDIVIDUAL);
     if (defaultRole) {
       user.roles = [defaultRole];
@@ -71,7 +67,6 @@ export class AuthService {
 
     const savedUser = await this.userRepository.save(user);
 
-    // Generate tokens
     const tokens = this.jwtService.generateTokenPair(savedUser);
 
     return {
@@ -81,7 +76,6 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
-    // Find user by email or username
     const user = await this.userRepository.findOne({
       where: [
         { email: loginDto.identifier },
@@ -94,22 +88,18 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Check if user is active
     if (user.status !== UserStatus.ACTIVE) {
       throw new UnauthorizedException('Account is not active');
     }
 
-    // Verify password
     const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Update last login
     user.lastLoginAt = new Date();
     await this.userRepository.save(user);
 
-    // Generate tokens
     const tokens = this.jwtService.generateTokenPair(user);
 
     return {
@@ -130,12 +120,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    // Generate new tokens
     const tokens = this.jwtService.generateTokenPair(user);
 
-    // Update refresh token in database
     user.refreshToken = tokens.refreshToken;
-    user.refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    user.refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await this.userRepository.save(user);
 
     return {

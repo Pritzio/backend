@@ -46,6 +46,14 @@ import {
 } from '../dto/auth-response.dto';
 import { RoleType } from '../entities/role.entity';
 import { PermissionType } from '../entities/permission.entity';
+import { 
+  BasicSecurity, 
+  StrictSecurity, 
+  ApiKeyProtected, 
+  AdminOnly,
+  ValidatePayload,
+  SecurityLogging 
+} from '../../common/security/decorators/security.decorators';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -70,6 +78,7 @@ export class AuthController {
 
 
   @Post('register')
+  @BasicSecurity()
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({
     status: 201,
@@ -85,6 +94,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @StrictSecurity()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'User login' })
   @ApiResponse({

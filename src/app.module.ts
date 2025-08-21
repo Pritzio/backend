@@ -1,11 +1,13 @@
 require('dotenv').config();
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
+import { CommonModule } from './common/common.module';
+import { SecurityMiddleware } from './common/security/middleware/security.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
 import { TestController } from './test.controller';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -26,12 +28,10 @@ const isStaging = process.env.NODE_ENV === 'staging';
       database: 'pritzio',
       autoLoadEntities: true,
       synchronize: true,
-      // Control de logs de TypeORM
       logging: process.env.TYPEORM_LOGGING === 'true' ? true : false,
-      // Logs más detallados si se activa
       ...(process.env.TYPEORM_LOGGING === 'true' && {
         logger: 'advanced-console',
-        maxQueryExecutionTime: 1000, // Log queries que tomen más de 1 segundo
+        maxQueryExecutionTime: 1000,
       }),
     }),
     RedisModule.forRoot({
@@ -55,8 +55,15 @@ const isStaging = process.env.NODE_ENV === 'staging';
       },
     }),
     AuthModule,
+    CommonModule,
   ],
   controllers: [AppController, TestController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(SecurityMiddleware)
+      .forRoutes('*');
+  }
+}

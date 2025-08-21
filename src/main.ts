@@ -8,7 +8,6 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const logger = new Logger('Main');
 
-  // Control de logs de NestJS
   const logLevels = (process.env.NESTJS_LOG_LEVELS?.split(',') || ['error', 'warn']) as Array<'error' | 'warn' | 'verbose' | 'debug' | 'log' | 'fatal'>;
   const enableLogging = process.env.ENABLE_LOGGING === 'true';
   
@@ -16,19 +15,16 @@ async function bootstrap() {
     logger: enableLogging ? logLevels : ['error', 'warn'],
   });
 
-  // Global prefix
   const prefix = process.env.API_PREFIX || '';
   console.log('Setting global prefix:', prefix);
   app.setGlobalPrefix(prefix);
 
-  // CORS
   const corsOrigins = process.env.CORS_ORIGINS?.split(',') || [];
   app.enableCors({
     origin: corsOrigins,
     credentials: true,
   });
 
-  // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -40,19 +36,12 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger documentation
   if (process.env.ENABLE_SWAGGER === 'true') {
     const config = new DocumentBuilder()
       .setTitle('Pritzio API')
       .setDescription('Backend API for Pritzio - Price comparison platform')
       .setVersion('1.0')
       .addBearerAuth()
-      .addTag('auth', 'Authentication endpoints')
-      .addTag('users', 'User management')
-      .addTag('products', 'Product catalog')
-      .addTag('prices', 'Price management')
-      .addTag('locations', 'Geolocation services')
-      .addTag('social', 'Social features')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

@@ -53,6 +53,16 @@ Esta carpeta contiene la documentación de uso de todos los módulos y features 
   - Comandos disponibles para desarrollo y producción
   - Troubleshooting y mejores prácticas
   - Guía de instalación y configuración
+- **[Environment Configuration](setup/environment-configuration.md)** - Configuración de variables de entorno ✅ **DOCUMENTADO**
+  - Configuración por ambiente (dev, staging, prod)
+  - Variables de seguridad y autenticación
+  - Troubleshooting de configuración
+  - Mejores prácticas de seguridad
+- **[Security Setup](setup/security-setup.md)** - Sistema completo de seguridad ✅ **IMPLEMENTADO Y FUNCIONANDO**
+  - Middleware de seguridad y validación
+  - Interceptores de sanitización y logging
+  - Guards y decoradores de seguridad
+  - Prevención de ataques comunes
 
 ## 🚀 **Cómo Usar Esta Documentación**
 
