@@ -44,7 +44,6 @@ env.production
 env.staging
 
 # Docker
-.dockerignore
 docker-compose.override.yml
 docker-compose.prod.yml
 docker-compose.dev.yml

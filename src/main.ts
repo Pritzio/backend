@@ -13,7 +13,9 @@ async function bootstrap() {
   });
 
   // Global prefix
-  app.setGlobalPrefix('api/v1');
+  const prefix = process.env.API_PREFIX || '';
+  console.log('Setting global prefix:', prefix);
+  app.setGlobalPrefix(prefix);
 
   // CORS
   const corsOrigins = process.env.CORS_ORIGINS?.split(',') || [];

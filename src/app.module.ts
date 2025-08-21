@@ -2,44 +2,31 @@ require('dotenv').config();
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RedisModule } from '@nestjs-modules/ioredis';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { TestController } from './test.controller';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isStaging = process.env.NODE_ENV === 'staging';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env.local', '.env'],
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: isProduction || isStaging ? process.env.DATABASE_HOST : 'localhost',
-      port: parseInt(process.env.DATABASE_PORT || '5432'),
-      username: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
-      entities: ['dist/**/*.entity{.ts,.js}'],
-      migrations: isProduction ? ['dist/migrations/*{.ts,.js}'] : [],
-      migrationsRun: isProduction,
-      autoLoadEntities: !isProduction,
-      synchronize: !isProduction && !isStaging,
-      logging: !isProduction,
-      ssl: isProduction || isStaging ? process.env.DATABASE_SSL === 'true' : false,
-      extra: {
-        ssl:
-          isProduction || isStaging
-            ? {
-                rejectUnauthorized: false,
-              }
-            : null,
-      },
-      ...(isProduction && {
-        poolSize: 20,
-        acquireTimeout: 60000,
-        timeout: 60000,
-        keepConnectionAlive: true,
-        retryAttempts: 10,
-        retryDelay: 3000,
-      }),
+      host: 'localhost',
+      port: 5432,
+      username: 'pritzio_user',
+      password: 'pritzio_password',
+      database: 'pritzio',
+      autoLoadEntities: true,
+      synchronize: true,
+      logging: true,
     }),
     RedisModule.forRoot({
       type: 'single',
@@ -61,8 +48,9 @@ const isStaging = process.env.NODE_ENV === 'staging';
         }),
       },
     }),
+    AuthModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, TestController],
   providers: [AppService],
 })
 export class AppModule {}

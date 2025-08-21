@@ -1,6 +1,6 @@
 # 🏷️ Pritzio Backend
 
-[![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/node-24.6.0-brightgreen.svg)](https://nodejs.org/)
 [![NestJS](https://img.shields.io/badge/nestjs-10.x-red.svg)](https://nestjs.com/)
 [![TypeScript](https://img.shields.io/badge/typescript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -10,7 +10,7 @@
 ## 🚀 **Quick Start**
 
 ### **1. Prerequisites**
-- **Node.js** >= 18.0.0
+- **Node.js** >= 24.6.0
 - **Docker** >= 24.0.0
 - **Docker Compose** >= 2.20.0
 
@@ -67,6 +67,8 @@ npm run lint           # Lint code
 
 - **Development Guide**: [`.dev/README.md`](.dev/README.md)
 - **Production Deployment**: [`.dev/deployment/PRODUCTION_DEPLOYMENT.md`](.dev/deployment/PRODUCTION_DEPLOYMENT.md)
+- **Module Documentation**: [`.docs/README.md`](.docs/README.md)
+- **Authentication Module**: [`.docs/modules/authentication.md`](.docs/modules/authentication.md) ✅ **COMPLETADO Y PROBADO**
 - **API Reference**: [Swagger UI](http://localhost:3000/api/docs)
 
 ## 🤝 **Contributing**

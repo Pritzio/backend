@@ -20,4 +20,12 @@ export class AppController {
       version: process.env.npm_package_version || '0.0.1',
     };
   }
+
+  @Get('test-auth')
+  getTestAuth() {
+    return {
+      message: 'Auth test from AppController',
+      timestamp: new Date().toISOString(),
+    };
+  }
 }
