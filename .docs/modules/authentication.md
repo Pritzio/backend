@@ -99,9 +99,28 @@ src/auth/
 └── auth.module.ts         # Configuración del módulo
 ```
 
-## 📡 **API Reference**
+## 📡 **API Reference Completa**
 
-### **Endpoints Públicos (Sin Autenticación)**
+### **📋 Resumen de Endpoints**
+
+| Método | Endpoint | Autenticación | Roles Requeridos | Descripción |
+|--------|----------|----------------|------------------|-------------|
+| `POST` | `/api/v1/auth/register` | ❌ Público | - | Registro de usuarios |
+| `POST` | `/api/v1/auth/login` | ❌ Público | - | Inicio de sesión |
+| `POST` | `/api/v1/auth/forgot-password` | ❌ Público | - | Solicitar reset de contraseña |
+| `POST` | `/api/v1/auth/reset-password` | ❌ Público | - | Resetear contraseña |
+| `POST` | `/api/v1/auth/verify-email` | ❌ Público | - | Verificar email |
+| `POST` | `/api/v1/auth/verify-phone` | ❌ Público | - | Verificar teléfono |
+| `POST` | `/api/v1/auth/refresh` | ✅ JWT | - | Renovar token de acceso |
+| `POST` | `/api/v1/auth/logout` | ✅ JWT | - | Cerrar sesión |
+| `PUT` | `/api/v1/auth/change-password` | ✅ JWT | - | Cambiar contraseña |
+| `GET` | `/api/v1/auth/profile` | ✅ JWT | - | Obtener perfil de usuario |
+| `PUT` | `/api/v1/auth/profile` | ✅ JWT | - | Actualizar perfil de usuario |
+| `POST` | `/api/v1/auth/assign-role` | ✅ JWT | `SUPER_ADMIN`, `ADMIN` | Asignar rol a usuario |
+| `DELETE` | `/api/v1/auth/remove-role` | ✅ JWT | `SUPER_ADMIN`, `ADMIN` | Remover rol de usuario |
+| `PUT` | `/api/v1/auth/user-status` | ✅ JWT | `SUPER_ADMIN`, `ADMIN` | Cambiar estado de usuario |
+
+### **🔓 Endpoints Públicos (Sin Autenticación)**
 
 #### **1. Registro de Usuario**
 ```http
@@ -118,6 +137,23 @@ Content-Type: application/json
   "type": "individual"
 }
 ```
+
+**Parámetros Requeridos:**
+- `username`: Nombre de usuario único (3-30 caracteres)
+- `email`: Email válido y único
+- `password`: Contraseña segura (mínimo 8 caracteres, mayúsculas, minúsculas, números, símbolos)
+- `firstName`: Nombre del usuario
+- `lastName`: Apellido del usuario
+
+**Parámetros Opcionales:**
+- `phone`: Número de teléfono con formato internacional
+- `type`: Tipo de usuario (`individual`, `business`, `system`)
+
+**Validaciones:**
+- Username debe ser único
+- Email debe ser único y válido
+- Password debe cumplir requisitos de seguridad
+- Phone debe tener formato válido
 
 **Respuesta Exitosa (201):**
 ```json
@@ -140,6 +176,33 @@ Content-Type: application/json
 }
 ```
 
+**Códigos de Respuesta:**
+- `201 Created`: Usuario registrado exitosamente
+- `400 Bad Request`: Datos inválidos o faltantes
+- `409 Conflict`: Username o email ya existe
+- `500 Internal Server Error`: Error del servidor
+
+**Errores Comunes:**
+```json
+// Usuario ya existe
+{
+  "statusCode": 409,
+  "message": "Username or email already exists",
+  "error": "Conflict"
+}
+
+// Datos inválidos
+{
+  "statusCode": 400,
+  "message": [
+    "username must be longer than or equal to 3 characters",
+    "email must be an email",
+    "password is not strong enough"
+  ],
+  "error": "Bad Request"
+}
+```
+
 #### **2. Inicio de Sesión**
 ```http
 POST /api/v1/auth/login
@@ -151,6 +214,16 @@ Content-Type: application/json
 }
 ```
 
+**Parámetros:**
+- `identifier`: Email o username del usuario
+- `password`: Contraseña del usuario
+
+**Características:**
+- Acepta tanto email como username como identificador
+- Verifica que la cuenta esté activa
+- Actualiza `lastLoginAt` y `lastLoginIp`
+- Genera nuevos tokens de acceso y refresh
+
 **Respuesta Exitosa (200):**
 ```json
 {
@@ -160,6 +233,36 @@ Content-Type: application/json
   "user": {
     // ... información del usuario
   }
+}
+```
+
+**Códigos de Respuesta:**
+- `200 OK`: Login exitoso
+- `400 Bad Request`: Datos faltantes o inválidos
+- `401 Unauthorized`: Credenciales incorrectas o cuenta inactiva
+- `429 Too Many Requests`: Demasiados intentos de login
+
+**Errores Comunes:**
+```json
+// Credenciales incorrectas
+{
+  "statusCode": 401,
+  "message": "Invalid credentials",
+  "error": "Unauthorized"
+}
+
+// Cuenta inactiva
+{
+  "statusCode": 401,
+  "message": "Account is not active",
+  "error": "Unauthorized"
+}
+
+// Demasiados intentos
+{
+  "statusCode": 429,
+  "message": "Too many login attempts. Please try again later.",
+  "error": "Too Many Requests"
 }
 ```
 
@@ -191,7 +294,7 @@ Content-Type: application/json
 }
 ```
 
-### **Endpoints Protegidos (Requieren Autenticación)**
+### **🔐 Endpoints Protegidos (Requieren Autenticación)**
 
 #### **1. Cerrar Sesión**
 ```http
@@ -273,6 +376,323 @@ Content-Type: application/json
 
 **Roles Requeridos:** `SUPER_ADMIN`, `ADMIN`  
 **Permisos Requeridos:** `user:update`
+
+### **💻 Ejemplos Prácticos de Uso**
+
+#### **1. Ejemplos con cURL**
+
+##### **Registro de Usuario**
+```bash
+curl -X POST http://localhost:3000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "TestPass123!",
+    "firstName": "Test",
+    "lastName": "User",
+    "type": "individual"
+  }'
+```
+
+##### **Login de Usuario**
+```bash
+curl -X POST http://localhost:3000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "identifier": "test@example.com",
+    "password": "TestPass123!"
+  }'
+```
+
+##### **Obtener Perfil (Con Token)**
+```bash
+curl -X GET http://localhost:3000/api/v1/auth/profile \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
+```
+
+##### **Cambiar Contraseña**
+```bash
+curl -X PUT http://localhost:3000/api/v1/auth/change-password \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "currentPassword": "TestPass123!",
+    "newPassword": "NewTestPass123!"
+  }'
+```
+
+#### **2. Ejemplos con JavaScript/TypeScript**
+
+##### **Cliente de Autenticación**
+```typescript
+class AuthClient {
+  private baseUrl = 'http://localhost:3000/api/v1/auth';
+  private accessToken: string | null = null;
+  private refreshToken: string | null = null;
+
+  async register(userData: RegisterData): Promise<AuthResponse> {
+    const response = await fetch(`${this.baseUrl}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Registration failed: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    this.accessToken = data.accessToken;
+    this.refreshToken = data.refreshToken;
+    
+    return data;
+  }
+
+  async login(identifier: string, password: string): Promise<AuthResponse> {
+    const response = await fetch(`${this.baseUrl}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Login failed: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    this.accessToken = data.accessToken;
+    this.refreshToken = data.refreshToken;
+    
+    return data;
+  }
+
+  async getProfile(): Promise<UserResponse> {
+    if (!this.accessToken) {
+      throw new Error('No access token available');
+    }
+
+    const response = await fetch(`${this.baseUrl}/profile`, {
+      headers: { 'Authorization': `Bearer ${this.accessToken}` },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to get profile: ${response.statusText}`);
+    }
+    
+    return response.json();
+  }
+
+  async refreshAccessToken(): Promise<string> {
+    if (!this.refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const response = await fetch(`${this.baseUrl}/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: this.refreshToken }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to refresh token');
+    }
+    
+    const data = await response.json();
+    this.accessToken = data.accessToken;
+    
+    return data.accessToken;
+  }
+
+  async logout(): Promise<void> {
+    if (!this.accessToken) return;
+
+    await fetch(`${this.baseUrl}/logout`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${this.accessToken}` },
+    });
+    
+    this.accessToken = null;
+    this.refreshToken = null;
+  }
+}
+
+// Uso del cliente
+const authClient = new AuthClient();
+
+// Ejemplo de flujo completo
+async function authFlow() {
+  try {
+    // 1. Registrar usuario
+    const registerResponse = await authClient.register({
+      username: 'newuser',
+      email: 'newuser@example.com',
+      password: 'SecurePass123!',
+      firstName: 'New',
+      lastName: 'User',
+      type: 'individual'
+    });
+    
+    console.log('Usuario registrado:', registerResponse.user);
+    
+    // 2. Login
+    const loginResponse = await authClient.login('newuser@example.com', 'SecurePass123!');
+    console.log('Login exitoso:', loginResponse.user);
+    
+    // 3. Obtener perfil
+    const profile = await authClient.getProfile();
+    console.log('Perfil del usuario:', profile);
+    
+    // 4. Logout
+    await authClient.logout();
+    console.log('Logout exitoso');
+    
+  } catch (error) {
+    console.error('Error en el flujo de autenticación:', error);
+  }
+}
+```
+
+#### **3. Ejemplos con React Hook**
+
+```typescript
+// hooks/useAuth.ts
+import { useState, useEffect, useCallback } from 'react';
+
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  status: string;
+  roles: string[];
+  permissions: string[];
+}
+
+interface AuthState {
+  user: User | null;
+  accessToken: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+}
+
+export const useAuth = () => {
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    accessToken: localStorage.getItem('accessToken'),
+    isAuthenticated: false,
+    isLoading: true,
+  });
+
+  const login = useCallback(async (identifier: string, password: string) => {
+    try {
+      const response = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+
+      const data = await response.json();
+      
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      
+      setAuthState({
+        user: data.user,
+        accessToken: data.accessToken,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+
+      return data;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      if (authState.accessToken) {
+        await fetch('/api/v1/auth/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${authState.accessToken}` },
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      
+      setAuthState({
+        user: null,
+        accessToken: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
+    }
+  }, [authState.accessToken]);
+
+  const hasPermission = useCallback((permission: string) => {
+    return authState.user?.permissions.includes(permission) || false;
+  }, [authState.user]);
+
+  const hasRole = useCallback((role: string) => {
+    return authState.user?.roles.includes(role) || false;
+  }, [authState.user]);
+
+  useEffect(() => {
+    // Verificar token al cargar
+    if (authState.accessToken) {
+      fetch('/api/v1/auth/profile', {
+        headers: { 'Authorization': `Bearer ${authState.accessToken}` },
+      })
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          }
+          throw new Error('Invalid token');
+        })
+        .then(user => {
+          setAuthState(prev => ({
+            ...prev,
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+          }));
+        })
+        .catch(() => {
+          // Token inválido, limpiar estado
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          setAuthState(prev => ({
+            ...prev,
+            user: null,
+            accessToken: null,
+            isAuthenticated: false,
+            isLoading: false,
+          }));
+        });
+    } else {
+      setAuthState(prev => ({ ...prev, isLoading: false }));
+    }
+  }, [authState.accessToken]);
+
+  return {
+    ...authState,
+    login,
+    logout,
+    hasPermission,
+    hasRole,
+  };
+};
+```
 
 ## 💡 **Guías de Uso**
 
@@ -480,32 +900,397 @@ npm run seed:auth
 
 ### **Crear Nuevos Permisos**
 
-#### **1. Definir el Permiso en la Entidad**
+#### **1. Estructura de Permisos Existentes**
+
+El sistema ya incluye **40+ permisos** organizados en **7 categorías**:
+
+```typescript
+// src/auth/entities/permission.entity.ts
+export enum PermissionCategory {
+  USER = 'user',           // Gestión de usuarios
+  ROLE = 'role',           // Gestión de roles
+  PERMISSION = 'permission', // Gestión de permisos
+  AUTH = 'auth',           // Autenticación
+  SYSTEM = 'system',       // Sistema
+  STORE = 'store',         // Tiendas
+  PRODUCT = 'product',     // Productos
+}
+
+export enum PermissionType {
+  // Categoría USER
+  USER_CREATE = 'user:create',
+  USER_READ = 'user:read',
+  USER_UPDATE = 'user:update',
+  USER_DELETE = 'user:delete',
+  USER_LIST = 'user:list',
+  
+  // Categoría ROLE
+  ROLE_CREATE = 'role:create',
+  ROLE_READ = 'role:read',
+  ROLE_UPDATE = 'role:update',
+  ROLE_DELETE = 'role:delete',
+  ROLE_ASSIGN = 'role:assign',
+  ROLE_REMOVE = 'role:remove',
+  
+  // Categoría PERMISSION
+  PERMISSION_CREATE = 'permission:create',
+  PERMISSION_READ = 'permission:read',
+  PERMISSION_UPDATE = 'permission:update',
+  PERMISSION_DELETE = 'permission:delete',
+  PERMISSION_ASSIGN = 'permission:assign',
+  
+  // Categoría AUTH
+  AUTH_LOGIN = 'auth:login',
+  AUTH_LOGOUT = 'auth:logout',
+  AUTH_REFRESH = 'auth:refresh',
+  AUTH_CHANGE_PASSWORD = 'auth:change_password',
+  
+  // Categoría SYSTEM
+  SYSTEM_CONFIG = 'system:config',
+  SYSTEM_LOGS = 'system:logs',
+  SYSTEM_BACKUP = 'system:backup',
+  
+  // Categoría STORE
+  STORE_CREATE = 'store:create',
+  STORE_READ = 'store:read',
+  STORE_UPDATE = 'store:update',
+  STORE_DELETE = 'store:delete',
+  STORE_MANAGE = 'store:manage',
+  
+  // Categoría PRODUCT
+  PRODUCT_CREATE = 'product:create',
+  PRODUCT_READ = 'product:read',
+  PRODUCT_UPDATE = 'product:update',
+  PRODUCT_DELETE = 'product:delete',
+  PRODUCT_MANAGE = 'product:manage',
+}
+```
+
+#### **2. Agregar Nuevos Permisos**
+
+##### **Paso 1: Definir el Nuevo Permiso**
 ```typescript
 // src/auth/entities/permission.entity.ts
 export enum PermissionType {
   // ... permisos existentes
-  NEW_FEATURE_CREATE = 'new_feature:create',
-  NEW_FEATURE_READ = 'new_feature:read',
+  
+  // Nuevos permisos para tu módulo
+  INVOICE_CREATE = 'invoice:create',
+  INVOICE_READ = 'invoice:read',
+  INVOICE_UPDATE = 'invoice:update',
+  INVOICE_DELETE = 'invoice:delete',
+  INVOICE_APPROVE = 'invoice:approve',
+  INVOICE_REJECT = 'invoice:reject',
 }
 
 export enum PermissionCategory {
   // ... categorías existentes
-  NEW_FEATURE = 'new_feature',
+  
+  // Nueva categoría
+  INVOICE = 'invoice',
 }
 ```
 
-#### **2. Agregar al Seeder**
+##### **Paso 2: Agregar al Seeder**
 ```typescript
-// src/auth/seeds/auth.seeder.ts
-{
-  name: PermissionType.NEW_FEATURE_CREATE,
-  displayName: 'Create New Feature',
-  description: 'Can create new features',
-  category: PermissionCategory.NEW_FEATURE,
-  isSystem: true,
-  priority: 100,
+// src/auth/seeder/auth.seeder.ts
+async seedPermissions(): Promise<void> {
+  const permissions = [
+    // ... permisos existentes
+    
+    // Nuevos permisos de facturación
+    {
+      name: PermissionType.INVOICE_CREATE,
+      displayName: 'Create Invoice',
+      description: 'Can create new invoices',
+      category: PermissionCategory.INVOICE,
+      isSystem: true,
+      priority: 100,
+    },
+    {
+      name: PermissionType.INVOICE_READ,
+      displayName: 'Read Invoice',
+      description: 'Can view invoices',
+      category: PermissionCategory.INVOICE,
+      isSystem: true,
+      priority: 90,
+    },
+    {
+      name: PermissionType.INVOICE_UPDATE,
+      displayName: 'Update Invoice',
+      description: 'Can modify invoices',
+      category: PermissionCategory.INVOICE,
+      isSystem: true,
+      priority: 80,
+    },
+    {
+      name: PermissionType.INVOICE_DELETE,
+      displayName: 'Delete Invoice',
+      description: 'Can delete invoices',
+      category: PermissionCategory.INVOICE,
+      isSystem: true,
+      priority: 70,
+    },
+    {
+      name: PermissionType.INVOICE_APPROVE,
+      displayName: 'Approve Invoice',
+      description: 'Can approve invoices for payment',
+      category: PermissionCategory.INVOICE,
+      isSystem: true,
+      priority: 60,
+    },
+    {
+      name: PermissionType.INVOICE_REJECT,
+      displayName: 'Reject Invoice',
+      description: 'Can reject invoices',
+      category: PermissionCategory.INVOICE,
+      isSystem: true,
+      priority: 50,
+    },
+  ];
+  
+  // ... resto del código del seeder
 }
+```
+
+##### **Paso 3: Crear Nuevos Roles (Opcional)**
+```typescript
+// src/auth/seeder/auth.seeder.ts
+async seedRoles(): Promise<void> {
+  const roles = [
+    // ... roles existentes
+    
+    // Nuevo rol para facturación
+    {
+      name: 'INVOICE_MANAGER',
+      displayName: 'Invoice Manager',
+      description: 'Manages all invoice operations',
+      isSystem: true,
+      priority: 60,
+      permissions: [
+        PermissionType.INVOICE_CREATE,
+        PermissionType.INVOICE_READ,
+        PermissionType.INVOICE_UPDATE,
+        PermissionType.INVOICE_DELETE,
+        PermissionType.INVOICE_APPROVE,
+        PermissionType.INVOICE_REJECT,
+      ],
+    },
+    {
+      name: 'INVOICE_VIEWER',
+      displayName: 'Invoice Viewer',
+      description: 'Can only view invoices',
+      isSystem: true,
+      priority: 70,
+      permissions: [
+        PermissionType.INVOICE_READ,
+      ],
+    },
+  ];
+  
+  // ... resto del código del seeder
+}
+```
+
+#### **3. Aplicar los Nuevos Permisos**
+
+##### **Paso 1: Ejecutar el Seeder**
+```bash
+# Ejecutar el seeder para crear nuevos permisos y roles
+npm run seed:auth
+```
+
+##### **Paso 2: Verificar en la Base de Datos**
+```sql
+-- Verificar que se crearon los nuevos permisos
+SELECT name, display_name, category, is_system 
+FROM permissions 
+WHERE category = 'invoice';
+
+-- Verificar que se crearon los nuevos roles
+SELECT name, display_name, is_system 
+FROM roles 
+WHERE name IN ('INVOICE_MANAGER', 'INVOICE_VIEWER');
+
+-- Verificar la relación rol-permiso
+SELECT r.name as role_name, p.name as permission_name
+FROM roles r
+JOIN role_permissions rp ON r.id = rp.role_id
+JOIN permissions p ON rp.permission_id = p.id
+WHERE r.name IN ('INVOICE_MANAGER', 'INVOICE_VIEWER');
+```
+
+#### **4. Usar los Nuevos Permisos en el Código**
+
+##### **En Controllers**
+```typescript
+// src/invoice/invoice.controller.ts
+import { Controller, Post, Get, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { Permissions } from '../auth/decorators/permissions.decorator';
+import { PermissionType } from '../auth/entities/permission.entity';
+
+@Controller('invoice')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+export class InvoiceController {
+  
+  @Post()
+  @Permissions(PermissionType.INVOICE_CREATE)
+  async createInvoice(@Body() createInvoiceDto: CreateInvoiceDto) {
+    // Lógica para crear factura
+  }
+  
+  @Get()
+  @Permissions(PermissionType.INVOICE_READ)
+  async getAllInvoices() {
+    // Lógica para obtener facturas
+  }
+  
+  @Put(':id')
+  @Permissions(PermissionType.INVOICE_UPDATE)
+  async updateInvoice(@Param('id') id: string, @Body() updateInvoiceDto: UpdateInvoiceDto) {
+    // Lógica para actualizar factura
+  }
+  
+  @Delete(':id')
+  @Permissions(PermissionType.INVOICE_DELETE)
+  async deleteInvoice(@Param('id') id: string) {
+    // Lógica para eliminar factura
+  }
+  
+  @Post(':id/approve')
+  @Permissions(PermissionType.INVOICE_APPROVE)
+  async approveInvoice(@Param('id') id: string) {
+    // Lógica para aprobar factura
+  }
+  
+  @Post(':id/reject')
+  @Permissions(PermissionType.INVOICE_REJECT)
+  async rejectInvoice(@Param('id') id: string, @Body() rejectDto: RejectInvoiceDto) {
+    // Lógica para rechazar factura
+  }
+}
+```
+
+##### **En Servicios**
+```typescript
+// src/invoice/invoice.service.ts
+import { Injectable, ForbiddenException } from '@nestjs/common';
+import { PermissionType } from '../auth/entities/permission.entity';
+
+@Injectable()
+export class InvoiceService {
+  
+  async createInvoice(userId: string, createInvoiceDto: CreateInvoiceDto) {
+    // Verificar permisos manualmente si es necesario
+    const user = await this.userService.findById(userId);
+    const hasPermission = this.authService.hasPermission(user, PermissionType.INVOICE_CREATE);
+    
+    if (!hasPermission) {
+      throw new ForbiddenException('No tienes permisos para crear facturas');
+    }
+    
+    // Lógica para crear factura
+  }
+  
+  async approveInvoice(userId: string, invoiceId: string) {
+    const user = await this.userService.findById(userId);
+    const hasPermission = this.authService.hasPermission(user, PermissionType.INVOICE_APPROVE);
+    
+    if (!hasPermission) {
+      throw new ForbiddenException('No tienes permisos para aprobar facturas');
+    }
+    
+    // Lógica para aprobar factura
+  }
+}
+```
+
+#### **5. Testing de Permisos**
+
+##### **Test de Permisos**
+```typescript
+// src/invoice/invoice.controller.spec.ts
+import { Test, TestingModule } from '@nestjs/testing';
+import { InvoiceController } from './invoice.controller';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+
+describe('InvoiceController', () => {
+  let controller: InvoiceController;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [InvoiceController],
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(PermissionsGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
+
+    controller = module.get<InvoiceController>(InvoiceController);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+
+  describe('createInvoice', () => {
+    it('should require INVOICE_CREATE permission', () => {
+      // Test de permisos
+    });
+  });
+});
+```
+
+#### **6. Mejores Prácticas para Permisos**
+
+##### **Nomenclatura de Permisos**
+```typescript
+// Formato recomendado: resource:action
+export enum PermissionType {
+  // ✅ Correcto
+  USER_CREATE = 'user:create',
+  INVOICE_APPROVE = 'invoice:approve',
+  STORE_MANAGE = 'store:manage',
+  
+  // ❌ Evitar
+  CREATE_USER = 'create_user',           // No sigue el patrón
+  CAN_APPROVE_INVOICES = 'can_approve', // Muy específico
+  MANAGE_STORE = 'manage_store',         // Inconsistente
+}
+```
+
+##### **Categorías de Permisos**
+```typescript
+// Agrupar permisos relacionados
+export enum PermissionCategory {
+  USER = 'user',           // Usuarios
+  ROLE = 'role',           // Roles
+  PERMISSION = 'permission', // Permisos
+  AUTH = 'auth',           // Autenticación
+  SYSTEM = 'system',       // Sistema
+  STORE = 'store',         // Tiendas
+  PRODUCT = 'product',     // Productos
+  INVOICE = 'invoice',     // Facturación
+  REPORT = 'report',       // Reportes
+  ANALYTICS = 'analytics', // Analíticas
+}
+```
+
+##### **Prioridades de Permisos**
+```typescript
+// Sistema de prioridades (menor número = mayor prioridad)
+const permissionPriorities = {
+  SYSTEM_ADMIN: 10,        // Acceso total al sistema
+  USER_MANAGE: 20,         // Gestión de usuarios
+  ROLE_MANAGE: 30,         // Gestión de roles
+  INVOICE_APPROVE: 60,     // Aprobar facturas
+  INVOICE_VIEW: 90,        // Ver facturas
+  BASIC_ACCESS: 100,       // Acceso básico
+};
 ```
 
 ### **Extender el Sistema de Usuarios**
