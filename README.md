@@ -67,6 +67,17 @@ npm run lint           # Lint code
 
 - **Module Documentation**: [`.docs/README.md`](.docs/README.md)
 - **Authentication Module**: [`.docs/modules/authentication.md`](.docs/modules/authentication.md) ✅ **COMPLETADO Y PROBADO**
+- **Users Module**: [`.docs/modules/users.md`](.docs/modules/users.md) ✅ **IMPLEMENTADO Y DOCUMENTADO**
+  - Perfiles de usuario detallados
+  - Sistema de preferencias personalizable
+  - Historial de actividad y auditoría
+  - Búsqueda de usuarios con controles de privacidad
+  - **18 endpoints REST** (12 regulares + 6 administrativos)
+  - **Panel administrativo** para SUPER_ADMIN y ADMIN
+  - **Analytics y reportes** de usuarios
+  - **Gestión de estado** de cuentas (activo, suspendido, baneado)
+  - **Eliminación pasiva** con auditoría completa
+  - **Restauración de usuarios** eliminados (SUPER_ADMIN)
 - **Environment Configuration**: [`.docs/setup/environment-configuration.md`](.docs/setup/environment-configuration.md) ✅ **DOCUMENTADO**
 - **Docker Setup**: [`.docs/setup/docker-setup.md`](.docs/setup/docker-setup.md)
 - **Security Setup**: [`.docs/setup/security-setup.md`](.docs/setup/security-setup.md) ✅ **IMPLEMENTADO Y FUNCIONANDO**

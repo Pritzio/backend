@@ -42,6 +42,8 @@ async function bootstrap() {
       .setDescription('Backend API for Pritzio - Price comparison platform')
       .setVersion('1.0')
       .addBearerAuth()
+      .addTag('Authentication', 'User authentication and authorization endpoints')
+      .addTag('Users', 'User profile management, preferences, and activity tracking')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

@@ -5,6 +5,7 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
+import { UsersModule } from './users/users.module';
 import { SecurityMiddleware } from './common/security/middleware/security.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -56,6 +57,7 @@ const isStaging = process.env.NODE_ENV === 'staging';
     }),
     AuthModule,
     CommonModule,
+    UsersModule,
   ],
   controllers: [AppController, TestController],
   providers: [AppService],

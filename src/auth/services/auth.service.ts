@@ -24,6 +24,8 @@ import {
   UpdateUserStatusDto,
 } from '../dto/auth.dto';
 import { AuthResponseDto, UserResponseDto, MessageResponseDto } from '../dto/auth-response.dto';
+import { UsersSeeder } from '../../users/seeders/users.seeder';
+import { ActivityType, ActivityLevel } from '../../users/entities/user-activity.entity';
 
 @Injectable()
 export class AuthService {
@@ -36,6 +38,7 @@ export class AuthService {
     private readonly permissionRepository: Repository<Permission>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly usersSeeder: UsersSeeder,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
@@ -66,6 +69,24 @@ export class AuthService {
     }
 
     const savedUser = await this.userRepository.save(user);
+
+    // Create default profile and preferences for new user
+    try {
+      await this.usersSeeder.createDefaultProfile(savedUser.id, {
+        firstName: registerDto.firstName,
+        lastName: registerDto.lastName,
+      });
+      
+      await this.usersSeeder.createDefaultPreferences(savedUser.id);
+      
+      await this.usersSeeder.logInitialActivity(
+        savedUser.id,
+        ActivityType.LOGIN,
+        'User registered and initial profile created'
+      );
+    } catch (error) {
+      console.warn('Failed to create default user profile/preferences:', error.message);
+    }
 
     const tokens = this.jwtService.generateTokenPair(savedUser);
 
@@ -99,6 +120,17 @@ export class AuthService {
 
     user.lastLoginAt = new Date();
     await this.userRepository.save(user);
+
+    // Log login activity
+    try {
+      await this.usersSeeder.logInitialActivity(
+        user.id,
+        ActivityType.LOGIN,
+        'User logged in successfully'
+      );
+    } catch (error) {
+      console.warn('Failed to log login activity:', error.message);
+    }
 
     const tokens = this.jwtService.generateTokenPair(user);
 
@@ -137,6 +169,17 @@ export class AuthService {
       refreshToken: undefined,
       refreshTokenExpiresAt: undefined,
     });
+
+    // Log logout activity
+    try {
+      await this.usersSeeder.logInitialActivity(
+        userId,
+        ActivityType.LOGOUT,
+        'User logged out successfully'
+      );
+    } catch (error) {
+      console.warn('Failed to log logout activity:', error.message);
+    }
 
     return { message: 'Successfully logged out' };
   }

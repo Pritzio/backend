@@ -12,10 +12,13 @@ Esta carpeta contiene la documentación de uso de todos los módulos y features 
   - API endpoints completos
   - Sistema RBAC completamente funcional
 
-### **👥 Gestión de Usuarios** *(Próximamente)*
-- **Users Module** - Gestión completa de usuarios
-- **Profiles Module** - Perfiles de usuario extendidos
-- **User Management** - Administración de usuarios
+### **👥 Gestión de Usuarios**
+- **[Users Module](modules/users.md)** - Gestión completa de usuarios ✅ **IMPLEMENTADO Y DOCUMENTADO**
+  - Perfiles de usuario detallados
+  - Sistema de preferencias personalizable
+  - Historial de actividad y auditoría
+  - Búsqueda de usuarios con controles de privacidad
+  - 12 endpoints REST completamente funcionales
 
 ### **🏪 Gestión de Tiendas** *(Próximamente)*
 - **Stores Module** - Gestión de tiendas y comercios

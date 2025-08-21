@@ -101,16 +101,33 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  // Soft delete fields
+  @Column({ type: 'boolean', default: false })
+  isDeleted: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  deletedAt: Date;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  deletedBy: string;
+
+  @Column({ type: 'text', nullable: true })
+  deletionReason: string;
+
   // Virtual properties for computed fields
   get fullName(): string {
     return `${this.firstName} ${this.lastName}`;
   }
 
   get isActive(): boolean {
-    return this.status === UserStatus.ACTIVE;
+    return this.status === UserStatus.ACTIVE && !this.isDeleted;
   }
 
   get isVerified(): boolean {
     return this.emailVerified && this.phoneVerified;
+  }
+
+  get isSoftDeleted(): boolean {
+    return this.isDeleted;
   }
 }

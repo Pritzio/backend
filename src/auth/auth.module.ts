@@ -16,11 +16,13 @@ import { AuthSeeder } from './seeds/auth.seeder';
 import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
 import { Permission } from './entities/permission.entity';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Role, Permission]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
+    UsersModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
