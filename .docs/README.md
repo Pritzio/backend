@@ -20,10 +20,13 @@ Esta carpeta contiene la documentación de uso de todos los módulos y features 
   - Búsqueda de usuarios con controles de privacidad
   - 12 endpoints REST completamente funcionales
 
-### **🏪 Gestión de Tiendas** *(Próximamente)*
-- **Stores Module** - Gestión de tiendas y comercios
-- **Store Locations** - Ubicaciones y geolocalización
-- **Store Management** - Administración de tiendas
+### **🏪 Gestión de Tiendas**
+- **[Stores Module](./modules/stores.md)** - Gestión completa de tiendas ✅ **IMPLEMENTADO Y DOCUMENTADO**
+  - Tiendas online, físicas e híbridas
+  - Ubicaciones físicas con coordenadas
+  - Sistema de categorías y verificación
+  - Analytics y reportes de tiendas
+  - 15 endpoints REST completamente funcionales
 
 ### **📦 Gestión de Productos** *(Próximamente)*
 - **Products Module** - Catálogo de productos

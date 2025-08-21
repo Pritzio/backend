@@ -78,6 +78,15 @@ npm run lint           # Lint code
   - **Gestión de estado** de cuentas (activo, suspendido, baneado)
   - **Eliminación pasiva** con auditoría completa
   - **Restauración de usuarios** eliminados (SUPER_ADMIN)
+- **Stores Module**: [`.docs/modules/stores.md`](.docs/modules/stores.md) ✅ **IMPLEMENTADO Y DOCUMENTADO**
+  - Gestión completa de tiendas (online, física, híbrida)
+  - Ubicaciones físicas con coordenadas y precios
+  - Sistema de categorías y verificación de tiendas
+  - **15 endpoints REST** (gestión de tiendas, ubicaciones, analytics)
+  - **Control de permisos** por rol (SUPER_ADMIN, ADMIN, STORE_ADMIN)
+  - **Analytics avanzados** de tiendas y productos
+  - **Seeding automático** con datos de ejemplo
+  - **Filtros y búsqueda** avanzada de tiendas
 - **Environment Configuration**: [`.docs/setup/environment-configuration.md`](.docs/setup/environment-configuration.md) ✅ **DOCUMENTADO**
 - **Docker Setup**: [`.docs/setup/docker-setup.md`](.docs/setup/docker-setup.md)
 - **Security Setup**: [`.docs/setup/security-setup.md`](.docs/setup/security-setup.md) ✅ **IMPLEMENTADO Y FUNCIONANDO**

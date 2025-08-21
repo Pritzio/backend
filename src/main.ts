@@ -44,6 +44,10 @@ async function bootstrap() {
       .addBearerAuth()
       .addTag('Authentication', 'User authentication and authorization endpoints')
       .addTag('Users', 'User profile management, preferences, and activity tracking')
+      .addTag('Stores', 'Store management, physical locations, and analytics')
+      .addTag('Products', 'Master product management, categories, and brands')
+      .addTag('Store Products', 'Store-specific products with scraping and price tracking')
+      .addTag('Physical Locations', 'Geolocation, business hours, and capacity management')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

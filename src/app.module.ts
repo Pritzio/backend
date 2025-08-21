@@ -6,6 +6,10 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { UsersModule } from './users/users.module';
+import { StoresModule } from './stores/stores.module';
+import { ProductsModule } from './products/products.module';
+import { StoreProductsModule } from './store-products/store-products.module';
+import { PhysicalLocationsModule } from './physical-locations/physical-locations.module';
 import { SecurityMiddleware } from './common/security/middleware/security.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -58,6 +62,10 @@ const isStaging = process.env.NODE_ENV === 'staging';
     AuthModule,
     CommonModule,
     UsersModule,
+    StoresModule,
+    ProductsModule,
+    StoreProductsModule,
+    PhysicalLocationsModule,
   ],
   controllers: [AppController, TestController],
   providers: [AppService],
