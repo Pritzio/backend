@@ -6,8 +6,8 @@ import { PhysicalLocation, LocationStatus } from '../entities/physical-location.
 import { StoreProduct, StoreProductStatus } from '../entities/store-product.entity';
 import { CreateStoreDto } from '../dto/create-store.dto';
 import { UpdateStoreDto } from '../dto/update-store.dto';
-import { CreatePhysicalLocationDto } from '../dto/create-physical-location.dto';
-import { UpdatePhysicalLocationDto } from '../dto/update-physical-location.dto';
+import { CreateStoreLocationDto } from '../dto/create-store-location.dto';
+import { UpdateStoreLocationDto } from '../dto/update-store-location.dto';
 import { IStoreResponse, IStoreSummary, IStoreListResponse, IStoreFilters, IStoreAnalytics } from '../interfaces/store.interface';
 
 @Injectable()
@@ -240,7 +240,7 @@ export class StoresService {
 
   // ===== PHYSICAL LOCATION MANAGEMENT =====
 
-  async createPhysicalLocation(createLocationDto: CreatePhysicalLocationDto, currentUser: any): Promise<PhysicalLocation> {
+  async createPhysicalLocation(createLocationDto: CreateStoreLocationDto, currentUser: any): Promise<PhysicalLocation> {
     // Verify store exists and user has access
     const store = await this.storeRepository.findOne({
       where: { id: createLocationDto.storeId },
@@ -262,7 +262,7 @@ export class StoresService {
 
   async updatePhysicalLocation(
     locationId: string,
-    updateLocationDto: UpdatePhysicalLocationDto,
+    updateLocationDto: UpdateStoreLocationDto,
     currentUser: any
   ): Promise<PhysicalLocation> {
     const location = await this.locationRepository.findOne({

@@ -16,14 +16,27 @@ async function bootstrap() {
   });
 
   const prefix = process.env.API_PREFIX || '';
-  console.log('Setting global prefix:', prefix);
   app.setGlobalPrefix(prefix);
 
   const corsOrigins = process.env.CORS_ORIGINS?.split(',') || [];
-  app.enableCors({
-    origin: corsOrigins,
-    credentials: true,
-  });
+  
+  if (process.env.NODE_ENV === 'development' || corsOrigins.length === 0) {
+    app.enableCors({
+      origin: '*',
+      credentials: false,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
+    });
+  } else {
+    app.enableCors({
+      origin: corsOrigins,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    });
+  }
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -48,6 +61,7 @@ async function bootstrap() {
       .addTag('Products', 'Master product management, categories, and brands')
       .addTag('Store Products', 'Store-specific products with scraping and price tracking')
       .addTag('Physical Locations', 'Geolocation, business hours, and capacity management')
+      .addTag('Scraping', 'Web scraping endpoints for product data extraction')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

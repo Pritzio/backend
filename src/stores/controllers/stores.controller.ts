@@ -33,8 +33,8 @@ import { Roles } from '../../auth/decorators/roles.decorator';
 import { StoresService } from '../services/stores.service';
 import { CreateStoreDto } from '../dto/create-store.dto';
 import { UpdateStoreDto } from '../dto/update-store.dto';
-import { CreatePhysicalLocationDto } from '../dto/create-physical-location.dto';
-import { UpdatePhysicalLocationDto } from '../dto/update-physical-location.dto';
+import { CreateStoreLocationDto } from '../dto/create-store-location.dto';
+import { UpdateStoreLocationDto } from '../dto/update-store-location.dto';
 import { Store, StoreType, StoreStatus, StoreCategory } from '../entities/store.entity';
 import { PhysicalLocation } from '../entities/physical-location.entity';
 import { IStoreResponse, IStoreListResponse, IStoreAnalytics } from '../interfaces/store.interface';
@@ -231,7 +231,7 @@ export class StoresController {
     description: 'Add a new physical location to a specific store. Access depends on user role.',
   })
   @ApiParam({ name: 'storeId', description: 'Store ID (UUID)' })
-  @ApiBody({ type: CreatePhysicalLocationDto })
+  @ApiBody({ type: CreateStoreLocationDto })
   @ApiCreatedResponse({
     description: 'Physical location created successfully',
     type: PhysicalLocation,
@@ -250,7 +250,7 @@ export class StoresController {
   })
   async createPhysicalLocation(
     @Param('storeId') storeId: string,
-    @Body() createLocationDto: CreatePhysicalLocationDto,
+    @Body() createLocationDto: CreateStoreLocationDto,
     @Request() req: any,
   ): Promise<PhysicalLocation> {
     // Ensure the storeId in the DTO matches the path parameter
@@ -264,7 +264,7 @@ export class StoresController {
     description: 'Update a specific physical location. Access depends on user role.',
   })
   @ApiParam({ name: 'locationId', description: 'Physical Location ID (UUID)' })
-  @ApiBody({ type: UpdatePhysicalLocationDto })
+  @ApiBody({ type: UpdateStoreLocationDto })
   @ApiOkResponse({
     description: 'Physical location updated successfully',
     type: PhysicalLocation,
@@ -283,7 +283,7 @@ export class StoresController {
   })
   async updatePhysicalLocation(
     @Param('locationId') locationId: string,
-    @Body() updateLocationDto: UpdatePhysicalLocationDto,
+    @Body() updateLocationDto: UpdateStoreLocationDto,
     @Request() req: any,
   ): Promise<PhysicalLocation> {
     return this.storesService.updatePhysicalLocation(locationId, updateLocationDto, req.user);
