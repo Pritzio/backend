@@ -27,7 +27,6 @@ import { Permissions } from '../decorators/permissions.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import {
   LoginDto,
-  RegisterDto,
   RefreshTokenDto,
   ForgotPasswordDto,
   ResetPasswordDto,
@@ -39,6 +38,8 @@ import {
   RemoveRoleDto,
   UpdateUserStatusDto,
 } from '../dto/auth.dto';
+import { RegisterDto } from '../dto/register.dto';
+
 import {
   AuthResponseDto,
   UserResponseDto,
@@ -74,6 +75,8 @@ export class AuthController {
       return { message: `Auth module is working but hash failed: ${error.message}` };
     }
   }
+
+
 
 
 

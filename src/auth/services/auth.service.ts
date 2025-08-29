@@ -42,6 +42,11 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+    // Validate terms and conditions acceptance
+    if (!registerDto.acceptTermsAndConditions) {
+      throw new BadRequestException('Terms and conditions must be accepted to register');
+    }
+
     const existingUser = await this.userRepository.findOne({
       where: [
         { email: registerDto.email },
@@ -61,6 +66,8 @@ export class AuthService {
       password: hashedPassword,
       status: UserStatus.PENDING_VERIFICATION,
       type: registerDto.type || UserType.INDIVIDUAL,
+      termsAccepted: true,
+      termsAcceptedAt: new Date(),
     });
 
     const defaultRole = await this.getDefaultRole(registerDto.type || UserType.INDIVIDUAL);

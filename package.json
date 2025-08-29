@@ -23,6 +23,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed:auth": "ts-node src/auth/seeds/run-seeder.ts",
     "seed:auth:prod": "node dist/auth/seeds/run-seeder.js",
+    "seed:super-admin": "ts-node src/auth/seeds/create-super-admin.ts",
     "logs:on": "./scripts/logs-control.sh on",
     "logs:off": "./scripts/logs-control.sh off",
     "logs:typeorm-on": "./scripts/logs-control.sh typeorm-on",

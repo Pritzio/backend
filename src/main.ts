@@ -1,6 +1,6 @@
 require('dotenv').config();
 import { NestFactory } from '@nestjs/core';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe, RequestMethod } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
@@ -16,7 +16,14 @@ async function bootstrap() {
   });
 
   const prefix = process.env.API_PREFIX || '';
-  app.setGlobalPrefix(prefix);
+  if (prefix) {
+    app.setGlobalPrefix(prefix, {
+      exclude: [
+        { path: 'health', method: RequestMethod.GET },
+        { path: '', method: RequestMethod.GET },
+      ],
+    });
+  }
 
   const corsOrigins = process.env.CORS_ORIGINS?.split(',') || [];
   
@@ -41,7 +48,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
+      forbidNonWhitelisted: false, // Temporarily disable to debug
       transform: true,
       transformOptions: {
         enableImplicitConversion: true,

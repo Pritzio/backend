@@ -199,6 +199,77 @@ export class UsersController {
     return this.usersService.searchUsers(query.trim(), user.id, limit);
   }
 
+  // ===== GENERAL USER ENDPOINTS =====
+
+  @Get()
+  @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Permissions(PermissionType.USER_LIST)
+  @ApiOperation({ summary: 'List all users', description: 'Get a list of all users with pagination (Admin only)' })
+  @ApiQuery({ name: 'page', description: 'Page number', required: false, type: Number })
+  @ApiQuery({ name: 'limit', description: 'Items per page', required: false, type: Number })
+  @ApiQuery({ name: 'status', description: 'Filter by user status', required: false })
+  @ApiQuery({ name: 'role', description: 'Filter by user role', required: false })
+  @ApiResponse({ status: 200, description: 'Users list retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Insufficient permissions' })
+  async getUsers(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 20,
+    @Query('status') status?: string,
+    @Query('role') role?: string,
+  ) {
+    return this.usersService.getAllUsers(page, limit, status, role);
+  }
+
+  @Get(':id')
+  @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Permissions(PermissionType.USER_READ)
+  @ApiOperation({ summary: 'Get user by ID', description: 'Get complete user information by ID (Admin only)' })
+  @ApiParam({ name: 'id', description: 'User ID to get information for' })
+  @ApiResponse({ status: 200, description: 'User information retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Insufficient permissions' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getUserById(@Param('id') id: string) {
+    return this.usersService.getAdminUserInfo(id);
+  }
+
+  @Put(':id')
+  @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Permissions(PermissionType.USER_UPDATE)
+  @ApiOperation({ summary: 'Update user by ID', description: 'Update user information by ID (Admin only)' })
+  @ApiParam({ name: 'id', description: 'User ID to update' })
+  @ApiResponse({ status: 200, description: 'User updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Insufficient permissions' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async updateUserById(
+    @Param('id') id: string,
+    @Body() updateUserProfileDto: UpdateUserProfileDto,
+  ) {
+    return this.usersService.updateUserProfile(id, updateUserProfileDto);
+  }
+
+  @Delete(':id')
+  @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Permissions(PermissionType.USER_DELETE)
+  @ApiOperation({ summary: 'Delete user by ID', description: 'Soft delete a user account by ID (Admin only)' })
+  @ApiParam({ name: 'id', description: 'User ID to delete' })
+  @ApiBody({ type: SoftDeleteUserDto })
+  @ApiResponse({ status: 200, description: 'User soft deleted successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Insufficient permissions' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async deleteUserById(
+    @Param('id') id: string,
+    @Body() softDeleteDto: SoftDeleteUserDto,
+    @CurrentUser() currentUser: any,
+  ) {
+    return this.usersService.deleteUser(id, currentUser, softDeleteDto);
+  }
+
   @Get('activity')
   @Roles(RoleType.CUSTOMER, RoleType.STORE_EMPLOYEE, RoleType.STORE_MANAGER, RoleType.STORE_ADMIN, RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.USER_READ)

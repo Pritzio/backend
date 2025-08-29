@@ -51,13 +51,9 @@ export class SecurityMiddleware implements NestMiddleware {
 
     this.corsMiddleware = cors({
       origin: (origin, callback) => {
-        const allowedOrigins = [
-          'http://localhost:3000',
-          'http://localhost:3001',
-          'http://localhost:8080',
-          'https://pritzio.com',
-          'https://app.pritzio.com',
-        ];
+        // Obtener orígenes permitidos desde variable de entorno
+        const corsOrigin = this.configService.get<string>('CORS_ORIGIN');
+        const allowedOrigins = corsOrigin ? corsOrigin.split(',').map(o => o.trim()) : [];
 
         // Allow requests with no origin (like mobile apps or Postman)
         if (!origin) {

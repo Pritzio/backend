@@ -33,7 +33,7 @@ const isStaging = process.env.NODE_ENV === 'staging';
       password: 'pritzio_password',
       database: 'pritzio',
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: false, // Deshabilitado temporalmente
       logging: process.env.TYPEORM_LOGGING === 'true' ? true : false,
       ...(process.env.TYPEORM_LOGGING === 'true' && {
         logger: 'advanced-console',
@@ -76,6 +76,6 @@ export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(SecurityMiddleware)
-      .forRoutes('*');
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

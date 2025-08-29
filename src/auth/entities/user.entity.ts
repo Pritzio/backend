@@ -61,6 +61,12 @@ export class User {
   @Column({ type: 'boolean', default: false })
   phoneVerified: boolean;
 
+  @Column({ type: 'boolean', default: false })
+  termsAccepted: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  termsAcceptedAt: Date;
+
   @Column({ type: 'timestamp', nullable: true })
   emailVerifiedAt: Date;
 
