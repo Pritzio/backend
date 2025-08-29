@@ -69,6 +69,7 @@ async function bootstrap() {
       .addTag('Store Products', 'Store-specific products with scraping and price tracking')
       .addTag('Physical Locations', 'Geolocation, business hours, and capacity management')
       .addTag('Scraping', 'Web scraping endpoints for product data extraction')
+      .addTag('Statistics', 'System statistics and analytics for users, stores, and products')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

@@ -11,6 +11,7 @@ import { ProductsModule } from './products/products.module';
 import { StoreProductsModule } from './store-products/store-products.module';
 import { PhysicalLocationsModule } from './physical-locations/physical-locations.module';
 import { ScrapingModule } from './scraping/scraping.module';
+import { StatisticsModule } from './statistics/statistics.module';
 import { SecurityMiddleware } from './common/security/middleware/security.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -68,6 +69,7 @@ const isStaging = process.env.NODE_ENV === 'staging';
     StoreProductsModule,
     PhysicalLocationsModule,
     ScrapingModule,
+    StatisticsModule,
   ],
   controllers: [AppController, TestController],
   providers: [AppService],
