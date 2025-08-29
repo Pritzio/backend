@@ -36,7 +36,8 @@
     "version:bump": "node scripts/version-bump.js",
     "version:create": "npm run version:analyze && npm run version:bump",
     "version:internal": "node scripts/version-internal.js",
-    "version:release": "npm run version:create"
+    "version:release": "npm run version:create",
+    "github:sync": "./scripts/verify-github-sync.sh"
   },
   "dependencies": {
     "@nestjs-modules/ioredis": "^2.0.2",
