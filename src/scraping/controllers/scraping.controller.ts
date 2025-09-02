@@ -34,7 +34,8 @@ export class ScrapingController {
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
   @ApiOperation({
     summary: 'Capture HTML content from any web page',
-    description: 'Simulates a browser visit to any URL and returns the raw HTML content for external processing.',
+    description:
+      'Simulates a browser visit to any URL and returns the raw HTML content for external processing.',
   })
   @ApiQuery({
     name: 'url',
@@ -45,7 +46,8 @@ export class ScrapingController {
   })
   @ApiQuery({
     name: 'timeout',
-    description: 'Timeout in milliseconds for waiting for content (5000-120000)',
+    description:
+      'Timeout in milliseconds for waiting for content (5000-120000)',
     example: 30000,
     required: false,
     type: Number,
@@ -60,7 +62,8 @@ export class ScrapingController {
   @ApiQuery({
     name: 'userAgent',
     description: 'Custom user agent string',
-    example: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+    example:
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
     required: false,
     type: String,
   })
@@ -87,9 +90,11 @@ export class ScrapingController {
   })
   async scrapeUrl(@Query() query: ScrapeUrlDto): Promise<ScrapingResponseDto> {
     try {
-
       if (!query.url) {
-        throw new HttpException('URL parameter is required', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'URL parameter is required',
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       // Perform scraping
@@ -103,9 +108,11 @@ export class ScrapingController {
       }
 
       return result;
-
     } catch (error) {
-      this.logger.error(`Scraping error for ${query.url}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Scraping error for ${query.url}: ${error.message}`,
+        error.stack,
+      );
 
       if (error instanceof HttpException) {
         throw error;
@@ -122,7 +129,8 @@ export class ScrapingController {
   @Get('health')
   @ApiOperation({
     summary: 'Check scraping service health',
-    description: 'Verifies that the scraping service is working correctly by testing browser launch capabilities.',
+    description:
+      'Verifies that the scraping service is working correctly by testing browser launch capabilities.',
   })
   @ApiResponse({
     status: 200,
@@ -170,7 +178,8 @@ export class ScrapingController {
   @Get('info')
   @ApiOperation({
     summary: 'Get scraping service information',
-    description: 'Returns information about the scraping service configuration and capabilities.',
+    description:
+      'Returns information about the scraping service configuration and capabilities.',
   })
   @ApiResponse({
     status: 200,
@@ -185,9 +194,16 @@ export class ScrapingController {
           properties: {
             browser: { type: 'string', example: 'chromium' },
             headless: { type: 'boolean', example: true },
-            supportedDomains: { type: 'array', items: { type: 'string' }, example: ['jumbo.cl'] },
+            supportedDomains: {
+              type: 'array',
+              items: { type: 'string' },
+              example: ['jumbo.cl'],
+            },
             defaultTimeout: { type: 'number', example: 30000 },
-            defaultSelector: { type: 'string', example: '[data-cnstrc-item-id]' },
+            defaultSelector: {
+              type: 'string',
+              example: '[data-cnstrc-item-id]',
+            },
           },
         },
         timestamp: { type: 'string', example: '2025-01-21T10:30:00.000Z' },

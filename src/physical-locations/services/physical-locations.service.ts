@@ -1,20 +1,33 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder, Like, Between, In } from 'typeorm';
-import { PhysicalLocation, LocationStatus, LocationType } from '../entities/physical-location.entity';
-import { CreatePhysicalLocationDto, UpdatePhysicalLocationDto, LocationSearchDto } from '../dto';
-import { 
-  IPhysicalLocationResponse, 
-  IPhysicalLocationSummary, 
-  IPhysicalLocationFilter, 
-  IPhysicalLocationAnalytics, 
+import {
+  PhysicalLocation,
+  LocationStatus,
+  LocationType,
+} from '../entities/physical-location.entity';
+import {
+  CreatePhysicalLocationDto,
+  UpdatePhysicalLocationDto,
+  LocationSearchDto,
+} from '../dto';
+import {
+  IPhysicalLocationResponse,
+  IPhysicalLocationSummary,
+  IPhysicalLocationFilter,
+  IPhysicalLocationAnalytics,
   IPhysicalLocationSearchResult,
   INearbyLocationsResult,
   ILocationDistanceResult,
   ILocationPriceComparison,
   ILocationBusinessHours,
   ILocationCapacityStatus,
-  ILocationAmenitiesInfo
+  ILocationAmenitiesInfo,
 } from '../interfaces/physical-location.interface';
 import { Store } from '../../stores/entities/store.entity';
 import { User } from '../../auth/entities/user.entity';
@@ -36,7 +49,7 @@ export class PhysicalLocationsService {
 
   async createPhysicalLocation(
     createPhysicalLocationDto: CreatePhysicalLocationDto,
-    user: User
+    user: User,
   ): Promise<IPhysicalLocationResponse> {
     // Check if user has permission to create locations for this store
     await this.checkStorePermission(createPhysicalLocationDto.storeId, user);
@@ -46,20 +59,23 @@ export class PhysicalLocationsService {
       where: {
         storeId: createPhysicalLocationDto.storeId,
         latitude: createPhysicalLocationDto.latitude,
-        longitude: createPhysicalLocationDto.longitude
-      }
+        longitude: createPhysicalLocationDto.longitude,
+      },
     });
 
     if (existingLocation) {
-      throw new BadRequestException('A location with these coordinates already exists for this store');
+      throw new BadRequestException(
+        'A location with these coordinates already exists for this store',
+      );
     }
 
     const physicalLocation = this.physicalLocationRepository.create({
       ...createPhysicalLocationDto,
-      createdBy: user.id
+      createdBy: user.id,
     });
 
-    const savedLocation = await this.physicalLocationRepository.save(physicalLocation);
+    const savedLocation =
+      await this.physicalLocationRepository.save(physicalLocation);
     return this.mapToResponse(savedLocation);
   }
 
@@ -67,10 +83,10 @@ export class PhysicalLocationsService {
     user: User,
     filter: IPhysicalLocationFilter = {},
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
   ): Promise<IPhysicalLocationSearchResult> {
     const queryBuilder = this.buildFilterQuery(filter, user);
-    
+
     const [locations, total] = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
@@ -81,7 +97,7 @@ export class PhysicalLocationsService {
     const hasPreviousPage = page > 1;
 
     const mappedLocations = await Promise.all(
-      locations.map(location => this.mapToResponse(location))
+      locations.map((location) => this.mapToResponse(location)),
     );
 
     return {
@@ -91,21 +107,23 @@ export class PhysicalLocationsService {
       limit,
       totalPages,
       hasNextPage,
-      hasPreviousPage
+      hasPreviousPage,
     };
   }
 
   async getPhysicalLocationById(
     id: string,
-    user: User
+    user: User,
   ): Promise<IPhysicalLocationResponse> {
     const location = await this.physicalLocationRepository.findOne({
       where: { id },
-      relations: ['store', 'creator']
+      relations: ['store', 'creator'],
     });
 
     if (!location) {
-      throw new NotFoundException(`Physical location with ID '${id}' not found`);
+      throw new NotFoundException(
+        `Physical location with ID '${id}' not found`,
+      );
     }
 
     // Check if user has access to this location
@@ -117,53 +135,60 @@ export class PhysicalLocationsService {
   async updatePhysicalLocation(
     id: string,
     updatePhysicalLocationDto: UpdatePhysicalLocationDto,
-    user: User
+    user: User,
   ): Promise<IPhysicalLocationResponse> {
     const location = await this.physicalLocationRepository.findOne({
       where: { id },
-      relations: ['store']
+      relations: ['store'],
     });
 
     if (!location) {
-      throw new NotFoundException(`Physical location with ID '${id}' not found`);
+      throw new NotFoundException(
+        `Physical location with ID '${id}' not found`,
+      );
     }
 
     // Check if user has permission to update this location
     await this.checkLocationPermission(location, user);
 
     // If coordinates are being updated, check for duplicates
-    if (updatePhysicalLocationDto.latitude && updatePhysicalLocationDto.longitude) {
+    if (
+      updatePhysicalLocationDto.latitude &&
+      updatePhysicalLocationDto.longitude
+    ) {
       const existingLocation = await this.physicalLocationRepository.findOne({
         where: {
           storeId: location.storeId,
           latitude: updatePhysicalLocationDto.latitude,
           longitude: updatePhysicalLocationDto.longitude,
-          id: location.id
-        }
+          id: location.id,
+        },
       });
 
       if (existingLocation) {
-        throw new BadRequestException('A location with these coordinates already exists for this store');
+        throw new BadRequestException(
+          'A location with these coordinates already exists for this store',
+        );
       }
     }
 
     Object.assign(location, updatePhysicalLocationDto);
-    const updatedLocation = await this.physicalLocationRepository.save(location);
-    
+    const updatedLocation =
+      await this.physicalLocationRepository.save(location);
+
     return this.mapToResponse(updatedLocation);
   }
 
-  async deletePhysicalLocation(
-    id: string,
-    user: User
-  ): Promise<void> {
+  async deletePhysicalLocation(id: string, user: User): Promise<void> {
     const location = await this.physicalLocationRepository.findOne({
       where: { id },
-      relations: ['store']
+      relations: ['store'],
     });
 
     if (!location) {
-      throw new NotFoundException(`Physical location with ID '${id}' not found`);
+      throw new NotFoundException(
+        `Physical location with ID '${id}' not found`,
+      );
     }
 
     // Check if user has permission to delete this location
@@ -171,11 +196,13 @@ export class PhysicalLocationsService {
 
     // Check if location has associated store products
     const storeProductsCount = await this.storeProductRepository.count({
-      where: { storeId: id }
+      where: { storeId: id },
     });
 
     if (storeProductsCount > 0) {
-      throw new BadRequestException(`Cannot delete location with ${storeProductsCount} associated store products`);
+      throw new BadRequestException(
+        `Cannot delete location with ${storeProductsCount} associated store products`,
+      );
     }
 
     await this.physicalLocationRepository.remove(location);
@@ -184,34 +211,47 @@ export class PhysicalLocationsService {
   async changeLocationStatus(
     id: string,
     status: LocationStatus,
-    user: User
+    user: User,
   ): Promise<IPhysicalLocationResponse> {
     const location = await this.physicalLocationRepository.findOne({
       where: { id },
-      relations: ['store']
+      relations: ['store'],
     });
 
     if (!location) {
-      throw new NotFoundException(`Physical location with ID '${id}' not found`);
+      throw new NotFoundException(
+        `Physical location with ID '${id}' not found`,
+      );
     }
 
     // Check if user has permission to change status
     await this.checkLocationPermission(location, user);
 
     location.status = status;
-    const updatedLocation = await this.physicalLocationRepository.save(location);
-    
+    const updatedLocation =
+      await this.physicalLocationRepository.save(location);
+
     return this.mapToResponse(updatedLocation);
   }
 
-  async getPhysicalLocationAnalytics(user: User): Promise<IPhysicalLocationAnalytics> {
+  async getPhysicalLocationAnalytics(
+    user: User,
+  ): Promise<IPhysicalLocationAnalytics> {
     // Check if user has permission to view analytics
-    if (!this.hasRole(user, [RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN])) {
-      throw new ForbiddenException('Insufficient permissions to view analytics');
+    if (
+      !this.hasRole(user, [
+        RoleType.SUPER_ADMIN,
+        RoleType.ADMIN,
+        RoleType.STORE_ADMIN,
+      ])
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions to view analytics',
+      );
     }
 
     const queryBuilder = this.buildBaseQuery(user);
-    
+
     const [
       totalLocations,
       activeLocations,
@@ -224,11 +264,15 @@ export class PhysicalLocationsService {
       parkingStats,
       accessibilityStats,
       priceStats,
-      openStats
+      openStats,
     ] = await Promise.all([
       queryBuilder.getCount(),
-      queryBuilder.where('pl.status = :status', { status: LocationStatus.ACTIVE }).getCount(),
-      queryBuilder.where('pl.status != :status', { status: LocationStatus.ACTIVE }).getCount(),
+      queryBuilder
+        .where('pl.status = :status', { status: LocationStatus.ACTIVE })
+        .getCount(),
+      queryBuilder
+        .where('pl.status != :status', { status: LocationStatus.ACTIVE })
+        .getCount(),
       this.getLocationsByType(user),
       this.getLocationsByStatus(user),
       this.getLocationsByCountry(user),
@@ -237,7 +281,7 @@ export class PhysicalLocationsService {
       this.getParkingStats(user),
       this.getAccessibilityStats(user),
       this.getPriceStats(user),
-      this.getOpenStats(user)
+      this.getOpenStats(user),
     ]);
 
     return {
@@ -256,15 +300,25 @@ export class PhysicalLocationsService {
       priceRange: priceStats.range,
       openLocations: openStats.open,
       closedLocations: openStats.closed,
-      locationsNeedingAttention: this.calculateLocationsNeedingAttention(activeLocations, capacityStats)
+      locationsNeedingAttention: this.calculateLocationsNeedingAttention(
+        activeLocations,
+        capacityStats,
+      ),
     };
   }
 
   async findNearbyLocations(
     searchDto: LocationSearchDto,
-    user: User
+    user: User,
   ): Promise<INearbyLocationsResult> {
-    const { latitude, longitude, radius = 10, limit = 20, includeOpenOnly = false, sortByDistance = true } = searchDto;
+    const {
+      latitude,
+      longitude,
+      radius = 10,
+      limit = 20,
+      includeOpenOnly = false,
+      sortByDistance = true,
+    } = searchDto;
 
     const queryBuilder = this.buildBaseQuery(user)
       .addSelect(
@@ -277,14 +331,16 @@ export class PhysicalLocationsService {
             sin(radians(pl.latitude))
           )
         )`,
-        'distance'
+        'distance',
       )
       .setParameter('latitude', latitude)
       .setParameter('longitude', longitude)
       .where('pl.status = :status', { status: LocationStatus.ACTIVE });
 
     if (includeOpenOnly) {
-      queryBuilder.andWhere('pl.isOpen24Hours = :isOpen24Hours', { isOpen24Hours: true });
+      queryBuilder.andWhere('pl.isOpen24Hours = :isOpen24Hours', {
+        isOpen24Hours: true,
+      });
     }
 
     if (sortByDistance) {
@@ -303,13 +359,16 @@ export class PhysicalLocationsService {
           location: await this.mapToResponse(location),
           distance,
           estimatedTravelTime: this.calculateEstimatedTravelTime(distance),
-          isWithinRadius: distance <= radius
+          isWithinRadius: distance <= radius,
         };
-      })
+      }),
     );
 
-    const distances = locationResults.map(lr => lr.distance);
-    const averageDistance = distances.length > 0 ? distances.reduce((sum, d) => sum + d, 0) / distances.length : 0;
+    const distances = locationResults.map((lr) => lr.distance);
+    const averageDistance =
+      distances.length > 0
+        ? distances.reduce((sum, d) => sum + d, 0) / distances.length
+        : 0;
 
     return {
       center: { latitude, longitude },
@@ -318,26 +377,35 @@ export class PhysicalLocationsService {
       total: locationResults.length,
       averageDistance,
       closestLocation: locationResults[0],
-      farthestLocation: locationResults[locationResults.length - 1]
+      farthestLocation: locationResults[locationResults.length - 1],
     };
   }
 
   async getLocationPriceComparison(
     locationId: string,
     basePrice: number,
-    user: User
+    user: User,
   ): Promise<ILocationPriceComparison> {
     const location = await this.getPhysicalLocationById(locationId, user);
-    
+
     const adjustedPrice = location.physicalPrice || basePrice;
-    const adjustments = location.priceAdjustments ? Object.values(location.priceAdjustments) : [];
-    
+    const adjustments = location.priceAdjustments
+      ? Object.values(location.priceAdjustments)
+      : [];
+
     let finalPrice = adjustedPrice;
-    const appliedAdjustments: Array<{ reason: string; adjustment: number; percentage: boolean }> = [];
+    const appliedAdjustments: Array<{
+      reason: string;
+      adjustment: number;
+      percentage: boolean;
+    }> = [];
 
     for (const adjustment of adjustments) {
       const now = new Date();
-      if (now >= adjustment.validFrom && (!adjustment.validTo || now <= adjustment.validTo)) {
+      if (
+        now >= adjustment.validFrom &&
+        (!adjustment.validTo || now <= adjustment.validTo)
+      ) {
         if (adjustment.percentage) {
           finalPrice += (basePrice * adjustment.adjustment) / 100;
         } else {
@@ -346,7 +414,7 @@ export class PhysicalLocationsService {
         appliedAdjustments.push({
           reason: adjustment.reason,
           adjustment: adjustment.adjustment,
-          percentage: adjustment.percentage
+          percentage: adjustment.percentage,
         });
       }
     }
@@ -363,20 +431,24 @@ export class PhysicalLocationsService {
       adjustments: appliedAdjustments,
       finalPrice,
       savings,
-      savingsPercentage
+      savingsPercentage,
     };
   }
 
   async getLocationBusinessHours(
     locationId: string,
-    user: User
+    user: User,
   ): Promise<ILocationBusinessHours> {
     const location = await this.getPhysicalLocationById(locationId, user);
-    
-    const todayHours = location.operatingHours ? this.getTodayHours(location.operatingHours) : null;
-    const nextOpenDay = location.operatingHours ? this.getNextOpenDay(location.operatingHours) : null;
+
+    const todayHours = location.operatingHours
+      ? this.getTodayHours(location.operatingHours)
+      : null;
+    const nextOpenDay = location.operatingHours
+      ? this.getNextOpenDay(location.operatingHours)
+      : null;
     const isCurrentlyOpen = location.isOpen;
-    
+
     let timeUntilOpen: number | undefined;
     let timeUntilClose: number | undefined;
 
@@ -395,21 +467,26 @@ export class PhysicalLocationsService {
       timeUntilOpen,
       timeUntilClose,
       specialHours: location.specialHours,
-      holidays: location.holidays
+      holidays: location.holidays,
     };
   }
 
   async getLocationCapacityStatus(
     locationId: string,
-    user: User
+    user: User,
   ): Promise<ILocationCapacityStatus> {
     const location = await this.getPhysicalLocationById(locationId, user);
-    
+
     if (!location.maxCapacity) {
-      throw new BadRequestException('This location does not have capacity tracking enabled');
+      throw new BadRequestException(
+        'This location does not have capacity tracking enabled',
+      );
     }
 
-    const availableSpots = Math.max(0, (location.maxCapacity || 0) - (location.currentCapacity || 0));
+    const availableSpots = Math.max(
+      0,
+      (location.maxCapacity || 0) - (location.currentCapacity || 0),
+    );
     const recommendedVisitTime = this.getRecommendedVisitTime(location);
     const busyHours = this.getBusyHours(location);
     const quietHours = this.getQuietHours(location);
@@ -425,33 +502,41 @@ export class PhysicalLocationsService {
       availableSpots,
       recommendedVisitTime,
       busyHours,
-      quietHours
+      quietHours,
     };
   }
 
   async getLocationAmenitiesInfo(
     locationId: string,
-    user: User
+    user: User,
   ): Promise<ILocationAmenitiesInfo> {
     const location = await this.getPhysicalLocationById(locationId, user);
-    
-    const parkingInfo = location.hasParking ? {
-      type: 'Standard',
-      availability: location.isAtCapacity ? 'limited' as const : 'available' as const
-    } : undefined;
+
+    const parkingInfo = location.hasParking
+      ? {
+          type: 'Standard',
+          availability: location.isAtCapacity
+            ? ('limited' as const)
+            : ('available' as const),
+        }
+      : undefined;
 
     const accessibilityInfo = {
       wheelchairAccess: location.hasWheelchairAccess,
       elevatorAccess: location.hasWheelchairAccess,
       accessibleRestrooms: location.hasWheelchairAccess,
-      accessibleParking: location.hasWheelchairAccess && location.hasParking
+      accessibleParking: location.hasWheelchairAccess && location.hasParking,
     };
 
     const transportInfo = {
       publicTransport: location.hasPublicTransport,
-      busRoutes: location.hasPublicTransport ? ['Route 1', 'Route 2'] : undefined,
-      trainStations: location.hasPublicTransport ? ['Central Station'] : undefined,
-      bikeRacks: true
+      busRoutes: location.hasPublicTransport
+        ? ['Route 1', 'Route 2']
+        : undefined,
+      trainStations: location.hasPublicTransport
+        ? ['Central Station']
+        : undefined,
+      bikeRacks: true,
     };
 
     return {
@@ -464,27 +549,41 @@ export class PhysicalLocationsService {
       hasPublicTransport: location.hasPublicTransport,
       parkingInfo,
       accessibilityInfo,
-      transportInfo
+      transportInfo,
     };
   }
 
   // Private helper methods
-  private async checkStorePermission(storeId: string, user: User): Promise<void> {
+  private async checkStorePermission(
+    storeId: string,
+    user: User,
+  ): Promise<void> {
     const store = await this.storeRepository.findOne({
       where: { id: storeId },
-      relations: ['roles']
+      relations: ['roles'],
     });
 
     if (!store) {
       throw new NotFoundException(`Store with ID '${storeId}' not found`);
     }
 
-    if (!this.hasRole(user, [RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN])) {
-      throw new ForbiddenException('Insufficient permissions to create locations for this store');
+    if (
+      !this.hasRole(user, [
+        RoleType.SUPER_ADMIN,
+        RoleType.ADMIN,
+        RoleType.STORE_ADMIN,
+      ])
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions to create locations for this store',
+      );
     }
   }
 
-  private async checkLocationAccess(location: PhysicalLocation, user: User): Promise<void> {
+  private async checkLocationAccess(
+    location: PhysicalLocation,
+    user: User,
+  ): Promise<void> {
     if (this.hasRole(user, [RoleType.SUPER_ADMIN, RoleType.ADMIN])) {
       return;
     }
@@ -492,7 +591,7 @@ export class PhysicalLocationsService {
     if (this.hasRole(user, [RoleType.STORE_ADMIN])) {
       const store = await this.storeRepository.findOne({
         where: { id: location.storeId },
-        relations: ['roles']
+        relations: ['roles'],
       });
 
       if (!store) {
@@ -501,7 +600,10 @@ export class PhysicalLocationsService {
     }
   }
 
-  private async checkLocationPermission(location: PhysicalLocation, user: User): Promise<void> {
+  private async checkLocationPermission(
+    location: PhysicalLocation,
+    user: User,
+  ): Promise<void> {
     if (this.hasRole(user, [RoleType.SUPER_ADMIN, RoleType.ADMIN])) {
       return;
     }
@@ -509,17 +611,19 @@ export class PhysicalLocationsService {
     if (this.hasRole(user, [RoleType.STORE_ADMIN])) {
       const store = await this.storeRepository.findOne({
         where: { id: location.storeId },
-        relations: ['roles']
+        relations: ['roles'],
       });
 
       if (!store) {
-        throw new ForbiddenException('Insufficient permissions to modify this location');
+        throw new ForbiddenException(
+          'Insufficient permissions to modify this location',
+        );
       }
     }
   }
 
   private hasRole(user: User, allowedRoles: RoleType[]): boolean {
-    return user.roles.some(role => allowedRoles.includes(role.name));
+    return user.roles.some((role) => allowedRoles.includes(role.name));
   }
 
   private buildBaseQuery(user: User): SelectQueryBuilder<PhysicalLocation> {
@@ -544,18 +648,23 @@ export class PhysicalLocationsService {
     return queryBuilder;
   }
 
-  private buildFilterQuery(filter: IPhysicalLocationFilter, user: User): SelectQueryBuilder<PhysicalLocation> {
+  private buildFilterQuery(
+    filter: IPhysicalLocationFilter,
+    user: User,
+  ): SelectQueryBuilder<PhysicalLocation> {
     const queryBuilder = this.buildBaseQuery(user);
 
     if (filter.search) {
       queryBuilder.andWhere(
         '(pl.name ILIKE :search OR pl.description ILIKE :search OR pl.city ILIKE :search OR pl.state ILIKE :search)',
-        { search: `%${filter.search}%` }
+        { search: `%${filter.search}%` },
       );
     }
 
     if (filter.storeId) {
-      queryBuilder.andWhere('pl.storeId = :storeId', { storeId: filter.storeId });
+      queryBuilder.andWhere('pl.storeId = :storeId', {
+        storeId: filter.storeId,
+      });
     }
 
     if (filter.type) {
@@ -567,63 +676,93 @@ export class PhysicalLocationsService {
     }
 
     if (filter.city) {
-      queryBuilder.andWhere('pl.city ILIKE :city', { city: `%${filter.city}%` });
+      queryBuilder.andWhere('pl.city ILIKE :city', {
+        city: `%${filter.city}%`,
+      });
     }
 
     if (filter.state) {
-      queryBuilder.andWhere('pl.state ILIKE :state', { state: `%${filter.state}%` });
+      queryBuilder.andWhere('pl.state ILIKE :state', {
+        state: `%${filter.state}%`,
+      });
     }
 
     if (filter.country) {
-      queryBuilder.andWhere('pl.country ILIKE :country', { country: `%${filter.country}%` });
+      queryBuilder.andWhere('pl.country ILIKE :country', {
+        country: `%${filter.country}%`,
+      });
     }
 
     if (filter.hasParking !== undefined) {
-      queryBuilder.andWhere('pl.hasParking = :hasParking', { hasParking: filter.hasParking });
+      queryBuilder.andWhere('pl.hasParking = :hasParking', {
+        hasParking: filter.hasParking,
+      });
     }
 
     if (filter.hasWheelchairAccess !== undefined) {
-      queryBuilder.andWhere('pl.hasWheelchairAccess = :hasWheelchairAccess', { hasWheelchairAccess: filter.hasWheelchairAccess });
+      queryBuilder.andWhere('pl.hasWheelchairAccess = :hasWheelchairAccess', {
+        hasWheelchairAccess: filter.hasWheelchairAccess,
+      });
     }
 
     if (filter.hasPublicTransport !== undefined) {
-      queryBuilder.andWhere('pl.hasPublicTransport = :hasPublicTransport', { hasPublicTransport: filter.hasPublicTransport });
+      queryBuilder.andWhere('pl.hasPublicTransport = :hasPublicTransport', {
+        hasPublicTransport: filter.hasPublicTransport,
+      });
     }
 
     if (filter.isOpen24Hours !== undefined) {
-      queryBuilder.andWhere('pl.isOpen24Hours = :isOpen24Hours', { isOpen24Hours: filter.isOpen24Hours });
+      queryBuilder.andWhere('pl.isOpen24Hours = :isOpen24Hours', {
+        isOpen24Hours: filter.isOpen24Hours,
+      });
     }
 
     if (filter.minPrice !== undefined) {
-      queryBuilder.andWhere('pl.physicalPrice >= :minPrice', { minPrice: filter.minPrice });
+      queryBuilder.andWhere('pl.physicalPrice >= :minPrice', {
+        minPrice: filter.minPrice,
+      });
     }
 
     if (filter.maxPrice !== undefined) {
-      queryBuilder.andWhere('pl.physicalPrice <= :maxPrice', { maxPrice: filter.maxPrice });
+      queryBuilder.andWhere('pl.physicalPrice <= :maxPrice', {
+        maxPrice: filter.maxPrice,
+      });
     }
 
     if (filter.currency) {
-      queryBuilder.andWhere('pl.currency = :currency', { currency: filter.currency });
+      queryBuilder.andWhere('pl.currency = :currency', {
+        currency: filter.currency,
+      });
     }
 
     if (filter.minCapacity !== undefined) {
-      queryBuilder.andWhere('pl.maxCapacity >= :minCapacity', { minCapacity: filter.minCapacity });
+      queryBuilder.andWhere('pl.maxCapacity >= :minCapacity', {
+        minCapacity: filter.minCapacity,
+      });
     }
 
     if (filter.maxCapacity !== undefined) {
-      queryBuilder.andWhere('pl.maxCapacity <= :maxCapacity', { maxCapacity: filter.maxCapacity });
+      queryBuilder.andWhere('pl.maxCapacity <= :maxCapacity', {
+        maxCapacity: filter.maxCapacity,
+      });
     }
 
     if (filter.createdBy) {
-      queryBuilder.andWhere('pl.createdBy = :createdBy', { createdBy: filter.createdBy });
+      queryBuilder.andWhere('pl.createdBy = :createdBy', {
+        createdBy: filter.createdBy,
+      });
     }
 
     if (filter.createdAfter) {
-      queryBuilder.andWhere('pl.createdAt >= :createdAfter', { createdAfter: filter.createdAfter });
+      queryBuilder.andWhere('pl.createdAt >= :createdAfter', {
+        createdAfter: filter.createdAfter,
+      });
     }
 
     if (filter.createdBefore) {
-      queryBuilder.andWhere('pl.createdAt <= :createdBefore', { createdBefore: filter.createdBefore });
+      queryBuilder.andWhere('pl.createdAt <= :createdBefore', {
+        createdBefore: filter.createdBefore,
+      });
     }
 
     // Default ordering
@@ -632,9 +771,15 @@ export class PhysicalLocationsService {
     return queryBuilder;
   }
 
-  private async mapToResponse(location: PhysicalLocation): Promise<IPhysicalLocationResponse> {
-    const store = await this.storeRepository.findOne({ where: { id: location.storeId } });
-    const creator = await this.userRepository.findOne({ where: { id: location.createdBy } });
+  private async mapToResponse(
+    location: PhysicalLocation,
+  ): Promise<IPhysicalLocationResponse> {
+    const store = await this.storeRepository.findOne({
+      where: { id: location.storeId },
+    });
+    const creator = await this.userRepository.findOne({
+      where: { id: location.createdBy },
+    });
 
     return {
       id: location.id,
@@ -672,10 +817,10 @@ export class PhysicalLocationsService {
       holidays: location.holidays,
       metadata: location.metadata,
       createdBy: location.createdBy,
-              creatorName: creator?.email ? creator.email : 'Unknown User',
+      creatorName: creator?.email ? creator.email : 'Unknown User',
       createdAt: location.createdAt,
       updatedAt: location.updatedAt,
-      
+
       // Virtual properties
       isActive: location.isActive,
       isOpen: location.isOpen,
@@ -689,12 +834,14 @@ export class PhysicalLocationsService {
       capacityPercentage: location.capacityPercentage,
       isLowCapacity: location.isLowCapacity,
       hasAmenities: location.hasAmenities,
-      hasServices: location.hasServices
+      hasServices: location.hasServices,
     };
   }
 
   // Analytics helper methods
-  private async getLocationsByType(user: User): Promise<Record<LocationType, number>> {
+  private async getLocationsByType(
+    user: User,
+  ): Promise<Record<LocationType, number>> {
     const result = await this.buildBaseQuery(user)
       .select('pl.type', 'type')
       .addSelect('COUNT(*)', 'count')
@@ -707,17 +854,19 @@ export class PhysicalLocationsService {
       [LocationType.DISTRIBUTION_CENTER]: 0,
       [LocationType.PICKUP_POINT]: 0,
       [LocationType.SERVICE_CENTER]: 0,
-      [LocationType.SHOWROOM]: 0
+      [LocationType.SHOWROOM]: 0,
     };
 
-    result.forEach(item => {
+    result.forEach((item) => {
       typeCounts[item.type] = parseInt(item.count);
     });
 
     return typeCounts;
   }
 
-  private async getLocationsByStatus(user: User): Promise<Record<LocationStatus, number>> {
+  private async getLocationsByStatus(
+    user: User,
+  ): Promise<Record<LocationStatus, number>> {
     const result = await this.buildBaseQuery(user)
       .select('pl.status', 'status')
       .addSelect('COUNT(*)', 'count')
@@ -729,17 +878,19 @@ export class PhysicalLocationsService {
       [LocationStatus.INACTIVE]: 0,
       [LocationStatus.TEMPORARILY_CLOSED]: 0,
       [LocationStatus.PERMANENTLY_CLOSED]: 0,
-      [LocationStatus.UNDER_CONSTRUCTION]: 0
+      [LocationStatus.UNDER_CONSTRUCTION]: 0,
     };
 
-    result.forEach(item => {
+    result.forEach((item) => {
       statusCounts[item.status] = parseInt(item.count);
     });
 
     return statusCounts;
   }
 
-  private async getLocationsByCountry(user: User): Promise<Record<string, number>> {
+  private async getLocationsByCountry(
+    user: User,
+  ): Promise<Record<string, number>> {
     const result = await this.buildBaseQuery(user)
       .select('pl.country', 'country')
       .addSelect('COUNT(*)', 'count')
@@ -747,14 +898,16 @@ export class PhysicalLocationsService {
       .getRawMany();
 
     const countryCounts: Record<string, number> = {};
-    result.forEach(item => {
+    result.forEach((item) => {
       countryCounts[item.country] = parseInt(item.count);
     });
 
     return countryCounts;
   }
 
-  private async getLocationsByState(user: User): Promise<Record<string, number>> {
+  private async getLocationsByState(
+    user: User,
+  ): Promise<Record<string, number>> {
     const result = await this.buildBaseQuery(user)
       .select('pl.state', 'state')
       .addSelect('COUNT(*)', 'count')
@@ -762,7 +915,7 @@ export class PhysicalLocationsService {
       .getRawMany();
 
     const stateCounts: Record<string, number> = {};
-    result.forEach(item => {
+    result.forEach((item) => {
       stateCounts[item.state] = parseInt(item.count);
     });
 
@@ -776,7 +929,7 @@ export class PhysicalLocationsService {
       .getRawOne();
 
     return {
-      average: result?.average ? parseFloat(result.average) : 0
+      average: result?.average ? parseFloat(result.average) : 0,
     };
   }
 
@@ -788,23 +941,32 @@ export class PhysicalLocationsService {
     return { withParking: count };
   }
 
-  private async getAccessibilityStats(user: User): Promise<{ withWheelchair: number; withPublicTransport: number }> {
+  private async getAccessibilityStats(
+    user: User,
+  ): Promise<{ withWheelchair: number; withPublicTransport: number }> {
     const [wheelchairCount, transportCount] = await Promise.all([
       this.buildBaseQuery(user)
-        .where('pl.hasWheelchairAccess = :hasWheelchairAccess', { hasWheelchairAccess: true })
+        .where('pl.hasWheelchairAccess = :hasWheelchairAccess', {
+          hasWheelchairAccess: true,
+        })
         .getCount(),
       this.buildBaseQuery(user)
-        .where('pl.hasPublicTransport = :hasPublicTransport', { hasPublicTransport: true })
-        .getCount()
+        .where('pl.hasPublicTransport = :hasPublicTransport', {
+          hasPublicTransport: true,
+        })
+        .getCount(),
     ]);
 
     return {
       withWheelchair: wheelchairCount,
-      withPublicTransport: transportCount
+      withPublicTransport: transportCount,
     };
   }
 
-  private async getPriceStats(user: User): Promise<{ average: number; range: { min: number; max: number; average: number } }> {
+  private async getPriceStats(user: User): Promise<{
+    average: number;
+    range: { min: number; max: number; average: number };
+  }> {
     const result = await this.buildBaseQuery(user)
       .select('AVG(pl.physicalPrice)', 'average')
       .addSelect('MIN(pl.physicalPrice)', 'min')
@@ -818,51 +980,75 @@ export class PhysicalLocationsService {
 
     return {
       average,
-      range: { min, max, average }
+      range: { min, max, average },
     };
   }
 
-  private async getOpenStats(user: User): Promise<{ open: number; closed: number }> {
+  private async getOpenStats(
+    user: User,
+  ): Promise<{ open: number; closed: number }> {
     const [openCount, closedCount] = await Promise.all([
       this.buildBaseQuery(user)
         .where('pl.isOpen24Hours = :isOpen24Hours', { isOpen24Hours: true })
         .getCount(),
       this.buildBaseQuery(user)
         .where('pl.isOpen24Hours = :isOpen24Hours', { isOpen24Hours: false })
-        .getCount()
+        .getCount(),
     ]);
 
     return { open: openCount, closed: closedCount };
   }
 
-  private calculateLocationsNeedingAttention(activeLocations: number, capacityStats: { average: number }): number {
+  private calculateLocationsNeedingAttention(
+    activeLocations: number,
+    capacityStats: { average: number },
+  ): number {
     // Simple heuristic: locations needing attention are those with low capacity or unusual patterns
     return Math.floor(activeLocations * 0.1); // 10% of active locations
   }
 
-  private calculateEstimatedTravelTime(distance: number, averageSpeedKmH: number = 30): number {
+  private calculateEstimatedTravelTime(
+    distance: number,
+    averageSpeedKmH: number = 30,
+  ): number {
     return (distance / averageSpeedKmH) * 60; // Return minutes
   }
 
-  private getTodayHours(operatingHours: Record<string, any>): { open: string; close: string; isOpen: boolean } | null {
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase().slice(0, 3);
+  private getTodayHours(
+    operatingHours: Record<string, any>,
+  ): { open: string; close: string; isOpen: boolean } | null {
+    const today = new Date()
+      .toLocaleDateString('en-US', { weekday: 'long' })
+      .toLowerCase()
+      .slice(0, 3);
     return operatingHours[today] || null;
   }
 
-  private getNextOpenDay(operatingHours: Record<string, any>): { day: string; hours: { open: string; close: string; isOpen: boolean } } | null {
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  private getNextOpenDay(operatingHours: Record<string, any>): {
+    day: string;
+    hours: { open: string; close: string; isOpen: boolean };
+  } | null {
+    const days = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
+    ];
     const today = new Date().getDay();
-    
+
     for (let i = 1; i <= 7; i++) {
       const dayIndex = (today + i) % 7;
       const dayName = days[dayIndex];
       const dayHours = operatingHours[dayName];
-      
+
       if (dayHours && dayHours.isOpen) {
         return { day: dayName, hours: dayHours };
       }
     }
-    
+
     return null;
   }
 
@@ -871,15 +1057,17 @@ export class PhysicalLocationsService {
     const [hours, minutes] = timeString.split(':').map(Number);
     const targetTime = new Date(now);
     targetTime.setHours(hours, minutes, 0, 0);
-    
+
     if (targetTime <= now) {
       targetTime.setDate(targetTime.getDate() + 1);
     }
-    
+
     return Math.floor((targetTime.getTime() - now.getTime()) / (1000 * 60)); // Return minutes
   }
 
-  private getRecommendedVisitTime(location: IPhysicalLocationResponse): string | undefined {
+  private getRecommendedVisitTime(
+    location: IPhysicalLocationResponse,
+  ): string | undefined {
     if (location.capacityPercentage < 50) {
       return 'Now - Low capacity';
     } else if (location.capacityPercentage < 80) {

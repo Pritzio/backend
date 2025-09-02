@@ -1,12 +1,24 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsUrl, IsNumber, IsBoolean, IsObject, IsArray, MaxLength, MinLength, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsUrl,
+  IsNumber,
+  IsBoolean,
+  IsObject,
+  IsArray,
+  MaxLength,
+  MinLength,
+  Min,
+  Max,
+} from 'class-validator';
 
 export class CreateProductBrandDto {
   @ApiProperty({
     description: 'Brand name',
     example: 'Apple',
     minLength: 2,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsString()
   @MinLength(2)
@@ -17,7 +29,7 @@ export class CreateProductBrandDto {
     description: 'Unique brand slug',
     example: 'apple',
     minLength: 2,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsString()
   @MinLength(2)
@@ -28,7 +40,7 @@ export class CreateProductBrandDto {
     description: 'Brand description',
     example: 'Think Different. Apple Inc.',
     required: false,
-    maxLength: 1000
+    maxLength: 1000,
   })
   @IsOptional()
   @IsString()
@@ -39,7 +51,7 @@ export class CreateProductBrandDto {
     description: 'Brand logo URL',
     example: 'https://example.com/apple-logo.png',
     required: false,
-    maxLength: 500
+    maxLength: 500,
   })
   @IsOptional()
   @IsString()
@@ -51,7 +63,7 @@ export class CreateProductBrandDto {
     description: 'Brand website',
     example: 'https://www.apple.com',
     required: false,
-    maxLength: 500
+    maxLength: 500,
   })
   @IsOptional()
   @IsString()
@@ -63,7 +75,7 @@ export class CreateProductBrandDto {
     description: 'Brand country of origin',
     example: 'United States',
     required: false,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -74,7 +86,7 @@ export class CreateProductBrandDto {
     description: 'Year brand was founded',
     example: '1976',
     required: false,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -85,7 +97,7 @@ export class CreateProductBrandDto {
     description: 'Brand story/history',
     example: 'Apple Inc. was founded by Steve Jobs and Steve Wozniak...',
     required: false,
-    maxLength: 2000
+    maxLength: 2000,
   })
   @IsOptional()
   @IsString()
@@ -96,7 +108,7 @@ export class CreateProductBrandDto {
     description: 'Brand headquarters location',
     example: 'Cupertino, California',
     required: false,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -107,7 +119,7 @@ export class CreateProductBrandDto {
     description: 'Brand CEO',
     example: 'Tim Cook',
     required: false,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -118,7 +130,7 @@ export class CreateProductBrandDto {
     description: 'Number of employees',
     example: 154000,
     required: false,
-    minimum: 1
+    minimum: 1,
   })
   @IsOptional()
   @IsNumber()
@@ -129,7 +141,7 @@ export class CreateProductBrandDto {
     description: 'Annual revenue',
     example: 394328000000,
     required: false,
-    minimum: 0
+    minimum: 0,
   })
   @IsOptional()
   @IsNumber()
@@ -140,7 +152,7 @@ export class CreateProductBrandDto {
     description: 'Currency for revenue',
     example: 'USD',
     required: false,
-    maxLength: 10
+    maxLength: 10,
   })
   @IsOptional()
   @IsString()
@@ -150,7 +162,7 @@ export class CreateProductBrandDto {
   @ApiProperty({
     description: 'Social media accounts',
     example: { twitter: '@Apple', instagram: 'apple', facebook: 'Apple' },
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsObject()
@@ -159,7 +171,7 @@ export class CreateProductBrandDto {
   @ApiProperty({
     description: 'Brand certifications',
     example: ['ISO 9001', 'ISO 14001', 'Fair Trade'],
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsArray()
@@ -169,7 +181,7 @@ export class CreateProductBrandDto {
   @ApiProperty({
     description: 'Whether brand is active',
     example: true,
-    default: true
+    default: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -178,7 +190,7 @@ export class CreateProductBrandDto {
   @ApiProperty({
     description: 'Whether brand is verified',
     example: true,
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -187,7 +199,7 @@ export class CreateProductBrandDto {
   @ApiProperty({
     description: 'Whether brand is premium',
     example: true,
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -198,7 +210,7 @@ export class CreateProductBrandDto {
     example: 1,
     required: false,
     minimum: 0,
-    maximum: 999
+    maximum: 999,
   })
   @IsOptional()
   @IsNumber()
@@ -208,8 +220,11 @@ export class CreateProductBrandDto {
 
   @ApiProperty({
     description: 'Additional metadata',
-    example: { seoTitle: 'Apple Products', seoDescription: 'Official Apple products and accessories' },
-    required: false
+    example: {
+      seoTitle: 'Apple Products',
+      seoDescription: 'Official Apple products and accessories',
+    },
+    required: false,
   })
   @IsOptional()
   @IsObject()

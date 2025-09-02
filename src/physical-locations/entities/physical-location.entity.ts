@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  Index,
+} from 'typeorm';
 import { Store } from '../../stores/entities/store.entity';
 import { StoreProduct } from '../../store-products/entities/store-product.entity';
 import { User } from '../../auth/entities/user.entity';
@@ -8,7 +18,7 @@ export enum LocationStatus {
   INACTIVE = 'inactive',
   TEMPORARILY_CLOSED = 'temporarily_closed',
   PERMANENTLY_CLOSED = 'permanently_closed',
-  UNDER_CONSTRUCTION = 'under_construction'
+  UNDER_CONSTRUCTION = 'under_construction',
 }
 
 export enum LocationType {
@@ -17,7 +27,7 @@ export enum LocationType {
   DISTRIBUTION_CENTER = 'distribution_center',
   PICKUP_POINT = 'pickup_point',
   SERVICE_CENTER = 'service_center',
-  SHOWROOM = 'showroom'
+  SHOWROOM = 'showroom',
 }
 
 @Entity('physical_locations')
@@ -46,14 +56,14 @@ export class PhysicalLocation {
   @Column({
     type: 'enum',
     enum: LocationType,
-    default: LocationType.STORE
+    default: LocationType.STORE,
   })
   type: LocationType;
 
   @Column({
     type: 'enum',
     enum: LocationStatus,
-    default: LocationStatus.ACTIVE
+    default: LocationStatus.ACTIVE,
   })
   status: LocationStatus;
 
@@ -91,12 +101,15 @@ export class PhysicalLocation {
   website: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  businessHours: Record<string, {
-    open: string;
-    close: string;
-    isOpen: boolean;
-    specialHours?: string;
-  }>;
+  businessHours: Record<
+    string,
+    {
+      open: string;
+      close: string;
+      isOpen: boolean;
+      specialHours?: string;
+    }
+  >;
 
   @Column({ type: 'boolean', default: true })
   isOpen24Hours: boolean;
@@ -123,13 +136,16 @@ export class PhysicalLocation {
   currency: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  priceAdjustments: Record<string, {
-    reason: string;
-    adjustment: number;
-    percentage: boolean;
-    validFrom: Date;
-    validTo?: Date;
-  }>;
+  priceAdjustments: Record<
+    string,
+    {
+      reason: string;
+      adjustment: number;
+      percentage: boolean;
+      validFrom: Date;
+      validTo?: Date;
+    }
+  >;
 
   @Column({ type: 'int', nullable: true })
   maxCapacity: number;
@@ -196,25 +212,28 @@ export class PhysicalLocation {
 
   get isOpen(): boolean {
     if (this.isOpen24Hours) return true;
-    
+
     const now = new Date();
-    const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase().slice(0, 3);
+    const dayOfWeek = now
+      .toLocaleDateString('en-US', { weekday: 'long' })
+      .toLowerCase()
+      .slice(0, 3);
     const currentTime = now.toTimeString().slice(0, 5);
-    
+
     if (this.operatingHours && this.operatingHours[dayOfWeek]) {
       const dayHours = this.operatingHours[dayOfWeek];
       if (!dayHours.isOpen) return false;
-      
+
       return currentTime >= dayHours.open && currentTime <= dayHours.close;
     }
-    
+
     return false;
   }
 
   get coordinates(): { lat: number; lng: number } {
     return {
       lat: this.latitude,
-      lng: this.longitude
+      lng: this.longitude,
     };
   }
 
@@ -238,11 +257,17 @@ export class PhysicalLocation {
   }
 
   get hasPriceAdjustments(): boolean {
-    return this.priceAdjustments && Object.keys(this.priceAdjustments).length > 0;
+    return (
+      this.priceAdjustments && Object.keys(this.priceAdjustments).length > 0
+    );
   }
 
   get isAtCapacity(): boolean {
-    return !!(this.maxCapacity && this.currentCapacity && this.currentCapacity >= this.maxCapacity);
+    return !!(
+      this.maxCapacity &&
+      this.currentCapacity &&
+      this.currentCapacity >= this.maxCapacity
+    );
   }
 
   get capacityPercentage(): number {
@@ -276,65 +301,93 @@ export class PhysicalLocation {
     return distance <= radiusKm;
   }
 
-  getEstimatedTravelTime(lat: number, lng: number, averageSpeedKmH: number = 30): number {
+  getEstimatedTravelTime(
+    lat: number,
+    lng: number,
+    averageSpeedKmH: number = 30,
+  ): number {
     const distance = this.calculateDistance(lat, lng);
     return (distance / averageSpeedKmH) * 60; // Return minutes
   }
 
   // Private helper methods
-  private haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  private haversineDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ): number {
     const R = 6371; // Earth's radius in kilometers
     const dLat = this.deg2rad(lat2 - lat1);
     const dLon = this.deg2rad(lon2 - lon1);
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.deg2rad(lat1)) *
+        Math.cos(this.deg2rad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distance = R * c; // Distance in kilometers
     return distance;
   }
 
   private deg2rad(deg: number): number {
-    return deg * (Math.PI/180);
+    return deg * (Math.PI / 180);
   }
 
   // Business hours methods
   getTodayHours(): { open: string; close: string; isOpen: boolean } | null {
     if (!this.operatingHours) return null;
-    
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase().slice(0, 3);
+
+    const today = new Date()
+      .toLocaleDateString('en-US', { weekday: 'long' })
+      .toLowerCase()
+      .slice(0, 3);
     return this.operatingHours[today] || null;
   }
 
-  getNextOpenDay(): { day: string; hours: { open: string; close: string; isOpen: boolean } } | null {
+  getNextOpenDay(): {
+    day: string;
+    hours: { open: string; close: string; isOpen: boolean };
+  } | null {
     if (!this.operatingHours) return null;
-    
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+    const days = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
+    ];
     const today = new Date().getDay();
-    
+
     for (let i = 1; i <= 7; i++) {
       const dayIndex = (today + i) % 7;
       const dayName = days[dayIndex];
       const dayHours = this.operatingHours[dayName];
-      
+
       if (dayHours && dayHours.isOpen) {
         return { day: dayName, hours: dayHours };
       }
     }
-    
+
     return null;
   }
 
   // Price calculation methods
   getAdjustedPrice(basePrice: number): number {
     if (!this.hasPriceAdjustments) return basePrice;
-    
+
     let adjustedPrice = basePrice;
     const now = new Date();
-    
+
     for (const adjustment of Object.values(this.priceAdjustments)) {
-      if (now >= adjustment.validFrom && (!adjustment.validTo || now <= adjustment.validTo)) {
+      if (
+        now >= adjustment.validFrom &&
+        (!adjustment.validTo || now <= adjustment.validTo)
+      ) {
         if (adjustment.percentage) {
           adjustedPrice += (basePrice * adjustment.adjustment) / 100;
         } else {
@@ -342,7 +395,7 @@ export class PhysicalLocation {
         }
       }
     }
-    
+
     return Math.max(0, adjustedPrice);
   }
 
@@ -350,7 +403,7 @@ export class PhysicalLocation {
     if (this.physicalPrice !== null && this.physicalPrice !== undefined) {
       return this.physicalPrice;
     }
-    
+
     return this.getAdjustedPrice(productPrice);
   }
 }

@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  Index,
+} from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 
 export enum ActivityType {
@@ -16,14 +24,14 @@ export enum ActivityType {
   ACCOUNT_LOCK = 'account_lock',
   ACCOUNT_UNLOCK = 'account_unlock',
   PRIVACY_UPDATE = 'privacy_update',
-  NOTIFICATION_UPDATE = 'notification_update'
+  NOTIFICATION_UPDATE = 'notification_update',
 }
 
 export enum ActivityLevel {
   INFO = 'info',
   WARNING = 'warning',
   ERROR = 'error',
-  SECURITY = 'security'
+  SECURITY = 'security',
 }
 
 @Entity('user_activities')
@@ -41,16 +49,16 @@ export class UserActivity {
   @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
-  @Column({ 
-    type: 'enum', 
-    enum: ActivityType 
+  @Column({
+    type: 'enum',
+    enum: ActivityType,
   })
   activityType: ActivityType;
 
-  @Column({ 
-    type: 'enum', 
-    enum: ActivityLevel, 
-    default: ActivityLevel.INFO 
+  @Column({
+    type: 'enum',
+    enum: ActivityLevel,
+    default: ActivityLevel.INFO,
   })
   activityLevel: ActivityLevel;
 

@@ -1,4 +1,11 @@
-import { IsUrl, IsOptional, IsString, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsUrl,
+  IsOptional,
+  IsString,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ScrapeUrlDto {
@@ -34,7 +41,8 @@ export class ScrapeUrlDto {
 
   @ApiPropertyOptional({
     description: 'Custom user agent string',
-    example: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+    example:
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
   })
   @IsOptional()
   @IsString()

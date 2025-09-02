@@ -6,11 +6,11 @@ import { UsersSeeder } from './seeders/users.seeder';
 import { UserProfile } from './entities/user-profile.entity';
 import { UserPreferences } from './entities/user-preferences.entity';
 import { UserActivity } from './entities/user-activity.entity';
-import { 
-  IsAdultConstraint, 
-  IsNotFutureDateConstraint, 
-  IsValidPhoneNumberConstraint, 
-  IsValidWebsiteConstraint 
+import {
+  IsAdultConstraint,
+  IsNotFutureDateConstraint,
+  IsValidPhoneNumberConstraint,
+  IsValidWebsiteConstraint,
 } from './validators/business-rules.validator';
 
 @Module({
@@ -19,7 +19,7 @@ import {
   ],
   controllers: [UsersController],
   providers: [
-    UsersService, 
+    UsersService,
     UsersSeeder,
     IsAdultConstraint,
     IsNotFutureDateConstraint,

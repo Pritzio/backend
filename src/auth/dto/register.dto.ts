@@ -1,4 +1,12 @@
-import { IsEmail, IsString, MinLength, MaxLength, IsOptional, IsEnum, IsBoolean } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  MaxLength,
+  IsOptional,
+  IsEnum,
+  IsBoolean,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserType } from '../entities/user.entity';
 
@@ -42,10 +50,10 @@ export class RegisterDto {
   @IsEnum(UserType)
   type?: UserType;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Acceptance of terms and conditions',
     example: true,
-    required: true
+    required: true,
   })
   @IsBoolean({ message: 'Terms and conditions acceptance is required' })
   acceptTermsAndConditions: boolean;

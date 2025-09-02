@@ -1,6 +1,33 @@
-import { StoreProduct, StoreProductStatus, Availability, ScrapingStatus } from '../entities/store-product.entity';
+import {
+  StoreProduct,
+  StoreProductStatus,
+  Availability,
+  ScrapingStatus,
+} from '../entities/store-product.entity';
 
-export interface IStoreProductResponse extends Omit<StoreProduct, 'store' | 'product' | 'creator' | 'verifier' | 'isActive' | 'hasOnlinePrice' | 'hasPhysicalPrice' | 'hasDiscount' | 'discountAmount' | 'calculatedDiscountPercentage' | 'isLowStock' | 'isOutOfStock' | 'needsScraping' | 'scrapingOverdue' | 'displayName' | 'bestPrice' | 'priceType' | 'lastPriceChange' | 'priceVolatility'> {
+export interface IStoreProductResponse
+  extends Omit<
+    StoreProduct,
+    | 'store'
+    | 'product'
+    | 'creator'
+    | 'verifier'
+    | 'isActive'
+    | 'hasOnlinePrice'
+    | 'hasPhysicalPrice'
+    | 'hasDiscount'
+    | 'discountAmount'
+    | 'calculatedDiscountPercentage'
+    | 'isLowStock'
+    | 'isOutOfStock'
+    | 'needsScraping'
+    | 'scrapingOverdue'
+    | 'displayName'
+    | 'bestPrice'
+    | 'priceType'
+    | 'lastPriceChange'
+    | 'priceVolatility'
+  > {
   storeId: string;
   storeName: string;
   productId: string;
@@ -69,10 +96,26 @@ export interface IStoreProductAnalytics {
   averageDiscountPercentage: number;
   productsNeedingScraping: number;
   productsOverdueScraping: number;
-  topStores: Array<{ storeId: string; storeName: string; productCount: number }>;
-  topProducts: Array<{ productId: string; productName: string; storeCount: number }>;
-  recentScrapingActivity: Array<{ storeProductId: string; status: ScrapingStatus; timestamp: Date }>;
-  priceChangeTrends: Array<{ date: string; averagePrice: number; productCount: number }>;
+  topStores: Array<{
+    storeId: string;
+    storeName: string;
+    productCount: number;
+  }>;
+  topProducts: Array<{
+    productId: string;
+    productName: string;
+    storeCount: number;
+  }>;
+  recentScrapingActivity: Array<{
+    storeProductId: string;
+    status: ScrapingStatus;
+    timestamp: Date;
+  }>;
+  priceChangeTrends: Array<{
+    date: string;
+    averagePrice: number;
+    productCount: number;
+  }>;
 }
 
 export interface IStoreProductSearchResult {

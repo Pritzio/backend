@@ -1,8 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Store, StoreType, StoreStatus, StoreCategory } from '../entities/store.entity';
-import { PhysicalLocation, LocationStatus } from '../entities/physical-location.entity';
+import {
+  Store,
+  StoreType,
+  StoreStatus,
+  StoreCategory,
+} from '../entities/store.entity';
+import {
+  PhysicalLocation,
+  LocationStatus,
+} from '../entities/physical-location.entity';
 
 @Injectable()
 export class StoresSeeder {
@@ -22,7 +30,8 @@ export class StoresSeeder {
     const storesData = [
       {
         name: 'Electronics World',
-        description: 'Leading electronics retailer with best prices and latest technology',
+        description:
+          'Leading electronics retailer with best prices and latest technology',
         website: 'https://electronicsworld.com',
         logo: 'https://electronicsworld.com/logo.png',
         type: StoreType.HYBRID,
@@ -39,9 +48,9 @@ export class StoresSeeder {
           socialMedia: {
             facebook: 'electronicsworld',
             twitter: 'eworld',
-            instagram: 'electronicsworld_official'
+            instagram: 'electronicsworld_official',
           },
-          features: ['price_match', 'extended_warranty', 'free_shipping']
+          features: ['price_match', 'extended_warranty', 'free_shipping'],
         },
         createdBy: 'system',
       },
@@ -64,9 +73,9 @@ export class StoresSeeder {
           socialMedia: {
             instagram: 'fashionforward',
             pinterest: 'fashionforward',
-            tiktok: 'fashionforward_official'
+            tiktok: 'fashionforward_official',
           },
-          features: ['free_returns', 'size_guide', 'virtual_try_on']
+          features: ['free_returns', 'size_guide', 'virtual_try_on'],
         },
         createdBy: 'system',
       },
@@ -88,9 +97,13 @@ export class StoresSeeder {
         metadata: {
           socialMedia: {
             facebook: 'homegardenplus',
-            youtube: 'homegardenplus'
+            youtube: 'homegardenplus',
           },
-          features: ['in_store_pickup', 'garden_consultation', 'workshop_events']
+          features: [
+            'in_store_pickup',
+            'garden_consultation',
+            'workshop_events',
+          ],
         },
         createdBy: 'system',
       },
@@ -110,9 +123,9 @@ export class StoresSeeder {
         metadata: {
           socialMedia: {
             instagram: 'sportscentral',
-            twitter: 'sportscentral'
+            twitter: 'sportscentral',
           },
-          features: ['team_discounts', 'equipment_rental', 'sports_clinics']
+          features: ['team_discounts', 'equipment_rental', 'sports_clinics'],
         },
         createdBy: 'system',
       },
@@ -135,22 +148,23 @@ export class StoresSeeder {
           socialMedia: {
             instagram: 'beautyhaven',
             youtube: 'beautyhaven_official',
-            tiktok: 'beautyhaven'
+            tiktok: 'beautyhaven',
           },
-          features: ['beauty_consultation', 'sample_program', 'loyalty_rewards']
+          features: [
+            'beauty_consultation',
+            'sample_program',
+            'loyalty_rewards',
+          ],
         },
         createdBy: 'system',
       },
     ];
 
     const stores: Store[] = [];
-    
+
     for (const storeData of storesData) {
       const existingStore = await this.storeRepository.findOne({
-        where: [
-          { name: storeData.name },
-          { website: storeData.website }
-        ]
+        where: [{ name: storeData.name }, { website: storeData.website }],
       });
 
       if (!existingStore) {
@@ -178,7 +192,7 @@ export class StoresSeeder {
         zipCode: '10001',
         country: 'United States',
         latitude: 40.7128,
-        longitude: -74.0060,
+        longitude: -74.006,
         phone: '+1-555-123-4567',
         hours: 'Mon-Fri: 9AM-9PM, Sat: 10AM-8PM, Sun: 11AM-6PM',
         status: LocationStatus.ACTIVE,
@@ -186,7 +200,7 @@ export class StoresSeeder {
         metadata: {
           parking: 'Street parking available',
           accessibility: 'Wheelchair accessible',
-          services: ['repair_center', 'demo_station', 'expert_consultation']
+          services: ['repair_center', 'demo_station', 'expert_consultation'],
         },
       },
       {
@@ -205,7 +219,7 @@ export class StoresSeeder {
         metadata: {
           parking: 'Garage parking available',
           accessibility: 'Wheelchair accessible',
-          services: ['startup_discounts', 'tech_events', 'innovation_lab']
+          services: ['startup_discounts', 'tech_events', 'innovation_lab'],
         },
       },
       // Home & Garden Plus - Physical store locations
@@ -225,7 +239,7 @@ export class StoresSeeder {
         metadata: {
           parking: 'Large parking lot',
           accessibility: 'Wheelchair accessible',
-          services: ['garden_center', 'landscaping_services', 'workshop_space']
+          services: ['garden_center', 'landscaping_services', 'workshop_space'],
         },
       },
       {
@@ -244,7 +258,7 @@ export class StoresSeeder {
         metadata: {
           parking: 'Street parking',
           accessibility: 'Wheelchair accessible',
-          services: ['home_decor', 'kitchen_essentials', 'design_consultation']
+          services: ['home_decor', 'kitchen_essentials', 'design_consultation'],
         },
       },
       // Sports Central - Physical locations
@@ -264,7 +278,7 @@ export class StoresSeeder {
         metadata: {
           parking: 'Large parking lot',
           accessibility: 'Wheelchair accessible',
-          services: ['indoor_courts', 'fitness_center', 'equipment_rental']
+          services: ['indoor_courts', 'fitness_center', 'equipment_rental'],
         },
       },
     ];
@@ -276,15 +290,19 @@ export class StoresSeeder {
           address: locationData.address,
           city: locationData.city,
           state: locationData.state,
-        }
+        },
       });
 
       if (!existingLocation) {
         const location = this.locationRepository.create(locationData);
         await this.locationRepository.save(location);
-        console.log(`✅ Physical location created: ${locationData.address}, ${locationData.city}`);
+        console.log(
+          `✅ Physical location created: ${locationData.address}, ${locationData.city}`,
+        );
       } else {
-        console.log(`ℹ️ Physical location already exists: ${locationData.address}, ${locationData.city}`);
+        console.log(
+          `ℹ️ Physical location already exists: ${locationData.address}, ${locationData.city}`,
+        );
       }
     }
   }

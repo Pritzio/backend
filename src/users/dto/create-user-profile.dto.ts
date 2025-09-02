@@ -1,24 +1,55 @@
-import { IsOptional, IsString, IsDate, IsEnum, IsBoolean, IsUrl, Length, IsDateString, Matches } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsDate,
+  IsEnum,
+  IsBoolean,
+  IsUrl,
+  Length,
+  IsDateString,
+  Matches,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Gender, ProfileVisibility } from '../entities/user-profile.entity';
-import { IsAdult, IsNotFutureDate, IsValidPhoneNumber, IsValidWebsite } from '../validators/business-rules.validator';
+import {
+  IsAdult,
+  IsNotFutureDate,
+  IsValidPhoneNumber,
+  IsValidWebsite,
+} from '../validators/business-rules.validator';
 
 export class CreateUserProfileDto {
-  @ApiPropertyOptional({ description: 'User first name', minLength: 2, maxLength: 100 })
+  @ApiPropertyOptional({
+    description: 'User first name',
+    minLength: 2,
+    maxLength: 100,
+  })
   @IsOptional()
   @IsString()
   @Length(2, 100)
-  @Matches(/^[a-zA-ZÀ-ÿ\s'-]+$/, { message: 'First name can only contain letters, spaces, hyphens, and apostrophes' })
+  @Matches(/^[a-zA-ZÀ-ÿ\s'-]+$/, {
+    message:
+      'First name can only contain letters, spaces, hyphens, and apostrophes',
+  })
   firstName?: string;
 
-  @ApiPropertyOptional({ description: 'User last name', minLength: 2, maxLength: 100 })
+  @ApiPropertyOptional({
+    description: 'User last name',
+    minLength: 2,
+    maxLength: 100,
+  })
   @IsOptional()
   @IsString()
   @Length(2, 100)
-  @Matches(/^[a-zA-ZÀ-ÿ\s'-]+$/, { message: 'Last name can only contain letters, spaces, hyphens, and apostrophes' })
+  @Matches(/^[a-zA-ZÀ-ÿ\s'-]+$/, {
+    message:
+      'Last name can only contain letters, spaces, hyphens, and apostrophes',
+  })
   lastName?: string;
 
-  @ApiPropertyOptional({ description: 'User date of birth (must be at least 13 years old)' })
+  @ApiPropertyOptional({
+    description: 'User date of birth (must be at least 13 years old)',
+  })
   @IsOptional()
   @IsDateString()
   @IsNotFutureDate()
@@ -30,7 +61,11 @@ export class CreateUserProfileDto {
   @IsEnum(Gender)
   gender?: Gender;
 
-  @ApiPropertyOptional({ description: 'User phone number (international format)', minLength: 10, maxLength: 20 })
+  @ApiPropertyOptional({
+    description: 'User phone number (international format)',
+    minLength: 10,
+    maxLength: 20,
+  })
   @IsOptional()
   @IsString()
   @Length(10, 20)
@@ -59,7 +94,9 @@ export class CreateUserProfileDto {
   @IsOptional()
   @IsString()
   @Length(0, 10)
-  @Matches(/^[a-zA-Z0-9\s-]+$/, { message: 'Zip code can only contain letters, numbers, spaces, and hyphens' })
+  @Matches(/^[a-zA-Z0-9\s-]+$/, {
+    message: 'Zip code can only contain letters, numbers, spaces, and hyphens',
+  })
   zipCode?: string;
 
   @ApiPropertyOptional({ description: 'User country', maxLength: 100 })
@@ -93,12 +130,19 @@ export class CreateUserProfileDto {
   @Length(0, 200)
   coverPhoto?: string;
 
-  @ApiPropertyOptional({ description: 'Profile visibility', enum: ProfileVisibility, default: ProfileVisibility.PUBLIC })
+  @ApiPropertyOptional({
+    description: 'Profile visibility',
+    enum: ProfileVisibility,
+    default: ProfileVisibility.PUBLIC,
+  })
   @IsOptional()
   @IsEnum(ProfileVisibility)
   profileVisibility?: ProfileVisibility;
 
-  @ApiPropertyOptional({ description: 'Whether user is verified', default: false })
+  @ApiPropertyOptional({
+    description: 'Whether user is verified',
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   isVerified?: boolean;

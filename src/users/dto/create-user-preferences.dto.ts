@@ -1,44 +1,75 @@
 import { IsOptional, IsEnum, IsBoolean, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Language, Currency, TimeZone } from '../entities/user-preferences.entity';
+import {
+  Language,
+  Currency,
+  TimeZone,
+} from '../entities/user-preferences.entity';
 
 export class CreateUserPreferencesDto {
-  @ApiPropertyOptional({ description: 'User language preference', enum: Language, default: Language.ENGLISH })
+  @ApiPropertyOptional({
+    description: 'User language preference',
+    enum: Language,
+    default: Language.ENGLISH,
+  })
   @IsOptional()
   @IsEnum(Language)
   language?: Language;
 
-  @ApiPropertyOptional({ description: 'User currency preference', enum: Currency, default: Currency.USD })
+  @ApiPropertyOptional({
+    description: 'User currency preference',
+    enum: Currency,
+    default: Currency.USD,
+  })
   @IsOptional()
   @IsEnum(Currency)
   currency?: Currency;
 
-  @ApiPropertyOptional({ description: 'User timezone preference', enum: TimeZone, default: TimeZone.UTC })
+  @ApiPropertyOptional({
+    description: 'User timezone preference',
+    enum: TimeZone,
+    default: TimeZone.UTC,
+  })
   @IsOptional()
   @IsEnum(TimeZone)
   timeZone?: TimeZone;
 
-  @ApiPropertyOptional({ description: 'Enable email notifications', default: true })
+  @ApiPropertyOptional({
+    description: 'Enable email notifications',
+    default: true,
+  })
   @IsOptional()
   @IsBoolean()
   emailNotifications?: boolean;
 
-  @ApiPropertyOptional({ description: 'Enable push notifications', default: true })
+  @ApiPropertyOptional({
+    description: 'Enable push notifications',
+    default: true,
+  })
   @IsOptional()
   @IsBoolean()
   pushNotifications?: boolean;
 
-  @ApiPropertyOptional({ description: 'Enable SMS notifications', default: false })
+  @ApiPropertyOptional({
+    description: 'Enable SMS notifications',
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   smsNotifications?: boolean;
 
-  @ApiPropertyOptional({ description: 'Enable in-app notifications', default: true })
+  @ApiPropertyOptional({
+    description: 'Enable in-app notifications',
+    default: true,
+  })
   @IsOptional()
   @IsBoolean()
   inAppNotifications?: boolean;
 
-  @ApiPropertyOptional({ description: 'Enable marketing emails', default: true })
+  @ApiPropertyOptional({
+    description: 'Enable marketing emails',
+    default: true,
+  })
   @IsOptional()
   @IsBoolean()
   marketingEmails?: boolean;
@@ -73,12 +104,18 @@ export class CreateUserPreferencesDto {
   @IsString()
   timeFormat?: string;
 
-  @ApiPropertyOptional({ description: 'Enable location services', default: true })
+  @ApiPropertyOptional({
+    description: 'Enable location services',
+    default: true,
+  })
   @IsOptional()
   @IsBoolean()
   locationServices?: boolean;
 
-  @ApiPropertyOptional({ description: 'Enable analytics tracking', default: true })
+  @ApiPropertyOptional({
+    description: 'Enable analytics tracking',
+    default: true,
+  })
   @IsOptional()
   @IsBoolean()
   analyticsTracking?: boolean;

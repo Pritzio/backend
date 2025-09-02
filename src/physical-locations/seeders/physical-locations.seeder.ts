@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PhysicalLocation, LocationType, LocationStatus } from '../entities/physical-location.entity';
+import {
+  PhysicalLocation,
+  LocationType,
+  LocationStatus,
+} from '../entities/physical-location.entity';
 import { Store } from '../../stores/entities/store.entity';
 import { User } from '../../auth/entities/user.entity';
 import { RoleType } from '../../auth/entities/role.entity';
@@ -22,13 +26,19 @@ export class PhysicalLocationsSeeder {
     const users = await this.userRepository.find();
 
     if (stores.length === 0 || users.length === 0) {
-      console.log('Skipping physical locations seeding: No stores or users found');
+      console.log(
+        'Skipping physical locations seeding: No stores or users found',
+      );
       return;
     }
 
-    const adminUser = users.find(user => 
-      user.roles.some(role => role.name === RoleType.SUPER_ADMIN || role.name === RoleType.ADMIN)
-    ) || users[0];
+    const adminUser =
+      users.find((user) =>
+        user.roles.some(
+          (role) =>
+            role.name === RoleType.SUPER_ADMIN || role.name === RoleType.ADMIN,
+        ),
+      ) || users[0];
 
     const sampleLocations = [
       {
@@ -43,7 +53,7 @@ export class PhysicalLocationsSeeder {
         country: 'United States',
         postalCode: '10001',
         latitude: 40.7128,
-        longitude: -74.0060,
+        longitude: -74.006,
         phone: '+1-555-123-4567',
         email: 'downtown@store.com',
         website: 'https://store.com/downtown',
@@ -64,7 +74,7 @@ export class PhysicalLocationsSeeder {
           thursday: { open: '09:00', close: '18:00', isOpen: true },
           friday: { open: '09:00', close: '20:00', isOpen: true },
           saturday: { open: '10:00', close: '17:00', isOpen: true },
-          sunday: { open: '11:00', close: '16:00', isOpen: true }
+          sunday: { open: '11:00', close: '16:00', isOpen: true },
         },
         specialHours: [
           {
@@ -72,40 +82,40 @@ export class PhysicalLocationsSeeder {
             open: '10:00',
             close: '16:00',
             isOpen: true,
-            reason: 'Christmas Day - Limited Hours'
-          }
+            reason: 'Christmas Day - Limited Hours',
+          },
         ],
         holidays: [
           {
             date: '2024-12-25',
             name: 'Christmas Day',
-            isOpen: false
+            isOpen: false,
           },
           {
             date: '2024-01-01',
-            name: 'New Year\'s Day',
-            isOpen: false
-          }
+            name: "New Year's Day",
+            isOpen: false,
+          },
         ],
         priceAdjustments: {
-          'rush_hour': {
+          rush_hour: {
             reason: 'Rush hour surcharge (4-7 PM)',
             adjustment: 5,
             percentage: true,
-            validFrom: new Date('2024-01-01')
+            validFrom: new Date('2024-01-01'),
           },
-          'weekend': {
+          weekend: {
             reason: 'Weekend convenience fee',
             adjustment: 10,
             percentage: false,
-            validFrom: new Date('2024-01-01')
-          }
+            validFrom: new Date('2024-01-01'),
+          },
         },
         metadata: {
           timezone: 'America/New_York',
           taxRate: 0.0875,
-          parkingFee: 5.00
-        }
+          parkingFee: 5.0,
+        },
       },
       {
         name: 'Brooklyn Warehouse',
@@ -139,13 +149,13 @@ export class PhysicalLocationsSeeder {
           thursday: { open: '00:00', close: '23:59', isOpen: true },
           friday: { open: '00:00', close: '23:59', isOpen: true },
           saturday: { open: '00:00', close: '23:59', isOpen: true },
-          sunday: { open: '00:00', close: '23:59', isOpen: true }
+          sunday: { open: '00:00', close: '23:59', isOpen: true },
         },
         metadata: {
           timezone: 'America/New_York',
           taxRate: 0.0875,
-          securityLevel: 'high'
-        }
+          securityLevel: 'high',
+        },
       },
       {
         name: 'Queens Pickup Point',
@@ -179,31 +189,31 @@ export class PhysicalLocationsSeeder {
           thursday: { open: '08:00', close: '20:00', isOpen: true },
           friday: { open: '08:00', close: '21:00', isOpen: true },
           saturday: { open: '09:00', close: '18:00', isOpen: true },
-          sunday: { open: '10:00', close: '17:00', isOpen: true }
+          sunday: { open: '10:00', close: '17:00', isOpen: true },
         },
         metadata: {
           timezone: 'America/New_York',
           taxRate: 0.0875,
-          pickupTimeLimit: '7 days'
-        }
-      }
+          pickupTimeLimit: '7 days',
+        },
+      },
     ];
 
     for (const locationData of sampleLocations) {
       const store = stores[Math.floor(Math.random() * stores.length)];
-      
+
       const existingLocation = await this.physicalLocationRepository.findOne({
         where: {
           storeId: store.id,
-          name: locationData.name
-        }
+          name: locationData.name,
+        },
       });
 
       if (!existingLocation) {
         const location = this.physicalLocationRepository.create({
           ...locationData,
           storeId: store.id,
-          createdBy: adminUser.id
+          createdBy: adminUser.id,
         });
 
         await this.physicalLocationRepository.save(location);

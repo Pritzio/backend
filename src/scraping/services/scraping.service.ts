@@ -1,6 +1,15 @@
-import { Injectable, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { chromium, Browser, Page } from 'playwright';
-import { IScrapingOptions, IScrapingResult, IScrapingResponse } from '../interfaces/scraping.interface';
+import {
+  IScrapingOptions,
+  IScrapingResult,
+  IScrapingResponse,
+} from '../interfaces/scraping.interface';
 import { ScrapeUrlDto } from '../dto/scrape-url.dto';
 
 @Injectable()
@@ -10,7 +19,8 @@ export class ScrapingService {
   private readonly defaultOptions: IScrapingOptions = {
     timeout: 30000,
     waitForSelector: '[data-cnstrc-item-id]',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    userAgent:
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
     viewport: {
       width: 1920,
       height: 1080,
@@ -28,16 +38,16 @@ export class ScrapingService {
 
   // Alternative selectors for different page types
   private readonly alternativeSelectors = [
-    '[data-cnstrc-item-id]',           // Product grid items
-    '.product-item',                    // Generic product items
-    '.product-card',                    // Product cards
-    '.product-grid',                    // Product grid
-    '.product-list',                    // Product list
-    '.product',                         // Generic product
-    '.item',                            // Generic items
-    '.card',                            // Generic cards
-    'main',                             // Main content
-    'body'                              // Fallback to body
+    '[data-cnstrc-item-id]', // Product grid items
+    '.product-item', // Generic product items
+    '.product-card', // Product cards
+    '.product-grid', // Product grid
+    '.product-list', // Product list
+    '.product', // Generic product
+    '.item', // Generic items
+    '.card', // Generic cards
+    'main', // Main content
+    'body', // Fallback to body
   ];
 
   /**
@@ -80,10 +90,12 @@ export class ScrapingService {
         timestamp: new Date(),
         executionTime,
       };
-
     } catch (error) {
       const executionTime = Date.now() - startTime;
-      this.logger.error(`HTML capture failed for ${scrapeDto.url}: ${error.message}`, error.stack);
+      this.logger.error(
+        `HTML capture failed for ${scrapeDto.url}: ${error.message}`,
+        error.stack,
+      );
 
       return {
         success: false,
@@ -107,7 +119,8 @@ export class ScrapingService {
   private async launchBrowser(options: IScrapingOptions): Promise<Browser> {
     try {
       // Randomize user agent
-      const randomUserAgent = this.userAgents[Math.floor(Math.random() * this.userAgents.length)];
+      const randomUserAgent =
+        this.userAgents[Math.floor(Math.random() * this.userAgents.length)];
       // this.logger.log(`Using user agent: ${randomUserAgent}`);
 
       return await chromium.launch({
@@ -178,18 +191,25 @@ export class ScrapingService {
       });
     } catch (error) {
       this.logger.error('Failed to launch browser', error);
-      throw new InternalServerErrorException('Failed to launch browser for scraping');
+      throw new InternalServerErrorException(
+        'Failed to launch browser for scraping',
+      );
     }
   }
 
   /**
    * Create and configure a new page
    */
-  private async createPage(browser: Browser, options: IScrapingOptions): Promise<Page> {
+  private async createPage(
+    browser: Browser,
+    options: IScrapingOptions,
+  ): Promise<Page> {
     const page = await browser.newPage();
 
     // Randomize user agent if not provided
-    const userAgent = options.userAgent || this.userAgents[Math.floor(Math.random() * this.userAgents.length)];
+    const userAgent =
+      options.userAgent ||
+      this.userAgents[Math.floor(Math.random() * this.userAgents.length)];
     await page.setExtraHTTPHeaders({
       'User-Agent': userAgent,
     });
@@ -203,9 +223,10 @@ export class ScrapingService {
     await page.setExtraHTTPHeaders({
       'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
       'Accept-Encoding': 'gzip, deflate, br',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      Accept:
+        'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
       'Cache-Control': 'no-cache',
-      'Pragma': 'no-cache',
+      Pragma: 'no-cache',
       'Sec-Ch-Ua': '"Chromium";v="136", "Not_A Brand";v="99"',
       'Sec-Ch-Ua-Mobile': '?0',
       'Sec-Ch-Ua-Platform': '"macOS"',
@@ -269,7 +290,7 @@ export class ScrapingService {
   private async navigateToUrl(page: Page, url: string): Promise<void> {
     try {
       // this.logger.log(`Navigating to: ${url}`);
-      
+
       // Try networkidle first, fallback to domcontentloaded if timeout
       try {
         await page.goto(url, {
@@ -278,7 +299,9 @@ export class ScrapingService {
         });
       } catch (networkIdleError) {
         // Fallback to domcontentloaded if networkidle times out
-        this.logger.warn(`Network idle timeout, falling back to DOM content loaded: ${networkIdleError.message}`);
+        this.logger.warn(
+          `Network idle timeout, falling back to DOM content loaded: ${networkIdleError.message}`,
+        );
         await page.goto(url, {
           waitUntil: 'domcontentloaded',
           timeout: 30000,
@@ -291,7 +314,9 @@ export class ScrapingService {
       // this.logger.log('Navigation completed');
     } catch (error) {
       this.logger.error(`Navigation failed: ${error.message}`);
-      throw new InternalServerErrorException(`Failed to navigate to URL: ${error.message}`);
+      throw new InternalServerErrorException(
+        `Failed to navigate to URL: ${error.message}`,
+      );
     }
   }
 
@@ -320,7 +345,6 @@ export class ScrapingService {
 
       // Another small delay
       await page.waitForTimeout(500 + Math.random() * 1000);
-
     } catch (error) {
       // this.logger.warn(`Human behavior simulation failed: ${error.message}`);
       // Continue anyway, this is not critical
@@ -331,29 +355,37 @@ export class ScrapingService {
    * Wait for page to load and capture HTML
    * Flexible approach: try networkidle, fallback to load state
    */
-  private async waitForContent(page: Page, options: IScrapingOptions): Promise<void> {
+  private async waitForContent(
+    page: Page,
+    options: IScrapingOptions,
+  ): Promise<void> {
     try {
       const { timeout } = options;
-      
+
       // this.logger.log(`Waiting for page to load with timeout: ${timeout}ms`);
 
       // Try networkidle first, fallback to load if it times out
       try {
-        await page.waitForLoadState('networkidle', { timeout: Math.min(timeout || 30000, 15000) });
+        await page.waitForLoadState('networkidle', {
+          timeout: Math.min(timeout || 30000, 15000),
+        });
       } catch (networkIdleError) {
         // Fallback to load state if networkidle times out
-        this.logger.warn(`Network idle timeout, falling back to load state: ${networkIdleError.message}`);
-        await page.waitForLoadState('load', { timeout: Math.min(timeout || 30000, 10000) });
+        this.logger.warn(
+          `Network idle timeout, falling back to load state: ${networkIdleError.message}`,
+        );
+        await page.waitForLoadState('load', {
+          timeout: Math.min(timeout || 30000, 10000),
+        });
       }
-      
+
       // Additional wait to ensure JavaScript execution
       await page.waitForTimeout(2000); // Reduced from 3000ms
-      
+
       // this.logger.log('Page loaded successfully, ready to capture HTML');
-      
     } catch (error) {
       this.logger.error(`Failed to wait for page load: ${error.message}`);
-      
+
       // Even if timeout occurs, try to capture what we have
       // this.logger.log('Continuing with HTML capture despite timeout...');
     }
@@ -420,23 +452,22 @@ export class ScrapingService {
   private validateUrl(url: string): void {
     try {
       const urlObj = new URL(url);
-      
+
       // Check if it's a valid HTTP/HTTPS URL
       if (!['http:', 'https:'].includes(urlObj.protocol)) {
         throw new BadRequestException('Only HTTP and HTTPS URLs are allowed');
       }
-      
+
       // Check if hostname is valid
       if (!urlObj.hostname || urlObj.hostname.length === 0) {
         throw new BadRequestException('Invalid hostname');
       }
-      
+
       // Log the URL being processed for debugging
       // this.logger.log(`Validated URL: ${urlObj.href}`);
       // this.logger.log(`Hostname: ${urlObj.hostname}`);
       // this.logger.log(`Path: ${urlObj.pathname}`);
       // this.logger.log(`Search params: ${urlObj.search}`);
-      
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
@@ -452,7 +483,8 @@ export class ScrapingService {
     return {
       ...this.defaultOptions,
       timeout: scrapeDto.timeout || this.defaultOptions.timeout,
-      waitForSelector: scrapeDto.waitForSelector || this.defaultOptions.waitForSelector,
+      waitForSelector:
+        scrapeDto.waitForSelector || this.defaultOptions.waitForSelector,
       userAgent: scrapeDto.userAgent || this.defaultOptions.userAgent,
     };
   }

@@ -1,14 +1,36 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Store, StoreStatus, StoreType, StoreCategory } from '../entities/store.entity';
-import { PhysicalLocation, LocationStatus } from '../entities/physical-location.entity';
-import { StoreProduct, StoreProductStatus } from '../entities/store-product.entity';
+import {
+  Store,
+  StoreStatus,
+  StoreType,
+  StoreCategory,
+} from '../entities/store.entity';
+import {
+  PhysicalLocation,
+  LocationStatus,
+} from '../entities/physical-location.entity';
+import {
+  StoreProduct,
+  StoreProductStatus,
+} from '../entities/store-product.entity';
 import { CreateStoreDto } from '../dto/create-store.dto';
 import { UpdateStoreDto } from '../dto/update-store.dto';
 import { CreateStoreLocationDto } from '../dto/create-store-location.dto';
 import { UpdateStoreLocationDto } from '../dto/update-store-location.dto';
-import { IStoreResponse, IStoreSummary, IStoreListResponse, IStoreFilters, IStoreAnalytics } from '../interfaces/store.interface';
+import {
+  IStoreResponse,
+  IStoreSummary,
+  IStoreListResponse,
+  IStoreFilters,
+  IStoreAnalytics,
+} from '../interfaces/store.interface';
 
 @Injectable()
 export class StoresService {
@@ -23,7 +45,10 @@ export class StoresService {
 
   // ===== STORE MANAGEMENT =====
 
-  async createStore(createStoreDto: CreateStoreDto, currentUser: any): Promise<Store> {
+  async createStore(
+    createStoreDto: CreateStoreDto,
+    currentUser: any,
+  ): Promise<Store> {
     // Check if user has permission to create stores
     const canCreate = this.validateStoreCreationPermissions(currentUser);
     if (!canCreate.allowed) {
@@ -34,12 +59,14 @@ export class StoresService {
     const existingStore = await this.storeRepository.findOne({
       where: [
         { name: createStoreDto.name },
-        { website: createStoreDto.website }
-      ]
+        { website: createStoreDto.website },
+      ],
     });
 
     if (existingStore) {
-      throw new BadRequestException('Store with this name or website already exists');
+      throw new BadRequestException(
+        'Store with this name or website already exists',
+      );
     }
 
     const store = this.storeRepository.create({
@@ -54,10 +81,10 @@ export class StoresService {
     page: number = 1,
     limit: number = 20,
     filters: IStoreFilters = {},
-    currentUser: any
+    currentUser: any,
   ): Promise<IStoreListResponse> {
     const skip = (page - 1) * limit;
-    
+
     let query = this.storeRepository
       .createQueryBuilder('store')
       .leftJoinAndSelect('store.creator', 'creator')
@@ -78,47 +105,63 @@ export class StoresService {
     }
 
     if (filters.status) {
-      query = query.andWhere('store.status = :status', { status: filters.status });
+      query = query.andWhere('store.status = :status', {
+        status: filters.status,
+      });
     }
 
     if (filters.category) {
-      query = query.andWhere('store.category = :category', { category: filters.category });
+      query = query.andWhere('store.category = :category', {
+        category: filters.category,
+      });
     }
 
     if (filters.country) {
-      query = query.andWhere('store.country = :country', { country: filters.country });
+      query = query.andWhere('store.country = :country', {
+        country: filters.country,
+      });
     }
 
     if (filters.isVerified !== undefined) {
-      query = query.andWhere('store.isVerified = :isVerified', { isVerified: filters.isVerified });
+      query = query.andWhere('store.isVerified = :isVerified', {
+        isVerified: filters.isVerified,
+      });
     }
 
     if (filters.hasPhysicalLocations !== undefined) {
       if (filters.hasPhysicalLocations) {
-        query = query.andWhere('store.type IN (:...types)', { types: [StoreType.PHYSICAL, StoreType.HYBRID] });
+        query = query.andWhere('store.type IN (:...types)', {
+          types: [StoreType.PHYSICAL, StoreType.HYBRID],
+        });
       } else {
-        query = query.andWhere('store.type = :type', { type: StoreType.ONLINE });
+        query = query.andWhere('store.type = :type', {
+          type: StoreType.ONLINE,
+        });
       }
     }
 
     if (filters.search) {
       query = query.andWhere(
         '(store.name ILIKE :search OR store.description ILIKE :search OR store.website ILIKE :search)',
-        { search: `%${filters.search}%` }
+        { search: `%${filters.search}%` },
       );
     }
 
     if (filters.createdAfter) {
-      query = query.andWhere('store.createdAt >= :createdAfter', { createdAfter: filters.createdAfter });
+      query = query.andWhere('store.createdAt >= :createdAfter', {
+        createdAfter: filters.createdAfter,
+      });
     }
 
     if (filters.createdBefore) {
-      query = query.andWhere('store.createdAt <= :createdBefore', { createdBefore: filters.createdBefore });
+      query = query.andWhere('store.createdAt <= :createdBefore', {
+        createdBefore: filters.createdBefore,
+      });
     }
 
     const [stores, total] = await query.getManyAndCount();
 
-    const storeSummaries: IStoreSummary[] = stores.map(store => ({
+    const storeSummaries: IStoreSummary[] = stores.map((store) => ({
       id: store.id,
       name: store.name,
       website: store.website,
@@ -148,10 +191,18 @@ export class StoresService {
     };
   }
 
-  async getStoreById(storeId: string, currentUser: any): Promise<IStoreResponse> {
+  async getStoreById(
+    storeId: string,
+    currentUser: any,
+  ): Promise<IStoreResponse> {
     const store = await this.storeRepository.findOne({
       where: { id: storeId },
-      relations: ['creator', 'creator.roles', 'storeProducts', 'physicalLocations'],
+      relations: [
+        'creator',
+        'creator.roles',
+        'storeProducts',
+        'physicalLocations',
+      ],
     });
 
     if (!store) {
@@ -167,7 +218,11 @@ export class StoresService {
     return this.mapStoreToResponse(store);
   }
 
-  async updateStore(storeId: string, updateStoreDto: UpdateStoreDto, currentUser: any): Promise<Store> {
+  async updateStore(
+    storeId: string,
+    updateStoreDto: UpdateStoreDto,
+    currentUser: any,
+  ): Promise<Store> {
     const store = await this.storeRepository.findOne({
       where: { id: storeId },
       relations: ['creator'],
@@ -186,7 +241,7 @@ export class StoresService {
     // Check for unique constraints if updating name or website
     if (updateStoreDto.name && updateStoreDto.name !== store.name) {
       const existingStore = await this.storeRepository.findOne({
-        where: { name: updateStoreDto.name }
+        where: { name: updateStoreDto.name },
       });
       if (existingStore) {
         throw new BadRequestException('Store with this name already exists');
@@ -195,7 +250,7 @@ export class StoresService {
 
     if (updateStoreDto.website && updateStoreDto.website !== store.website) {
       const existingStore = await this.storeRepository.findOne({
-        where: { website: updateStoreDto.website }
+        where: { website: updateStoreDto.website },
       });
       if (existingStore) {
         throw new BadRequestException('Store with this website already exists');
@@ -206,7 +261,10 @@ export class StoresService {
     return this.storeRepository.save(store);
   }
 
-  async deleteStore(storeId: string, currentUser: any): Promise<{ message: string; storeId: string }> {
+  async deleteStore(
+    storeId: string,
+    currentUser: any,
+  ): Promise<{ message: string; storeId: string }> {
     const store = await this.storeRepository.findOne({
       where: { id: storeId },
       relations: ['creator'],
@@ -223,11 +281,17 @@ export class StoresService {
     }
 
     // Check if store has associated data
-    const hasProducts = await this.storeProductRepository.count({ where: { storeId } });
-    const hasLocations = await this.locationRepository.count({ where: { storeId } });
+    const hasProducts = await this.storeProductRepository.count({
+      where: { storeId },
+    });
+    const hasLocations = await this.locationRepository.count({
+      where: { storeId },
+    });
 
     if (hasProducts > 0 || hasLocations > 0) {
-      throw new BadRequestException('Cannot delete store with associated products or locations');
+      throw new BadRequestException(
+        'Cannot delete store with associated products or locations',
+      );
     }
 
     await this.storeRepository.remove(store);
@@ -240,7 +304,10 @@ export class StoresService {
 
   // ===== PHYSICAL LOCATION MANAGEMENT =====
 
-  async createPhysicalLocation(createLocationDto: CreateStoreLocationDto, currentUser: any): Promise<PhysicalLocation> {
+  async createPhysicalLocation(
+    createLocationDto: CreateStoreLocationDto,
+    currentUser: any,
+  ): Promise<PhysicalLocation> {
     // Verify store exists and user has access
     const store = await this.storeRepository.findOne({
       where: { id: createLocationDto.storeId },
@@ -251,7 +318,10 @@ export class StoresService {
       throw new NotFoundException('Store not found');
     }
 
-    const canManage = this.validateLocationManagementPermissions(store, currentUser);
+    const canManage = this.validateLocationManagementPermissions(
+      store,
+      currentUser,
+    );
     if (!canManage.allowed) {
       throw new ForbiddenException(canManage.reason);
     }
@@ -263,7 +333,7 @@ export class StoresService {
   async updatePhysicalLocation(
     locationId: string,
     updateLocationDto: UpdateStoreLocationDto,
-    currentUser: any
+    currentUser: any,
   ): Promise<PhysicalLocation> {
     const location = await this.locationRepository.findOne({
       where: { id: locationId },
@@ -274,7 +344,10 @@ export class StoresService {
       throw new NotFoundException('Physical location not found');
     }
 
-    const canManage = this.validateLocationManagementPermissions(location.store, currentUser);
+    const canManage = this.validateLocationManagementPermissions(
+      location.store,
+      currentUser,
+    );
     if (!canManage.allowed) {
       throw new ForbiddenException(canManage.reason);
     }
@@ -283,7 +356,10 @@ export class StoresService {
     return this.locationRepository.save(location);
   }
 
-  async deletePhysicalLocation(locationId: string, currentUser: any): Promise<{ message: string; locationId: string }> {
+  async deletePhysicalLocation(
+    locationId: string,
+    currentUser: any,
+  ): Promise<{ message: string; locationId: string }> {
     const location = await this.locationRepository.findOne({
       where: { id: locationId },
       relations: ['store', 'store.creator'],
@@ -293,7 +369,10 @@ export class StoresService {
       throw new NotFoundException('Physical location not found');
     }
 
-    const canManage = this.validateLocationManagementPermissions(location.store, currentUser);
+    const canManage = this.validateLocationManagementPermissions(
+      location.store,
+      currentUser,
+    );
     if (!canManage.allowed) {
       throw new ForbiddenException(canManage.reason);
     }
@@ -308,7 +387,10 @@ export class StoresService {
 
   // ===== ANALYTICS =====
 
-  async getStoreAnalytics(storeId: string, currentUser: any): Promise<IStoreAnalytics> {
+  async getStoreAnalytics(
+    storeId: string,
+    currentUser: any,
+  ): Promise<IStoreAnalytics> {
     const store = await this.storeRepository.findOne({
       where: { id: storeId },
       relations: ['creator'],
@@ -324,12 +406,17 @@ export class StoresService {
     }
 
     // Get store statistics
-    const [totalProducts, activeProducts, totalLocations, activeLocations] = await Promise.all([
-      this.storeProductRepository.count({ where: { storeId } }),
-      this.storeProductRepository.count({ where: { storeId, status: StoreProductStatus.ACTIVE } }),
-      this.locationRepository.count({ where: { storeId } }),
-      this.locationRepository.count({ where: { storeId, status: LocationStatus.ACTIVE } }),
-    ]);
+    const [totalProducts, activeProducts, totalLocations, activeLocations] =
+      await Promise.all([
+        this.storeProductRepository.count({ where: { storeId } }),
+        this.storeProductRepository.count({
+          where: { storeId, status: StoreProductStatus.ACTIVE },
+        }),
+        this.locationRepository.count({ where: { storeId } }),
+        this.locationRepository.count({
+          where: { storeId, status: LocationStatus.ACTIVE },
+        }),
+      ]);
 
     // Get price statistics
     const priceStats = await this.storeProductRepository
@@ -383,87 +470,123 @@ export class StoresService {
 
   // ===== PERMISSION VALIDATION =====
 
-  private validateStoreCreationPermissions(currentUser: any): { allowed: boolean; reason?: string } {
-    const userRoles = currentUser.roles?.map(role => role.name) || [];
-    
+  private validateStoreCreationPermissions(currentUser: any): {
+    allowed: boolean;
+    reason?: string;
+  } {
+    const userRoles = currentUser.roles?.map((role) => role.name) || [];
+
     if (userRoles.includes('SUPER_ADMIN') || userRoles.includes('ADMIN')) {
       return { allowed: true };
     }
-    
-    return { allowed: false, reason: 'Only SUPER_ADMIN and ADMIN can create stores' };
+
+    return {
+      allowed: false,
+      reason: 'Only SUPER_ADMIN and ADMIN can create stores',
+    };
   }
 
-  private validateStoreViewPermissions(store: Store, currentUser: any): { allowed: boolean; reason?: string } {
-    const userRoles = currentUser.roles?.map(role => role.name) || [];
-    
+  private validateStoreViewPermissions(
+    store: Store,
+    currentUser: any,
+  ): { allowed: boolean; reason?: string } {
+    const userRoles = currentUser.roles?.map((role) => role.name) || [];
+
     // SUPER_ADMIN and ADMIN can view all stores
     if (userRoles.includes('SUPER_ADMIN') || userRoles.includes('ADMIN')) {
       return { allowed: true };
     }
-    
+
     // STORE_ADMIN can only view stores they created
     if (userRoles.includes('STORE_ADMIN')) {
       if (store.createdBy === currentUser.id) {
         return { allowed: true };
       }
-      return { allowed: false, reason: 'STORE_ADMIN can only view their own stores' };
+      return {
+        allowed: false,
+        reason: 'STORE_ADMIN can only view their own stores',
+      };
     }
-    
-    return { allowed: false, reason: 'Insufficient permissions to view stores' };
+
+    return {
+      allowed: false,
+      reason: 'Insufficient permissions to view stores',
+    };
   }
 
-  private validateStoreUpdatePermissions(store: Store, currentUser: any): { allowed: boolean; reason?: string } {
-    const userRoles = currentUser.roles?.map(role => role.name) || [];
-    
+  private validateStoreUpdatePermissions(
+    store: Store,
+    currentUser: any,
+  ): { allowed: boolean; reason?: string } {
+    const userRoles = currentUser.roles?.map((role) => role.name) || [];
+
     // SUPER_ADMIN can update any store
     if (userRoles.includes('super_admin')) {
       return { allowed: true };
     }
-    
+
     // ADMIN can update any store
     if (userRoles.includes('admin')) {
       return { allowed: true };
     }
-    
+
     // STORE_ADMIN can only update stores they created
     if (userRoles.includes('store_admin')) {
       if (store.createdBy === currentUser.id) {
         return { allowed: true };
       }
-      return { allowed: false, reason: 'STORE_ADMIN can only update their own stores' };
+      return {
+        allowed: false,
+        reason: 'STORE_ADMIN can only update their own stores',
+      };
     }
-    
-    return { allowed: false, reason: 'Insufficient permissions to update stores' };
+
+    return {
+      allowed: false,
+      reason: 'Insufficient permissions to update stores',
+    };
   }
 
-  private validateStoreDeletionPermissions(store: Store, currentUser: any): { allowed: boolean; reason?: string } {
-    const userRoles = currentUser.roles?.map(role => role.name) || [];
-    
+  private validateStoreDeletionPermissions(
+    store: Store,
+    currentUser: any,
+  ): { allowed: boolean; reason?: string } {
+    const userRoles = currentUser.roles?.map((role) => role.name) || [];
+
     // Only SUPER_ADMIN can delete stores
     if (userRoles.includes('super_admin')) {
       return { allowed: true };
     }
-    
+
     return { allowed: false, reason: 'Only SUPER_ADMIN can delete stores' };
   }
 
-  private validateLocationManagementPermissions(store: Store, currentUser: any): { allowed: boolean; reason?: string } {
-    const userRoles = currentUser.roles?.map(role => role.name) || [];
-    
+  private validateLocationManagementPermissions(
+    store: Store,
+    currentUser: any,
+  ): { allowed: boolean; reason?: string } {
+    const userRoles = currentUser.roles?.map((role) => role.name) || [];
+
     // SUPER_ADMIN and ADMIN can manage locations for any store
     if (userRoles.includes('super_admin') || userRoles.includes('admin')) {
       return { allowed: true };
     }
-    
+
     // STORE_ADMIN can only manage locations for their own stores
     if (userRoles.includes('store_admin')) {
       if (store.createdBy === currentUser.id) {
         return { allowed: true };
       }
-      return { allowed: false, reason: 'STORE_ADMIN can only manage locations for their own stores' };
+      return {
+        allowed: false,
+        reason: 'STORE_ADMIN can only manage locations for their own stores',
+      };
     }
-    
-    return { allowed: false, reason: 'Insufficient permissions to manage store locations' };
+
+    return {
+      allowed: false,
+      reason: 'Insufficient permissions to manage store locations',
+    };
   }
 
   // ===== UTILITY METHODS =====
@@ -493,16 +616,20 @@ export class StoresService {
         id: store.creator.id,
         username: store.creator.username,
         email: store.creator.email,
-        roles: store.creator.roles?.map(role => ({
-          id: role.id,
-          name: role.name,
-          displayName: role.displayName,
-        })) || [],
+        roles:
+          store.creator.roles?.map((role) => ({
+            id: role.id,
+            name: role.name,
+            displayName: role.displayName,
+          })) || [],
       },
       storeProductsCount: store.storeProducts?.length || 0,
       physicalLocationsCount: store.physicalLocations?.length || 0,
-      verificationStatus: store.isVerified ? 'verified' : 
-                          store.status === StoreStatus.SUSPENDED ? 'suspended' : 'pending',
+      verificationStatus: store.isVerified
+        ? 'verified'
+        : store.status === StoreStatus.SUSPENDED
+          ? 'suspended'
+          : 'pending',
     };
   }
 }

@@ -1,4 +1,9 @@
-import { SetMetadata, UseGuards, UseInterceptors, applyDecorators } from '@nestjs/common';
+import {
+  SetMetadata,
+  UseGuards,
+  UseInterceptors,
+  applyDecorators,
+} from '@nestjs/common';
 import { ApiKeyGuard } from '../guards/api-key.guard';
 import { SecurityLoggingInterceptor } from '../interceptors/security-logging.interceptor';
 import { ValidationInterceptor } from '../interceptors/validation.interceptor';
@@ -23,41 +28,50 @@ export interface RateLimitConfig {
   skipFailedRequests?: boolean;
 }
 
-export const SecurityLevelDecorator = (level: SecurityLevel) => SetMetadata(SECURITY_LEVEL_KEY, level);
+export const SecurityLevelDecorator = (level: SecurityLevel) =>
+  SetMetadata(SECURITY_LEVEL_KEY, level);
 
-export const RateLimit = (config: RateLimitConfig) => SetMetadata(RATE_LIMIT_KEY, config);
+export const RateLimit = (config: RateLimitConfig) =>
+  SetMetadata(RATE_LIMIT_KEY, config);
 
-export const Sanitization = (enabled: boolean = true) => SetMetadata(SANITIZATION_KEY, enabled);
+export const Sanitization = (enabled: boolean = true) =>
+  SetMetadata(SANITIZATION_KEY, enabled);
 
-export const BasicSecurity = () => applyDecorators(
-  UseInterceptors(ValidationInterceptor, SecurityLoggingInterceptor),
-  SecurityLevelDecorator(SecurityLevel.BASIC)
-);
+export const BasicSecurity = () =>
+  applyDecorators(
+    UseInterceptors(ValidationInterceptor, SecurityLoggingInterceptor),
+    SecurityLevelDecorator(SecurityLevel.BASIC),
+  );
 
-export const StrictSecurity = () => applyDecorators(
-  UseInterceptors(ValidationInterceptor, SecurityLoggingInterceptor),
-  SecurityLevelDecorator(SecurityLevel.STRICT)
-);
+export const StrictSecurity = () =>
+  applyDecorators(
+    UseInterceptors(ValidationInterceptor, SecurityLoggingInterceptor),
+    SecurityLevelDecorator(SecurityLevel.STRICT),
+  );
 
-export const ApiKeyProtected = () => applyDecorators(
-  UseGuards(ApiKeyGuard),
-  UseInterceptors(ValidationInterceptor, SecurityLoggingInterceptor),
-  SecurityLevelDecorator(SecurityLevel.API_KEY)
-);
+export const ApiKeyProtected = () =>
+  applyDecorators(
+    UseGuards(ApiKeyGuard),
+    UseInterceptors(ValidationInterceptor, SecurityLoggingInterceptor),
+    SecurityLevelDecorator(SecurityLevel.API_KEY),
+  );
 
-export const AdminOnly = () => applyDecorators(
-  UseInterceptors(ValidationInterceptor, SecurityLoggingInterceptor),
-  SecurityLevelDecorator(SecurityLevel.ADMIN)
-);
+export const AdminOnly = () =>
+  applyDecorators(
+    UseInterceptors(ValidationInterceptor, SecurityLoggingInterceptor),
+    SecurityLevelDecorator(SecurityLevel.ADMIN),
+  );
 
-export const SystemOnly = () => applyDecorators(
-  UseInterceptors(ValidationInterceptor, SecurityLoggingInterceptor),
-  SecurityLevelDecorator(SecurityLevel.SYSTEM)
-);
+export const SystemOnly = () =>
+  applyDecorators(
+    UseInterceptors(ValidationInterceptor, SecurityLoggingInterceptor),
+    SecurityLevelDecorator(SecurityLevel.SYSTEM),
+  );
 
 export const ValidatePayload = () => UseInterceptors(ValidationInterceptor);
 
-export const SecurityLogging = () => UseInterceptors(SecurityLoggingInterceptor);
+export const SecurityLogging = () =>
+  UseInterceptors(SecurityLoggingInterceptor);
 
 export const CustomCors = (origins: string[]) => {
   return SetMetadata('customCors', origins);

@@ -5,7 +5,9 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AuthController } from './controllers/auth.controller';
+import { RolesController } from './controllers/roles.controller';
 import { AuthService } from './services/auth.service';
+import { RolesService } from './services/roles.service';
 import { JwtService } from './services/jwt.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -36,9 +38,10 @@ import { UsersModule } from '../users/users.module';
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, RolesController],
   providers: [
     AuthService,
+    RolesService,
     JwtService,
     JwtStrategy,
     JwtAuthGuard,
@@ -48,6 +51,7 @@ import { UsersModule } from '../users/users.module';
   ],
   exports: [
     AuthService,
+    RolesService,
     JwtService,
     JwtAuthGuard,
     RolesGuard,

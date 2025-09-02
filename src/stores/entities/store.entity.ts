@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 import { StoreProduct } from './store-product.entity';
 import { PhysicalLocation } from './physical-location.entity';
@@ -6,14 +16,14 @@ import { PhysicalLocation } from './physical-location.entity';
 export enum StoreType {
   ONLINE = 'online',
   PHYSICAL = 'physical',
-  HYBRID = 'hybrid'
+  HYBRID = 'hybrid',
 }
 
 export enum StoreStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   SUSPENDED = 'suspended',
-  PENDING_VERIFICATION = 'pending_verification'
+  PENDING_VERIFICATION = 'pending_verification',
 }
 
 export enum StoreCategory {
@@ -27,7 +37,7 @@ export enum StoreCategory {
   FOOD_AND_BEVERAGES = 'food_and_beverages',
   HEALTH = 'health',
   TOYS = 'toys',
-  OTHER = 'other'
+  OTHER = 'other',
 }
 
 @Entity('stores')
@@ -55,21 +65,21 @@ export class Store {
   @Column({
     type: 'enum',
     enum: StoreType,
-    default: StoreType.HYBRID
+    default: StoreType.HYBRID,
   })
   type: StoreType;
 
   @Column({
     type: 'enum',
     enum: StoreStatus,
-    default: StoreStatus.PENDING_VERIFICATION
+    default: StoreStatus.PENDING_VERIFICATION,
   })
   status: StoreStatus;
 
   @Column({
     type: 'enum',
     enum: StoreCategory,
-    default: StoreCategory.OTHER
+    default: StoreCategory.OTHER,
   })
   category: StoreCategory;
 
@@ -111,10 +121,14 @@ export class Store {
   @JoinColumn({ name: 'createdBy' })
   creator: User;
 
-  @OneToMany(() => StoreProduct, storeProduct => storeProduct.store, { cascade: true })
+  @OneToMany(() => StoreProduct, (storeProduct) => storeProduct.store, {
+    cascade: true,
+  })
   storeProducts: StoreProduct[];
 
-  @OneToMany(() => PhysicalLocation, location => location.store, { cascade: true })
+  @OneToMany(() => PhysicalLocation, (location) => location.store, {
+    cascade: true,
+  })
   physicalLocations: PhysicalLocation[];
 
   // Virtual properties

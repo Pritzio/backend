@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  Index,
+} from 'typeorm';
 import { Store } from '../../stores/entities/store.entity';
 import { Product } from '../../products/entities/product.entity';
 import { User } from '../../auth/entities/user.entity';
@@ -9,7 +19,7 @@ export enum StoreProductStatus {
   OUT_OF_STOCK = 'out_of_stock',
   DISCONTINUED = 'discontinued',
   COMING_SOON = 'coming_soon',
-  ERROR = 'error'
+  ERROR = 'error',
 }
 
 export enum Availability {
@@ -17,7 +27,7 @@ export enum Availability {
   LOW_STOCK = 'low_stock',
   OUT_OF_STOCK = 'out_of_stock',
   PRE_ORDER = 'pre_order',
-  BACKORDER = 'backorder'
+  BACKORDER = 'backorder',
 }
 
 export enum ScrapingStatus {
@@ -25,7 +35,7 @@ export enum ScrapingStatus {
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
   FAILED = 'failed',
-  SCHEDULED = 'scheduled'
+  SCHEDULED = 'scheduled',
 }
 
 @Entity('store_products')
@@ -77,21 +87,21 @@ export class StoreProduct {
   @Column({
     type: 'enum',
     enum: Availability,
-    default: Availability.IN_STOCK
+    default: Availability.IN_STOCK,
   })
   availability: Availability;
 
   @Column({
     type: 'enum',
     enum: StoreProductStatus,
-    default: StoreProductStatus.ACTIVE
+    default: StoreProductStatus.ACTIVE,
   })
   status: StoreProductStatus;
 
   @Column({
     type: 'enum',
     enum: ScrapingStatus,
-    default: ScrapingStatus.PENDING
+    default: ScrapingStatus.PENDING,
   })
   scrapingStatus: ScrapingStatus;
 
@@ -217,7 +227,12 @@ export class StoreProduct {
   }
 
   get hasDiscount(): boolean {
-    return !!(this.isOnSale && this.originalPrice && this.onlinePrice && this.originalPrice > this.onlinePrice);
+    return !!(
+      this.isOnSale &&
+      this.originalPrice &&
+      this.onlinePrice &&
+      this.originalPrice > this.onlinePrice
+    );
   }
 
   get discountAmount(): number {
@@ -229,28 +244,39 @@ export class StoreProduct {
 
   get calculatedDiscountPercentage(): number {
     if (this.hasDiscount) {
-      return ((this.originalPrice - this.onlinePrice) / this.originalPrice) * 100;
+      return (
+        ((this.originalPrice - this.onlinePrice) / this.originalPrice) * 100
+      );
     }
     return 0;
   }
 
   get isLowStock(): boolean {
-    return !!(this.stockQuantity && this.minStockLevel && this.stockQuantity <= this.minStockLevel);
+    return !!(
+      this.stockQuantity &&
+      this.minStockLevel &&
+      this.stockQuantity <= this.minStockLevel
+    );
   }
 
   get isOutOfStock(): boolean {
-    return this.availability === Availability.OUT_OF_STOCK || this.stockQuantity === 0;
+    return (
+      this.availability === Availability.OUT_OF_STOCK ||
+      this.stockQuantity === 0
+    );
   }
 
   get needsScraping(): boolean {
     if (!this.lastScraped) return true;
-    const hoursSinceLastScraping = (Date.now() - this.lastScraped.getTime()) / (1000 * 60 * 60);
+    const hoursSinceLastScraping =
+      (Date.now() - this.lastScraped.getTime()) / (1000 * 60 * 60);
     return hoursSinceLastScraping >= this.scrapingIntervalHours;
   }
 
   get scrapingOverdue(): boolean {
     if (!this.lastScraped) return true;
-    const hoursSinceLastScraping = (Date.now() - this.lastScraped.getTime()) / (1000 * 60 * 60);
+    const hoursSinceLastScraping =
+      (Date.now() - this.lastScraped.getTime()) / (1000 * 60 * 60);
     return hoursSinceLastScraping > this.scrapingIntervalHours * 1.5;
   }
 
@@ -279,11 +305,13 @@ export class StoreProduct {
 
   get priceVolatility(): number {
     if (!this.priceHistory || this.priceHistory.length < 2) return 0;
-    
-    const prices = this.priceHistory.map(p => p.price);
+
+    const prices = this.priceHistory.map((p) => p.price);
     const mean = prices.reduce((sum, price) => sum + price, 0) / prices.length;
-    const variance = prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length;
-    
+    const variance =
+      prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) /
+      prices.length;
+
     return Math.sqrt(variance);
   }
 }

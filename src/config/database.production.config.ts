@@ -22,7 +22,7 @@ export const databaseProductionConfig: TypeOrmModuleOptions = {
           }
         : null,
   },
-        poolSize: 20,
-      retryAttempts: 10,
-      retryDelay: 3000,
+  poolSize: 20,
+  retryAttempts: 10,
+  retryDelay: 3000,
 };

@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Product, ProductStatus, ProductType, ProductCondition } from '../entities/product.entity';
+import {
+  Product,
+  ProductStatus,
+  ProductType,
+  ProductCondition,
+} from '../entities/product.entity';
 import { ProductCategory } from '../entities/product-category.entity';
 import { ProductBrand } from '../entities/product-brand.entity';
 import { User } from '../../auth/entities/user.entity';
@@ -28,34 +33,40 @@ export class ProductsSeeder {
       return;
     }
 
-    const adminUser = users.find(user => 
-      user.roles.some(role => role.name === RoleType.SUPER_ADMIN || role.name === RoleType.ADMIN)
-    ) || users[0];
+    const adminUser =
+      users.find((user) =>
+        user.roles.some(
+          (role) =>
+            role.name === RoleType.SUPER_ADMIN || role.name === RoleType.ADMIN,
+        ),
+      ) || users[0];
 
     // Create categories first
     const categories = await this.createCategories(adminUser.id);
-    
+
     // Create brands
     const brands = await this.createBrands(adminUser.id);
-    
+
     // Create products
     await this.createProducts(adminUser.id, categories, brands);
 
     console.log('Products seeding completed');
   }
 
-  private async createCategories(adminUserId: string): Promise<ProductCategory[]> {
+  private async createCategories(
+    adminUserId: string,
+  ): Promise<ProductCategory[]> {
     const categoriesData = [
-             {
-         name: 'Smartphones',
-         description: 'Mobile phones and communication devices',
-         slug: 'smartphones',
-         parentId: undefined,
-         level: 1,
-         sortOrder: 1,
-         isActive: true,
-         metadata: { icon: 'phone', color: '#007AFF' }
-       },
+      {
+        name: 'Smartphones',
+        description: 'Mobile phones and communication devices',
+        slug: 'smartphones',
+        parentId: undefined,
+        level: 1,
+        sortOrder: 1,
+        isActive: true,
+        metadata: { icon: 'phone', color: '#007AFF' },
+      },
       {
         name: 'Laptops',
         description: 'Portable computers and notebooks',
@@ -64,7 +75,7 @@ export class ProductsSeeder {
         level: 1,
         sortOrder: 2,
         isActive: true,
-        metadata: { icon: 'laptop', color: '#34C759' }
+        metadata: { icon: 'laptop', color: '#34C759' },
       },
       {
         name: 'Tablets',
@@ -74,7 +85,7 @@ export class ProductsSeeder {
         level: 1,
         sortOrder: 3,
         isActive: true,
-        metadata: { icon: 'tablet', color: '#FF9500' }
+        metadata: { icon: 'tablet', color: '#FF9500' },
       },
       {
         name: 'Audio',
@@ -84,7 +95,7 @@ export class ProductsSeeder {
         level: 1,
         sortOrder: 4,
         isActive: true,
-        metadata: { icon: 'headphones', color: '#AF52DE' }
+        metadata: { icon: 'headphones', color: '#AF52DE' },
       },
       {
         name: 'Gaming',
@@ -94,21 +105,21 @@ export class ProductsSeeder {
         level: 1,
         sortOrder: 5,
         isActive: true,
-        metadata: { icon: 'game-controller', color: '#FF3B30' }
-      }
+        metadata: { icon: 'game-controller', color: '#FF3B30' },
+      },
     ];
 
     const categories: ProductCategory[] = [];
-    
+
     for (const categoryData of categoriesData) {
       const existingCategory = await this.categoryRepository.findOne({
-        where: { slug: categoryData.slug }
+        where: { slug: categoryData.slug },
       });
 
       if (!existingCategory) {
         const category = this.categoryRepository.create({
           ...categoryData,
-          createdBy: adminUserId
+          createdBy: adminUserId,
         });
 
         const savedCategory = await this.categoryRepository.save(category);
@@ -138,9 +149,9 @@ export class ProductsSeeder {
         socialMedia: {
           twitter: '@Apple',
           facebook: 'Apple',
-          instagram: 'apple'
+          instagram: 'apple',
         },
-        metadata: { color: '#000000', premium: true }
+        metadata: { color: '#000000', premium: true },
       },
       {
         name: 'Samsung',
@@ -156,9 +167,9 @@ export class ProductsSeeder {
         socialMedia: {
           twitter: '@Samsung',
           facebook: 'Samsung',
-          instagram: 'samsung'
+          instagram: 'samsung',
         },
-        metadata: { color: '#1428A0', premium: true }
+        metadata: { color: '#1428A0', premium: true },
       },
       {
         name: 'Microsoft',
@@ -174,9 +185,9 @@ export class ProductsSeeder {
         socialMedia: {
           twitter: '@Microsoft',
           facebook: 'Microsoft',
-          instagram: 'microsoft'
+          instagram: 'microsoft',
         },
-        metadata: { color: '#00A4EF', premium: true }
+        metadata: { color: '#00A4EF', premium: true },
       },
       {
         name: 'Sony',
@@ -192,9 +203,9 @@ export class ProductsSeeder {
         socialMedia: {
           twitter: '@Sony',
           facebook: 'Sony',
-          instagram: 'sony'
+          instagram: 'sony',
         },
-        metadata: { color: '#000000', premium: true }
+        metadata: { color: '#000000', premium: true },
       },
       {
         name: 'LG',
@@ -210,23 +221,23 @@ export class ProductsSeeder {
         socialMedia: {
           twitter: '@LGUS',
           facebook: 'LG',
-          instagram: 'lg'
+          instagram: 'lg',
         },
-        metadata: { color: '#A50034', premium: false }
-      }
+        metadata: { color: '#A50034', premium: false },
+      },
     ];
 
     const brands: ProductBrand[] = [];
-    
+
     for (const brandData of brandsData) {
       const existingBrand = await this.brandRepository.findOne({
-        where: { slug: brandData.slug }
+        where: { slug: brandData.slug },
       });
 
       if (!existingBrand) {
         const brand = this.brandRepository.create({
           ...brandData,
-          createdBy: adminUserId
+          createdBy: adminUserId,
         });
 
         const savedBrand = await this.brandRepository.save(brand);
@@ -241,17 +252,17 @@ export class ProductsSeeder {
   }
 
   private async createProducts(
-    adminUserId: string, 
-    categories: ProductCategory[], 
-    brands: ProductBrand[]
+    adminUserId: string,
+    categories: ProductCategory[],
+    brands: ProductBrand[],
   ): Promise<void> {
     const productsData = [
       {
         name: 'iPhone 15 Pro',
         code: 'IPH15P-001',
         description: 'Latest iPhone with A17 Pro chip and titanium design',
-        categoryId: categories.find(c => c.slug === 'smartphones')?.id,
-        brandId: brands.find(b => b.slug === 'apple')?.id,
+        categoryId: categories.find((c) => c.slug === 'smartphones')?.id,
+        brandId: brands.find((b) => b.slug === 'apple')?.id,
         type: ProductType.PHYSICAL,
         status: ProductStatus.ACTIVE,
         condition: ProductCondition.NEW,
@@ -265,28 +276,28 @@ export class ProductsSeeder {
           processor: 'A17 Pro chip',
           storage: '128GB',
           camera: '48MP Main + 12MP Ultra Wide + 12MP Telephoto',
-          battery: 'Up to 23 hours video playback'
+          battery: 'Up to 23 hours video playback',
         },
         features: [
           'Titanium design',
           'Action button',
           'USB-C connector',
           'Pro camera system',
-          'A17 Pro chip'
+          'A17 Pro chip',
         ],
         tags: ['iPhone', 'Smartphone', 'Apple', '5G', 'Pro'],
         metadata: {
           releaseDate: '2024-09-22',
           color: 'Natural Titanium',
-          carrier: 'Unlocked'
-        }
+          carrier: 'Unlocked',
+        },
       },
       {
         name: 'MacBook Air M2',
         code: 'MBA-M2-001',
         description: 'Ultra-thin laptop with M2 chip and all-day battery life',
-        categoryId: categories.find(c => c.slug === 'laptops')?.id,
-        brandId: brands.find(b => b.slug === 'apple')?.id,
+        categoryId: categories.find((c) => c.slug === 'laptops')?.id,
+        brandId: brands.find((b) => b.slug === 'apple')?.id,
         type: ProductType.PHYSICAL,
         status: ProductStatus.ACTIVE,
         condition: ProductCondition.NEW,
@@ -300,28 +311,28 @@ export class ProductsSeeder {
           processor: 'M2 chip',
           memory: '8GB unified memory',
           storage: '256GB SSD',
-          battery: 'Up to 18 hours'
+          battery: 'Up to 18 hours',
         },
         features: [
           'M2 chip',
           'Liquid Retina display',
           'All-day battery life',
           'Fanless design',
-          'MagSafe charging'
+          'MagSafe charging',
         ],
         tags: ['MacBook', 'Laptop', 'Apple', 'M2', 'Ultrabook'],
         metadata: {
           releaseDate: '2022-07-15',
           color: 'Space Gray',
-          keyboard: 'Backlit Magic Keyboard'
-        }
+          keyboard: 'Backlit Magic Keyboard',
+        },
       },
       {
         name: 'Samsung Galaxy S24',
         code: 'SAMS24-001',
         description: 'Flagship Android smartphone with AI features',
-        categoryId: categories.find(c => c.slug === 'smartphones')?.id,
-        brandId: brands.find(b => b.slug === 'samsung')?.id,
+        categoryId: categories.find((c) => c.slug === 'smartphones')?.id,
+        brandId: brands.find((b) => b.slug === 'samsung')?.id,
         type: ProductType.PHYSICAL,
         status: ProductStatus.ACTIVE,
         condition: ProductCondition.NEW,
@@ -335,28 +346,28 @@ export class ProductsSeeder {
           processor: 'Snapdragon 8 Gen 3',
           storage: '256GB',
           camera: '50MP Main + 12MP Ultra Wide + 10MP Telephoto',
-          battery: '4000mAh'
+          battery: '4000mAh',
         },
         features: [
           'AI-powered features',
           'Dynamic AMOLED display',
           'Pro-grade camera',
           'Fast charging',
-          '5G connectivity'
+          '5G connectivity',
         ],
         tags: ['Galaxy', 'Smartphone', 'Samsung', '5G', 'AI'],
         metadata: {
           releaseDate: '2024-01-17',
           color: 'Phantom Black',
-          carrier: 'Verizon'
-        }
+          carrier: 'Verizon',
+        },
       },
       {
         name: 'iPad Air 5th Generation',
         code: 'IPA5-001',
         description: 'Powerful tablet with M1 chip and all-screen design',
-        categoryId: categories.find(c => c.slug === 'tablets')?.id,
-        brandId: brands.find(b => b.slug === 'apple')?.id,
+        categoryId: categories.find((c) => c.slug === 'tablets')?.id,
+        brandId: brands.find((b) => b.slug === 'apple')?.id,
         type: ProductType.PHYSICAL,
         status: ProductStatus.ACTIVE,
         condition: ProductCondition.NEW,
@@ -370,28 +381,28 @@ export class ProductsSeeder {
           processor: 'M1 chip',
           storage: '64GB',
           camera: '12MP Ultra Wide front camera',
-          battery: 'Up to 10 hours'
+          battery: 'Up to 10 hours',
         },
         features: [
           'M1 chip',
           'Liquid Retina display',
           'Touch ID',
           'Apple Pencil support',
-          '5G cellular option'
+          '5G cellular option',
         ],
         tags: ['iPad', 'Tablet', 'Apple', 'M1', 'Touch ID'],
         metadata: {
           releaseDate: '2022-03-18',
           color: 'Space Gray',
-          cellular: false
-        }
+          cellular: false,
+        },
       },
       {
         name: 'AirPods Pro 2nd Generation',
         code: 'APP2-001',
         description: 'Premium wireless earbuds with active noise cancellation',
-        categoryId: categories.find(c => c.slug === 'audio')?.id,
-        brandId: brands.find(b => b.slug === 'apple')?.id,
+        categoryId: categories.find((c) => c.slug === 'audio')?.id,
+        brandId: brands.find((b) => b.slug === 'apple')?.id,
         type: ProductType.PHYSICAL,
         status: ProductStatus.ACTIVE,
         condition: ProductCondition.NEW,
@@ -404,33 +415,39 @@ export class ProductsSeeder {
           connectivity: 'Bluetooth 5.0',
           battery: 'Up to 6 hours listening time',
           charging: 'MagSafe charging case',
-          features: 'Active noise cancellation'
+          features: 'Active noise cancellation',
         },
         features: [
           'Active noise cancellation',
           'Adaptive transparency',
           'Personalized spatial audio',
           'MagSafe charging case',
-          'Sweat and water resistant'
+          'Sweat and water resistant',
         ],
-        tags: ['AirPods', 'Headphones', 'Apple', 'Wireless', 'Noise Cancellation'],
+        tags: [
+          'AirPods',
+          'Headphones',
+          'Apple',
+          'Wireless',
+          'Noise Cancellation',
+        ],
         metadata: {
           releaseDate: '2022-09-23',
           color: 'White',
-          compatibility: 'iPhone, iPad, Mac, Apple Watch'
-        }
-      }
+          compatibility: 'iPhone, iPad, Mac, Apple Watch',
+        },
+      },
     ];
 
     for (const productData of productsData) {
       const existingProduct = await this.productRepository.findOne({
-        where: { code: productData.code }
+        where: { code: productData.code },
       });
 
       if (!existingProduct) {
         const product = this.productRepository.create({
           ...productData,
-          createdBy: adminUserId
+          createdBy: adminUserId,
         });
 
         await this.productRepository.save(product);

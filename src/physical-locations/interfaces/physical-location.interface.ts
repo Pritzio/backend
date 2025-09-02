@@ -1,4 +1,7 @@
-import { LocationStatus, LocationType } from '../entities/physical-location.entity';
+import {
+  LocationStatus,
+  LocationType,
+} from '../entities/physical-location.entity';
 
 export interface IPhysicalLocationResponse {
   id: string;
@@ -39,7 +42,7 @@ export interface IPhysicalLocationResponse {
   creatorName: string;
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Virtual properties
   isActive: boolean;
   isOpen: boolean;

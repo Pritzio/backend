@@ -30,7 +30,7 @@ export class JwtService {
       sub: user.id,
       email: user.email,
       username: user.username,
-      roles: user.roles?.map(role => role.name) || [],
+      roles: user.roles?.map((role) => role.name) || [],
       permissions: this.extractPermissions(user),
       type: user.type,
     };
@@ -43,14 +43,16 @@ export class JwtService {
     });
 
     const refreshToken = this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('JWT_REFRESH_SECRET') || this.configService.get<string>('JWT_SECRET'),
+      secret:
+        this.configService.get<string>('JWT_REFRESH_SECRET') ||
+        this.configService.get<string>('JWT_SECRET'),
       expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d'),
       issuer: this.configService.get<string>('JWT_ISSUER', 'pritzio-backend'),
       audience: this.configService.get<string>('JWT_AUDIENCE', 'pritzio-users'),
     });
 
     const expiresIn = this.parseExpirationTime(
-      this.configService.get<string>('JWT_EXPIRES_IN', '15m')
+      this.configService.get<string>('JWT_EXPIRES_IN', '15m'),
     );
 
     return {
@@ -65,7 +67,10 @@ export class JwtService {
       return this.jwtService.verify(token, {
         secret: this.configService.get<string>('JWT_SECRET'),
         issuer: this.configService.get<string>('JWT_ISSUER', 'pritzio-backend'),
-        audience: this.configService.get<string>('JWT_AUDIENCE', 'pritzio-users'),
+        audience: this.configService.get<string>(
+          'JWT_AUDIENCE',
+          'pritzio-users',
+        ),
       });
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired token');
@@ -74,27 +79,32 @@ export class JwtService {
 
   verifyRefreshToken(token: string): JwtPayload {
     try {
-          return this.jwtService.verify(token, {
-      secret: this.configService.get<string>('JWT_REFRESH_SECRET') || this.configService.get<string>('JWT_SECRET'),
-      issuer: this.configService.get<string>('JWT_ISSUER', 'pritzio-backend'),
-      audience: this.configService.get<string>('JWT_AUDIENCE', 'pritzio-users'),
-    });
+      return this.jwtService.verify(token, {
+        secret:
+          this.configService.get<string>('JWT_REFRESH_SECRET') ||
+          this.configService.get<string>('JWT_SECRET'),
+        issuer: this.configService.get<string>('JWT_ISSUER', 'pritzio-backend'),
+        audience: this.configService.get<string>(
+          'JWT_AUDIENCE',
+          'pritzio-users',
+        ),
+      });
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }
 
   decodeToken(token: string): JwtPayload {
-    return this.jwtService.decode(token) as JwtPayload;
+    return this.jwtService.decode(token);
   }
 
   private extractPermissions(user: User): string[] {
     const permissions = new Set<string>();
-    
+
     if (user.roles) {
-      user.roles.forEach(role => {
+      user.roles.forEach((role) => {
         if (role.permissions) {
-          role.permissions.forEach(permission => {
+          role.permissions.forEach((permission) => {
             permissions.add(permission.name);
           });
         }
@@ -119,7 +129,7 @@ export class JwtService {
 
     const value = parseInt(match[1], 10);
     const unit = match[2];
-    
+
     return value * timeUnits[unit];
   }
 }

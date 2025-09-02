@@ -1,18 +1,37 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEnum, IsOptional, IsUrl, IsNumber, IsArray, IsBoolean, IsObject, MaxLength, MinLength, Min, Max, IsUUID, IsDateString } from 'class-validator';
-import { StoreProductStatus, Availability, ScrapingStatus } from '../entities/store-product.entity';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsUrl,
+  IsNumber,
+  IsArray,
+  IsBoolean,
+  IsObject,
+  MaxLength,
+  MinLength,
+  Min,
+  Max,
+  IsUUID,
+  IsDateString,
+} from 'class-validator';
+import {
+  StoreProductStatus,
+  Availability,
+  ScrapingStatus,
+} from '../entities/store-product.entity';
 
 export class CreateStoreProductDto {
   @ApiProperty({
     description: 'Store ID',
-    example: 'uuid-store-id'
+    example: 'uuid-store-id',
   })
   @IsUUID()
   storeId: string;
 
   @ApiProperty({
     description: 'Product ID (master product)',
-    example: 'uuid-product-id'
+    example: 'uuid-product-id',
   })
   @IsUUID()
   productId: string;
@@ -21,7 +40,7 @@ export class CreateStoreProductDto {
     description: 'Product name in this store',
     example: 'iPhone 15 Pro - Space Black 256GB',
     minLength: 2,
-    maxLength: 500
+    maxLength: 500,
   })
   @IsString()
   @MinLength(2)
@@ -32,7 +51,7 @@ export class CreateStoreProductDto {
     description: 'Product description',
     example: 'Latest iPhone with advanced features available at this store',
     required: false,
-    maxLength: 2000
+    maxLength: 2000,
   })
   @IsOptional()
   @IsString()
@@ -43,7 +62,7 @@ export class CreateStoreProductDto {
     description: 'Product URL in the store',
     example: 'https://store.example.com/iphone15pro',
     required: false,
-    maxLength: 500
+    maxLength: 500,
   })
   @IsOptional()
   @IsString()
@@ -55,7 +74,7 @@ export class CreateStoreProductDto {
     description: 'Store-specific SKU',
     example: 'STORE-IP15P-256-SB',
     required: false,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -66,7 +85,7 @@ export class CreateStoreProductDto {
     description: 'Store-specific product ID',
     example: 'STORE12345',
     required: false,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -77,7 +96,7 @@ export class CreateStoreProductDto {
     description: 'Product image URL',
     example: 'https://store.example.com/images/iphone15pro.jpg',
     required: false,
-    maxLength: 500
+    maxLength: 500,
   })
   @IsOptional()
   @IsString()
@@ -89,7 +108,7 @@ export class CreateStoreProductDto {
     description: 'Online price',
     example: 999.99,
     required: false,
-    minimum: 0
+    minimum: 0,
   })
   @IsOptional()
   @IsNumber()
@@ -100,7 +119,7 @@ export class CreateStoreProductDto {
     description: 'Physical store price',
     example: 989.99,
     required: false,
-    minimum: 0
+    minimum: 0,
   })
   @IsOptional()
   @IsNumber()
@@ -111,7 +130,7 @@ export class CreateStoreProductDto {
     description: 'Currency code',
     example: 'USD',
     required: false,
-    maxLength: 10
+    maxLength: 10,
   })
   @IsOptional()
   @IsString()
@@ -122,7 +141,7 @@ export class CreateStoreProductDto {
     description: 'Product availability',
     enum: Availability,
     example: Availability.IN_STOCK,
-    default: Availability.IN_STOCK
+    default: Availability.IN_STOCK,
   })
   @IsEnum(Availability)
   availability: Availability;
@@ -131,7 +150,7 @@ export class CreateStoreProductDto {
     description: 'Product status',
     enum: StoreProductStatus,
     example: StoreProductStatus.ACTIVE,
-    default: StoreProductStatus.ACTIVE
+    default: StoreProductStatus.ACTIVE,
   })
   @IsEnum(StoreProductStatus)
   status: StoreProductStatus;
@@ -140,7 +159,7 @@ export class CreateStoreProductDto {
     description: 'Scraping status',
     enum: ScrapingStatus,
     example: ScrapingStatus.PENDING,
-    default: ScrapingStatus.PENDING
+    default: ScrapingStatus.PENDING,
   })
   @IsEnum(ScrapingStatus)
   scrapingStatus: ScrapingStatus;
@@ -149,7 +168,7 @@ export class CreateStoreProductDto {
     description: 'Stock quantity',
     example: 50,
     required: false,
-    minimum: 0
+    minimum: 0,
   })
   @IsOptional()
   @IsNumber()
@@ -160,7 +179,7 @@ export class CreateStoreProductDto {
     description: 'Minimum stock level for alerts',
     example: 10,
     required: false,
-    minimum: 0
+    minimum: 0,
   })
   @IsOptional()
   @IsNumber()
@@ -170,7 +189,7 @@ export class CreateStoreProductDto {
   @ApiProperty({
     description: 'Whether product is on sale',
     example: false,
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -180,7 +199,7 @@ export class CreateStoreProductDto {
     description: 'Original price before discount',
     example: 1099.99,
     required: false,
-    minimum: 0
+    minimum: 0,
   })
   @IsOptional()
   @IsNumber()
@@ -192,7 +211,7 @@ export class CreateStoreProductDto {
     example: 9.09,
     required: false,
     minimum: 0,
-    maximum: 100
+    maximum: 100,
   })
   @IsOptional()
   @IsNumber()
@@ -203,7 +222,7 @@ export class CreateStoreProductDto {
   @ApiProperty({
     description: 'Sale end date',
     example: '2024-12-31',
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsDateString()
@@ -212,7 +231,7 @@ export class CreateStoreProductDto {
   @ApiProperty({
     description: 'Product specifications',
     example: { color: 'Space Black', storage: '256GB', ram: '8GB' },
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsObject()
@@ -221,7 +240,7 @@ export class CreateStoreProductDto {
   @ApiProperty({
     description: 'Product features',
     example: ['5G', 'Face ID', 'Pro Camera System'],
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsArray()
@@ -231,7 +250,7 @@ export class CreateStoreProductDto {
   @ApiProperty({
     description: 'Product tags',
     example: ['smartphone', '5G', 'camera', 'premium'],
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsArray()
@@ -241,7 +260,7 @@ export class CreateStoreProductDto {
   @ApiProperty({
     description: 'Additional metadata',
     example: { storeCategory: 'Electronics', brand: 'Apple' },
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsObject()
@@ -252,7 +271,7 @@ export class CreateStoreProductDto {
     example: 24,
     required: false,
     minimum: 1,
-    maximum: 168
+    maximum: 168,
   })
   @IsOptional()
   @IsNumber()
@@ -263,7 +282,7 @@ export class CreateStoreProductDto {
   @ApiProperty({
     description: 'Scraping configuration',
     example: { selectors: { price: '.price', availability: '.stock' } },
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsObject()
@@ -273,7 +292,7 @@ export class CreateStoreProductDto {
     description: 'Additional notes',
     example: 'Special store promotion until end of month',
     required: false,
-    maxLength: 500
+    maxLength: 500,
   })
   @IsOptional()
   @IsString()

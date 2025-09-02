@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 
 export enum Language {
@@ -6,7 +14,7 @@ export enum Language {
   SPANISH = 'es',
   FRENCH = 'fr',
   GERMAN = 'de',
-  PORTUGUESE = 'pt'
+  PORTUGUESE = 'pt',
 }
 
 export enum Currency {
@@ -14,7 +22,7 @@ export enum Currency {
   EUR = 'EUR',
   GBP = 'GBP',
   MXN = 'MXN',
-  COP = 'COP'
+  COP = 'COP',
 }
 
 export enum TimeZone {
@@ -23,14 +31,14 @@ export enum TimeZone {
   CST = 'CST',
   MST = 'MST',
   PST = 'PST',
-  GMT = 'GMT'
+  GMT = 'GMT',
 }
 
 export enum NotificationType {
   EMAIL = 'email',
   PUSH = 'push',
   SMS = 'sms',
-  IN_APP = 'in_app'
+  IN_APP = 'in_app',
 }
 
 @Entity('user_preferences')
@@ -45,24 +53,24 @@ export class UserPreferences {
   @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
-  @Column({ 
-    type: 'enum', 
-    enum: Language, 
-    default: Language.ENGLISH 
+  @Column({
+    type: 'enum',
+    enum: Language,
+    default: Language.ENGLISH,
   })
   language: Language;
 
-  @Column({ 
-    type: 'enum', 
-    enum: Currency, 
-    default: Currency.USD 
+  @Column({
+    type: 'enum',
+    enum: Currency,
+    default: Currency.USD,
   })
   currency: Currency;
 
-  @Column({ 
-    type: 'enum', 
-    enum: TimeZone, 
-    default: TimeZone.UTC 
+  @Column({
+    type: 'enum',
+    enum: TimeZone,
+    default: TimeZone.UTC,
   })
   timeZone: TimeZone;
 

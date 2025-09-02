@@ -37,7 +37,10 @@ import { SoftDeleteUserDto } from '../dto/soft-delete-user.dto';
 import { UserProfile } from '../entities/user-profile.entity';
 import { UserPreferences } from '../entities/user-preferences.entity';
 import { UserActivity } from '../entities/user-activity.entity';
-import { IUserProfileResponse, IUserProfileSummary } from '../interfaces/user-profile.interface';
+import {
+  IUserProfileResponse,
+  IUserProfileSummary,
+} from '../interfaces/user-profile.interface';
 
 @ApiTags('Users')
 @Controller('users')
@@ -47,11 +50,28 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post('profile')
-  @Roles(RoleType.CUSTOMER, RoleType.STORE_EMPLOYEE, RoleType.STORE_MANAGER, RoleType.STORE_ADMIN, RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Roles(
+    RoleType.CUSTOMER,
+    RoleType.STORE_EMPLOYEE,
+    RoleType.STORE_MANAGER,
+    RoleType.STORE_ADMIN,
+    RoleType.ADMIN,
+    RoleType.SUPER_ADMIN,
+  )
   @Permissions(PermissionType.USER_CREATE)
-  @ApiOperation({ summary: 'Create user profile', description: 'Create a new user profile for the authenticated user' })
-  @ApiResponse({ status: 201, description: 'Profile created successfully', type: UserProfile })
-  @ApiResponse({ status: 400, description: 'Profile already exists or invalid data' })
+  @ApiOperation({
+    summary: 'Create user profile',
+    description: 'Create a new user profile for the authenticated user',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Profile created successfully',
+    type: UserProfile,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Profile already exists or invalid data',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   async createProfile(
@@ -62,10 +82,24 @@ export class UsersController {
   }
 
   @Get('profile')
-  @Roles(RoleType.CUSTOMER, RoleType.STORE_EMPLOYEE, RoleType.STORE_MANAGER, RoleType.STORE_ADMIN, RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Roles(
+    RoleType.CUSTOMER,
+    RoleType.STORE_EMPLOYEE,
+    RoleType.STORE_MANAGER,
+    RoleType.STORE_ADMIN,
+    RoleType.ADMIN,
+    RoleType.SUPER_ADMIN,
+  )
   @Permissions(PermissionType.USER_READ)
-  @ApiOperation({ summary: 'Get own profile', description: 'Get the authenticated user profile' })
-  @ApiResponse({ status: 200, description: 'Profile retrieved successfully', type: UserProfile })
+  @ApiOperation({
+    summary: 'Get own profile',
+    description: 'Get the authenticated user profile',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile retrieved successfully',
+    type: UserProfile,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   @ApiResponse({ status: 404, description: 'Profile not found' })
@@ -74,13 +108,30 @@ export class UsersController {
   }
 
   @Get('profile/:userId')
-  @Roles(RoleType.CUSTOMER, RoleType.STORE_EMPLOYEE, RoleType.STORE_MANAGER, RoleType.STORE_ADMIN, RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Roles(
+    RoleType.CUSTOMER,
+    RoleType.STORE_EMPLOYEE,
+    RoleType.STORE_MANAGER,
+    RoleType.STORE_ADMIN,
+    RoleType.ADMIN,
+    RoleType.SUPER_ADMIN,
+  )
   @Permissions(PermissionType.USER_READ)
-  @ApiOperation({ summary: 'Get user profile by ID', description: 'Get a user profile by user ID' })
+  @ApiOperation({
+    summary: 'Get user profile by ID',
+    description: 'Get a user profile by user ID',
+  })
   @ApiParam({ name: 'userId', description: 'User ID to get profile for' })
-  @ApiResponse({ status: 200, description: 'Profile retrieved successfully', type: UserProfile })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile retrieved successfully',
+    type: UserProfile,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Insufficient permissions or profile is private' })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient permissions or profile is private',
+  })
   @ApiResponse({ status: 404, description: 'Profile not found' })
   async getUserProfile(
     @Param('userId') userId: string,
@@ -90,10 +141,24 @@ export class UsersController {
   }
 
   @Put('profile')
-  @Roles(RoleType.CUSTOMER, RoleType.STORE_EMPLOYEE, RoleType.STORE_MANAGER, RoleType.STORE_ADMIN, RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Roles(
+    RoleType.CUSTOMER,
+    RoleType.STORE_EMPLOYEE,
+    RoleType.STORE_MANAGER,
+    RoleType.STORE_ADMIN,
+    RoleType.ADMIN,
+    RoleType.SUPER_ADMIN,
+  )
   @Permissions(PermissionType.USER_UPDATE)
-  @ApiOperation({ summary: 'Update own profile', description: 'Update the authenticated user profile' })
-  @ApiResponse({ status: 200, description: 'Profile updated successfully', type: UserProfile })
+  @ApiOperation({
+    summary: 'Update own profile',
+    description: 'Update the authenticated user profile',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile updated successfully',
+    type: UserProfile,
+  })
   @ApiResponse({ status: 400, description: 'Invalid data' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
@@ -108,9 +173,16 @@ export class UsersController {
   @Put('profile/:userId')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.USER_UPDATE)
-  @ApiOperation({ summary: 'Update user profile by ID', description: 'Update a user profile by user ID (Admin only)' })
+  @ApiOperation({
+    summary: 'Update user profile by ID',
+    description: 'Update a user profile by user ID (Admin only)',
+  })
   @ApiParam({ name: 'userId', description: 'User ID to update profile for' })
-  @ApiResponse({ status: 200, description: 'Profile updated successfully', type: UserProfile })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile updated successfully',
+    type: UserProfile,
+  })
   @ApiResponse({ status: 400, description: 'Invalid data' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
@@ -123,9 +195,19 @@ export class UsersController {
   }
 
   @Delete('profile')
-  @Roles(RoleType.CUSTOMER, RoleType.STORE_EMPLOYEE, RoleType.STORE_MANAGER, RoleType.STORE_ADMIN, RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Roles(
+    RoleType.CUSTOMER,
+    RoleType.STORE_EMPLOYEE,
+    RoleType.STORE_MANAGER,
+    RoleType.STORE_ADMIN,
+    RoleType.ADMIN,
+    RoleType.SUPER_ADMIN,
+  )
   @Permissions(PermissionType.USER_DELETE)
-  @ApiOperation({ summary: 'Delete own profile', description: 'Delete the authenticated user profile' })
+  @ApiOperation({
+    summary: 'Delete own profile',
+    description: 'Delete the authenticated user profile',
+  })
   @ApiResponse({ status: 204, description: 'Profile deleted successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
@@ -136,25 +218,59 @@ export class UsersController {
   }
 
   @Post('preferences')
-  @Roles(RoleType.CUSTOMER, RoleType.STORE_EMPLOYEE, RoleType.STORE_MANAGER, RoleType.STORE_ADMIN, RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Roles(
+    RoleType.CUSTOMER,
+    RoleType.STORE_EMPLOYEE,
+    RoleType.STORE_MANAGER,
+    RoleType.STORE_ADMIN,
+    RoleType.ADMIN,
+    RoleType.SUPER_ADMIN,
+  )
   @Permissions(PermissionType.USER_CREATE)
-  @ApiOperation({ summary: 'Create user preferences', description: 'Create user preferences for the authenticated user' })
-  @ApiResponse({ status: 201, description: 'Preferences created successfully', type: UserPreferences })
-  @ApiResponse({ status: 400, description: 'Preferences already exist or invalid data' })
+  @ApiOperation({
+    summary: 'Create user preferences',
+    description: 'Create user preferences for the authenticated user',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Preferences created successfully',
+    type: UserPreferences,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Preferences already exist or invalid data',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   async createPreferences(
     @Body() createUserPreferencesDto: CreateUserPreferencesDto,
     @CurrentUser() user: any,
   ): Promise<UserPreferences> {
-    return this.usersService.createUserPreferences(user.id, createUserPreferencesDto);
+    return this.usersService.createUserPreferences(
+      user.id,
+      createUserPreferencesDto,
+    );
   }
 
   @Get('preferences')
-  @Roles(RoleType.CUSTOMER, RoleType.STORE_EMPLOYEE, RoleType.STORE_MANAGER, RoleType.STORE_ADMIN, RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Roles(
+    RoleType.CUSTOMER,
+    RoleType.STORE_EMPLOYEE,
+    RoleType.STORE_MANAGER,
+    RoleType.STORE_ADMIN,
+    RoleType.ADMIN,
+    RoleType.SUPER_ADMIN,
+  )
   @Permissions(PermissionType.USER_READ)
-  @ApiOperation({ summary: 'Get own preferences', description: 'Get the authenticated user preferences' })
-  @ApiResponse({ status: 200, description: 'Preferences retrieved successfully', type: UserPreferences })
+  @ApiOperation({
+    summary: 'Get own preferences',
+    description: 'Get the authenticated user preferences',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Preferences retrieved successfully',
+    type: UserPreferences,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   @ApiResponse({ status: 404, description: 'Preferences not found' })
@@ -163,10 +279,24 @@ export class UsersController {
   }
 
   @Put('preferences')
-  @Roles(RoleType.CUSTOMER, RoleType.STORE_EMPLOYEE, RoleType.STORE_MANAGER, RoleType.STORE_ADMIN, RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Roles(
+    RoleType.CUSTOMER,
+    RoleType.STORE_EMPLOYEE,
+    RoleType.STORE_MANAGER,
+    RoleType.STORE_ADMIN,
+    RoleType.ADMIN,
+    RoleType.SUPER_ADMIN,
+  )
   @Permissions(PermissionType.USER_UPDATE)
-  @ApiOperation({ summary: 'Update own preferences', description: 'Update the authenticated user preferences' })
-  @ApiResponse({ status: 200, description: 'Preferences updated successfully', type: UserPreferences })
+  @ApiOperation({
+    summary: 'Update own preferences',
+    description: 'Update the authenticated user preferences',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Preferences updated successfully',
+    type: UserPreferences,
+  })
   @ApiResponse({ status: 400, description: 'Invalid data' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
@@ -175,16 +305,38 @@ export class UsersController {
     @Body() updateUserPreferencesDto: UpdateUserPreferencesDto,
     @CurrentUser() user: any,
   ): Promise<UserPreferences> {
-    return this.usersService.updateUserPreferences(user.id, updateUserPreferencesDto);
+    return this.usersService.updateUserPreferences(
+      user.id,
+      updateUserPreferencesDto,
+    );
   }
 
   @Get('search')
-  @Roles(RoleType.CUSTOMER, RoleType.STORE_EMPLOYEE, RoleType.STORE_MANAGER, RoleType.STORE_ADMIN, RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Roles(
+    RoleType.CUSTOMER,
+    RoleType.STORE_EMPLOYEE,
+    RoleType.STORE_MANAGER,
+    RoleType.STORE_ADMIN,
+    RoleType.ADMIN,
+    RoleType.SUPER_ADMIN,
+  )
   @Permissions(PermissionType.USER_READ)
-  @ApiOperation({ summary: 'Search users', description: 'Search for users by name or bio' })
+  @ApiOperation({
+    summary: 'Search users',
+    description: 'Search for users by name or bio',
+  })
   @ApiQuery({ name: 'q', description: 'Search query', required: true })
-  @ApiQuery({ name: 'limit', description: 'Maximum number of results', required: false, type: Number })
-  @ApiResponse({ status: 200, description: 'Search results', type: [UserProfile] })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Maximum number of results',
+    required: false,
+    type: Number,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Search results',
+    type: [UserProfile],
+  })
   @ApiResponse({ status: 400, description: 'Invalid search query' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
@@ -204,12 +356,36 @@ export class UsersController {
   @Get()
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.USER_LIST)
-  @ApiOperation({ summary: 'List all users', description: 'Get a list of all users with pagination (Admin only)' })
-  @ApiQuery({ name: 'page', description: 'Page number', required: false, type: Number })
-  @ApiQuery({ name: 'limit', description: 'Items per page', required: false, type: Number })
-  @ApiQuery({ name: 'status', description: 'Filter by user status', required: false })
-  @ApiQuery({ name: 'role', description: 'Filter by user role', required: false })
-  @ApiResponse({ status: 200, description: 'Users list retrieved successfully' })
+  @ApiOperation({
+    summary: 'List all users',
+    description: 'Get a list of all users with pagination (Admin only)',
+  })
+  @ApiQuery({
+    name: 'page',
+    description: 'Page number',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Items per page',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'status',
+    description: 'Filter by user status',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'role',
+    description: 'Filter by user role',
+    required: false,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Users list retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   async getUsers(
@@ -224,9 +400,15 @@ export class UsersController {
   @Get(':id')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.USER_READ)
-  @ApiOperation({ summary: 'Get user by ID', description: 'Get complete user information by ID (Admin only)' })
+  @ApiOperation({
+    summary: 'Get user by ID',
+    description: 'Get complete user information by ID (Admin only)',
+  })
   @ApiParam({ name: 'id', description: 'User ID to get information for' })
-  @ApiResponse({ status: 200, description: 'User information retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'User information retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   @ApiResponse({ status: 404, description: 'User not found' })
@@ -237,7 +419,10 @@ export class UsersController {
   @Put(':id')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.USER_UPDATE)
-  @ApiOperation({ summary: 'Update user by ID', description: 'Update user information by ID (Admin only)' })
+  @ApiOperation({
+    summary: 'Update user by ID',
+    description: 'Update user information by ID (Admin only)',
+  })
   @ApiParam({ name: 'id', description: 'User ID to update' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 400, description: 'Invalid data' })
@@ -254,7 +439,10 @@ export class UsersController {
   @Delete(':id')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.USER_DELETE)
-  @ApiOperation({ summary: 'Delete user by ID', description: 'Soft delete a user account by ID (Admin only)' })
+  @ApiOperation({
+    summary: 'Delete user by ID',
+    description: 'Soft delete a user account by ID (Admin only)',
+  })
   @ApiParam({ name: 'id', description: 'User ID to delete' })
   @ApiBody({ type: SoftDeleteUserDto })
   @ApiResponse({ status: 200, description: 'User soft deleted successfully' })
@@ -271,11 +459,30 @@ export class UsersController {
   }
 
   @Get('activity')
-  @Roles(RoleType.CUSTOMER, RoleType.STORE_EMPLOYEE, RoleType.STORE_MANAGER, RoleType.STORE_ADMIN, RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Roles(
+    RoleType.CUSTOMER,
+    RoleType.STORE_EMPLOYEE,
+    RoleType.STORE_MANAGER,
+    RoleType.STORE_ADMIN,
+    RoleType.ADMIN,
+    RoleType.SUPER_ADMIN,
+  )
   @Permissions(PermissionType.USER_READ)
-  @ApiOperation({ summary: 'Get own activity', description: 'Get the authenticated user activity log' })
-  @ApiQuery({ name: 'limit', description: 'Maximum number of activities', required: false, type: Number })
-  @ApiResponse({ status: 200, description: 'Activity log retrieved successfully', type: [UserActivity] })
+  @ApiOperation({
+    summary: 'Get own activity',
+    description: 'Get the authenticated user activity log',
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Maximum number of activities',
+    required: false,
+    type: Number,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Activity log retrieved successfully',
+    type: [UserActivity],
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   async getOwnActivity(
@@ -286,9 +493,19 @@ export class UsersController {
   }
 
   @Get('stats')
-  @Roles(RoleType.CUSTOMER, RoleType.STORE_EMPLOYEE, RoleType.STORE_MANAGER, RoleType.STORE_ADMIN, RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Roles(
+    RoleType.CUSTOMER,
+    RoleType.STORE_EMPLOYEE,
+    RoleType.STORE_MANAGER,
+    RoleType.STORE_ADMIN,
+    RoleType.ADMIN,
+    RoleType.SUPER_ADMIN,
+  )
   @Permissions(PermissionType.USER_READ)
-  @ApiOperation({ summary: 'Get profile stats', description: 'Get profile completeness and activity statistics' })
+  @ApiOperation({
+    summary: 'Get profile stats',
+    description: 'Get profile completeness and activity statistics',
+  })
   @ApiResponse({ status: 200, description: 'Stats retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
@@ -301,12 +518,36 @@ export class UsersController {
   @Get('admin/users')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.USER_LIST)
-  @ApiOperation({ summary: 'List all users (Admin only)', description: 'Get a list of all users with pagination (Admin only)' })
-  @ApiQuery({ name: 'page', description: 'Page number', required: false, type: Number })
-  @ApiQuery({ name: 'limit', description: 'Items per page', required: false, type: Number })
-  @ApiQuery({ name: 'status', description: 'Filter by user status', required: false })
-  @ApiQuery({ name: 'role', description: 'Filter by user role', required: false })
-  @ApiResponse({ status: 200, description: 'Users list retrieved successfully' })
+  @ApiOperation({
+    summary: 'List all users (Admin only)',
+    description: 'Get a list of all users with pagination (Admin only)',
+  })
+  @ApiQuery({
+    name: 'page',
+    description: 'Page number',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Items per page',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'status',
+    description: 'Filter by user status',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'role',
+    description: 'Filter by user role',
+    required: false,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Users list retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   async getAllUsers(
@@ -321,9 +562,15 @@ export class UsersController {
   @Get('admin/users/:userId')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.USER_READ)
-  @ApiOperation({ summary: 'Get user by ID (Admin only)', description: 'Get complete user information by ID (Admin only)' })
+  @ApiOperation({
+    summary: 'Get user by ID (Admin only)',
+    description: 'Get complete user information by ID (Admin only)',
+  })
   @ApiParam({ name: 'userId', description: 'User ID to get information for' })
-  @ApiResponse({ status: 200, description: 'User information retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'User information retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   @ApiResponse({ status: 404, description: 'User not found' })
@@ -334,7 +581,10 @@ export class UsersController {
   @Put('admin/users/:userId/status')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.USER_UPDATE)
-  @ApiOperation({ summary: 'Update user status (Admin only)', description: 'Update user status (active, suspended, etc.) (Admin only)' })
+  @ApiOperation({
+    summary: 'Update user status (Admin only)',
+    description: 'Update user status (active, suspended, etc.) (Admin only)',
+  })
   @ApiParam({ name: 'userId', description: 'User ID to update status for' })
   @ApiResponse({ status: 200, description: 'User status updated successfully' })
   @ApiResponse({ status: 400, description: 'Invalid status' })
@@ -351,7 +601,11 @@ export class UsersController {
   @Delete('admin/users/:userId')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.USER_DELETE)
-  @ApiOperation({ summary: 'Soft delete user (Admin/Super Admin)', description: 'Soft delete a user account (Admin can delete regular users, Super Admin can delete anyone)' })
+  @ApiOperation({
+    summary: 'Soft delete user (Admin/Super Admin)',
+    description:
+      'Soft delete a user account (Admin can delete regular users, Super Admin can delete anyone)',
+  })
   @ApiParam({ name: 'userId', description: 'User ID to delete' })
   @ApiBody({ type: SoftDeleteUserDto })
   @ApiResponse({ status: 200, description: 'User soft deleted successfully' })
@@ -370,9 +624,16 @@ export class UsersController {
   @Post('admin/users/:userId/restore')
   @Roles(RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.USER_UPDATE)
-  @ApiOperation({ summary: 'Restore deleted user (Super Admin only)', description: 'Restore a soft deleted user account (Super Admin only)' })
+  @ApiOperation({
+    summary: 'Restore deleted user (Super Admin only)',
+    description: 'Restore a soft deleted user account (Super Admin only)',
+  })
   @ApiParam({ name: 'userId', description: 'User ID to restore' })
-  @ApiQuery({ name: 'reason', description: 'Reason for restoration', required: false })
+  @ApiQuery({
+    name: 'reason',
+    description: 'Reason for restoration',
+    required: false,
+  })
   @ApiResponse({ status: 200, description: 'User restored successfully' })
   @ApiResponse({ status: 400, description: 'User is not deleted' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -389,7 +650,10 @@ export class UsersController {
   @Get('admin/analytics')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.ANALYTICS_READ)
-  @ApiOperation({ summary: 'Get user analytics (Admin only)', description: 'Get analytics and statistics about users (Admin only)' })
+  @ApiOperation({
+    summary: 'Get user analytics (Admin only)',
+    description: 'Get analytics and statistics about users (Admin only)',
+  })
   @ApiResponse({ status: 200, description: 'Analytics retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })

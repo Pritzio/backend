@@ -1,9 +1,31 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, In, IsNull, Not, LessThan } from 'typeorm';
-import { StoreProduct, StoreProductStatus, Availability, ScrapingStatus } from '../entities/store-product.entity';
-import { CreateStoreProductDto, UpdateStoreProductDto, ScrapingResultDto } from '../dto';
-import { IStoreProductResponse, IStoreProductSummary, IStoreProductFilter, IStoreProductAnalytics, IStoreProductSearchResult, IScrapingJob, IScrapingResult } from '../interfaces/store-product.interface';
+import {
+  StoreProduct,
+  StoreProductStatus,
+  Availability,
+  ScrapingStatus,
+} from '../entities/store-product.entity';
+import {
+  CreateStoreProductDto,
+  UpdateStoreProductDto,
+  ScrapingResultDto,
+} from '../dto';
+import {
+  IStoreProductResponse,
+  IStoreProductSummary,
+  IStoreProductFilter,
+  IStoreProductAnalytics,
+  IStoreProductSearchResult,
+  IScrapingJob,
+  IScrapingResult,
+} from '../interfaces/store-product.interface';
 import { User } from '../../auth/entities/user.entity';
 import { RoleType } from '../../auth/entities/role.entity';
 import { Store } from '../../stores/entities/store.entity';
@@ -20,35 +42,44 @@ export class StoreProductsService {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  async createStoreProduct(createStoreProductDto: CreateStoreProductDto, user: User): Promise<IStoreProductResponse> {
+  async createStoreProduct(
+    createStoreProductDto: CreateStoreProductDto,
+    user: User,
+  ): Promise<IStoreProductResponse> {
     // Check if store exists
     const store = await this.storeRepository.findOne({
-      where: { id: createStoreProductDto.storeId }
+      where: { id: createStoreProductDto.storeId },
     });
 
     if (!store) {
-      throw new NotFoundException(`Store with ID '${createStoreProductDto.storeId}' not found`);
+      throw new NotFoundException(
+        `Store with ID '${createStoreProductDto.storeId}' not found`,
+      );
     }
 
     // Check if product exists
     const product = await this.productRepository.findOne({
-      where: { id: createStoreProductDto.productId }
+      where: { id: createStoreProductDto.productId },
     });
 
     if (!product) {
-      throw new NotFoundException(`Product with ID '${createStoreProductDto.productId}' not found`);
+      throw new NotFoundException(
+        `Product with ID '${createStoreProductDto.productId}' not found`,
+      );
     }
 
     // Check if store product combination already exists
     const existingStoreProduct = await this.storeProductRepository.findOne({
-      where: { 
+      where: {
         storeId: createStoreProductDto.storeId,
-        productId: createStoreProductDto.productId
-      }
+        productId: createStoreProductDto.productId,
+      },
     });
 
     if (existingStoreProduct) {
-      throw new BadRequestException(`Product '${product.name}' is already available in store '${store.name}'`);
+      throw new BadRequestException(
+        `Product '${product.name}' is already available in store '${store.name}'`,
+      );
     }
 
     // Create new store product
@@ -56,10 +87,14 @@ export class StoreProductsService {
       ...createStoreProductDto,
       createdBy: user.id,
       scrapingStatus: ScrapingStatus.PENDING,
-      nextScrapingDate: new Date(Date.now() + (createStoreProductDto.scrapingIntervalHours || 24) * 60 * 60 * 1000)
+      nextScrapingDate: new Date(
+        Date.now() +
+          (createStoreProductDto.scrapingIntervalHours || 24) * 60 * 60 * 1000,
+      ),
     });
 
-    const savedStoreProduct = await this.storeProductRepository.save(storeProduct);
+    const savedStoreProduct =
+      await this.storeProductRepository.save(storeProduct);
     return this.mapToStoreProductResponse(savedStoreProduct);
   }
 
@@ -67,7 +102,7 @@ export class StoreProductsService {
     user: User,
     filter: IStoreProductFilter = {},
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
   ): Promise<IStoreProductSearchResult> {
     const queryBuilder = this.storeProductRepository
       .createQueryBuilder('storeProduct')
@@ -85,7 +120,9 @@ export class StoreProductsService {
 
     const [storeProducts, total] = await queryBuilder.getManyAndCount();
 
-    const storeProductSummaries = storeProducts.map(sp => this.mapToStoreProductSummary(sp));
+    const storeProductSummaries = storeProducts.map((sp) =>
+      this.mapToStoreProductSummary(sp),
+    );
     const totalPages = Math.ceil(total / limit);
 
     return {
@@ -95,14 +132,17 @@ export class StoreProductsService {
       limit,
       totalPages,
       hasNext: page < totalPages,
-      hasPrev: page > 1
+      hasPrev: page > 1,
     };
   }
 
-  async getStoreProductById(id: string, user: User): Promise<IStoreProductResponse> {
+  async getStoreProductById(
+    id: string,
+    user: User,
+  ): Promise<IStoreProductResponse> {
     const storeProduct = await this.storeProductRepository.findOne({
       where: { id },
-      relations: ['store', 'product', 'creator', 'verifier']
+      relations: ['store', 'product', 'creator', 'verifier'],
     });
 
     if (!storeProduct) {
@@ -112,10 +152,14 @@ export class StoreProductsService {
     return this.mapToStoreProductResponse(storeProduct);
   }
 
-  async updateStoreProduct(id: string, updateStoreProductDto: UpdateStoreProductDto, user: User): Promise<IStoreProductResponse> {
+  async updateStoreProduct(
+    id: string,
+    updateStoreProductDto: UpdateStoreProductDto,
+    user: User,
+  ): Promise<IStoreProductResponse> {
     const storeProduct = await this.storeProductRepository.findOne({
       where: { id },
-      relations: ['store', 'product', 'creator', 'verifier']
+      relations: ['store', 'product', 'creator', 'verifier'],
     });
 
     if (!storeProduct) {
@@ -124,25 +168,31 @@ export class StoreProductsService {
 
     // Check if user can edit this store product
     if (!this.canUserEditStoreProduct(user, storeProduct)) {
-      throw new ForbiddenException('You do not have permission to edit this store product');
+      throw new ForbiddenException(
+        'You do not have permission to edit this store product',
+      );
     }
 
     // Update store product
     Object.assign(storeProduct, updateStoreProductDto);
-    
+
     // Update next scraping date if interval changed
     if (updateStoreProductDto.scrapingIntervalHours) {
-      storeProduct.nextScrapingDate = new Date(Date.now() + updateStoreProductDto.scrapingIntervalHours * 60 * 60 * 1000);
+      storeProduct.nextScrapingDate = new Date(
+        Date.now() +
+          updateStoreProductDto.scrapingIntervalHours * 60 * 60 * 1000,
+      );
     }
 
-    const updatedStoreProduct = await this.storeProductRepository.save(storeProduct);
+    const updatedStoreProduct =
+      await this.storeProductRepository.save(storeProduct);
     return this.mapToStoreProductResponse(updatedStoreProduct);
   }
 
   async deleteStoreProduct(id: string, user: User): Promise<void> {
     const storeProduct = await this.storeProductRepository.findOne({
       where: { id },
-      relations: ['creator']
+      relations: ['creator'],
     });
 
     if (!storeProduct) {
@@ -151,16 +201,22 @@ export class StoreProductsService {
 
     // Check if user can delete this store product
     if (!this.canUserDeleteStoreProduct(user, storeProduct)) {
-      throw new ForbiddenException('You do not have permission to delete this store product');
+      throw new ForbiddenException(
+        'You do not have permission to delete this store product',
+      );
     }
 
     await this.storeProductRepository.remove(storeProduct);
   }
 
-  async changeStoreProductStatus(id: string, status: StoreProductStatus, user: User): Promise<IStoreProductResponse> {
+  async changeStoreProductStatus(
+    id: string,
+    status: StoreProductStatus,
+    user: User,
+  ): Promise<IStoreProductResponse> {
     const storeProduct = await this.storeProductRepository.findOne({
       where: { id },
-      relations: ['store', 'product', 'creator', 'verifier']
+      relations: ['store', 'product', 'creator', 'verifier'],
     });
 
     if (!storeProduct) {
@@ -169,11 +225,14 @@ export class StoreProductsService {
 
     // Check if user can change status
     if (!this.canUserChangeStoreProductStatus(user, storeProduct)) {
-      throw new ForbiddenException('You do not have permission to change this store product status');
+      throw new ForbiddenException(
+        'You do not have permission to change this store product status',
+      );
     }
 
     storeProduct.status = status;
-    const updatedStoreProduct = await this.storeProductRepository.save(storeProduct);
+    const updatedStoreProduct =
+      await this.storeProductRepository.save(storeProduct);
 
     return this.mapToStoreProductResponse(updatedStoreProduct);
   }
@@ -181,7 +240,9 @@ export class StoreProductsService {
   async getStoreProductAnalytics(user: User): Promise<IStoreProductAnalytics> {
     // Check if user has permission to view analytics
     if (!this.canUserViewAnalytics(user)) {
-      throw new ForbiddenException('You do not have permission to view store product analytics');
+      throw new ForbiddenException(
+        'You do not have permission to view store product analytics',
+      );
     }
 
     const [
@@ -201,12 +262,18 @@ export class StoreProductsService {
       topStores,
       topProducts,
       recentScrapingActivity,
-      priceChangeTrends
+      priceChangeTrends,
     ] = await Promise.all([
       this.storeProductRepository.count(),
-      this.storeProductRepository.count({ where: { status: StoreProductStatus.ACTIVE } }),
-      this.storeProductRepository.count({ where: { status: StoreProductStatus.INACTIVE } }),
-      this.storeProductRepository.count({ where: { availability: Availability.OUT_OF_STOCK } }),
+      this.storeProductRepository.count({
+        where: { status: StoreProductStatus.ACTIVE },
+      }),
+      this.storeProductRepository.count({
+        where: { status: StoreProductStatus.INACTIVE },
+      }),
+      this.storeProductRepository.count({
+        where: { availability: Availability.OUT_OF_STOCK },
+      }),
       this.getProductsByStatus(),
       this.getProductsByAvailability(),
       this.getProductsByScrapingStatus(),
@@ -219,7 +286,7 @@ export class StoreProductsService {
       this.getTopStores(),
       this.getTopProducts(),
       this.getRecentScrapingActivity(),
-      this.getPriceChangeTrends()
+      this.getPriceChangeTrends(),
     ]);
 
     return {
@@ -239,27 +306,34 @@ export class StoreProductsService {
       topStores,
       topProducts,
       recentScrapingActivity,
-      priceChangeTrends
+      priceChangeTrends,
     };
   }
 
-  async getScrapingJobs(user: User, limit: number = 50): Promise<IScrapingJob[]> {
+  async getScrapingJobs(
+    user: User,
+    limit: number = 50,
+  ): Promise<IScrapingJob[]> {
     // Check if user has permission to view scraping jobs
     if (!this.canUserViewScrapingJobs(user)) {
-      throw new ForbiddenException('You do not have permission to view scraping jobs');
+      throw new ForbiddenException(
+        'You do not have permission to view scraping jobs',
+      );
     }
 
     const storeProducts = await this.storeProductRepository
       .createQueryBuilder('storeProduct')
       .leftJoinAndSelect('storeProduct.store', 'store')
       .leftJoinAndSelect('storeProduct.product', 'product')
-      .where('storeProduct.scrapingStatus = :status', { status: ScrapingStatus.PENDING })
+      .where('storeProduct.scrapingStatus = :status', {
+        status: ScrapingStatus.PENDING,
+      })
       .andWhere('storeProduct.nextScrapingDate <= :now', { now: new Date() })
       .orderBy('storeProduct.nextScrapingDate', 'ASC')
       .limit(limit)
       .getMany();
 
-    return storeProducts.map(sp => ({
+    return storeProducts.map((sp) => ({
       id: sp.id,
       storeProductId: sp.id,
       storeId: sp.storeId,
@@ -271,18 +345,23 @@ export class StoreProductsService {
       priority: this.calculateScrapingPriority(sp),
       scheduledAt: sp.nextScrapingDate,
       retryCount: 0,
-      maxRetries: 3
+      maxRetries: 3,
     }));
   }
 
-  async processScrapingResult(scrapingResult: ScrapingResultDto, user: User): Promise<IStoreProductResponse> {
+  async processScrapingResult(
+    scrapingResult: ScrapingResultDto,
+    user: User,
+  ): Promise<IStoreProductResponse> {
     const storeProduct = await this.storeProductRepository.findOne({
       where: { id: scrapingResult.storeProductId },
-      relations: ['store', 'product', 'creator', 'verifier']
+      relations: ['store', 'product', 'creator', 'verifier'],
     });
 
     if (!storeProduct) {
-      throw new NotFoundException(`Store product with ID '${scrapingResult.storeProductId}' not found`);
+      throw new NotFoundException(
+        `Store product with ID '${scrapingResult.storeProductId}' not found`,
+      );
     }
 
     // Update scraping status
@@ -291,18 +370,33 @@ export class StoreProductsService {
 
     // Update prices if provided
     if (scrapingResult.onlinePrice !== undefined) {
-      await this.updatePriceHistory(storeProduct, 'online', scrapingResult.onlinePrice, 'scraping');
+      await this.updatePriceHistory(
+        storeProduct,
+        'online',
+        scrapingResult.onlinePrice,
+        'scraping',
+      );
       storeProduct.onlinePrice = scrapingResult.onlinePrice;
     }
 
     if (scrapingResult.physicalPrice !== undefined) {
-      await this.updatePriceHistory(storeProduct, 'physical', scrapingResult.physicalPrice, 'scraping');
+      await this.updatePriceHistory(
+        storeProduct,
+        'physical',
+        scrapingResult.physicalPrice,
+        'scraping',
+      );
       storeProduct.physicalPrice = scrapingResult.physicalPrice;
     }
 
     // Update availability if provided
     if (scrapingResult.availability !== undefined) {
-      await this.updateAvailabilityHistory(storeProduct, scrapingResult.availability, 'scraping', scrapingResult.stockQuantity);
+      await this.updateAvailabilityHistory(
+        storeProduct,
+        scrapingResult.availability,
+        'scraping',
+        scrapingResult.stockQuantity,
+      );
       storeProduct.availability = scrapingResult.availability;
     }
 
@@ -332,153 +426,231 @@ export class StoreProductsService {
     await this.updateScrapingHistory(storeProduct, scrapingResult);
 
     // Calculate next scraping date
-    storeProduct.nextScrapingDate = new Date(Date.now() + storeProduct.scrapingIntervalHours * 60 * 60 * 1000);
+    storeProduct.nextScrapingDate = new Date(
+      Date.now() + storeProduct.scrapingIntervalHours * 60 * 60 * 1000,
+    );
 
-    const updatedStoreProduct = await this.storeProductRepository.save(storeProduct);
+    const updatedStoreProduct =
+      await this.storeProductRepository.save(storeProduct);
     return this.mapToStoreProductResponse(updatedStoreProduct);
   }
 
   // Private helper methods
-  private applyStoreProductFilters(queryBuilder: any, filter: IStoreProductFilter): void {
+  private applyStoreProductFilters(
+    queryBuilder: any,
+    filter: IStoreProductFilter,
+  ): void {
     if (filter.search) {
       queryBuilder.andWhere(
         '(storeProduct.name ILIKE :search OR storeProduct.description ILIKE :search OR product.name ILIKE :search OR store.name ILIKE :search)',
-        { search: `%${filter.search}%` }
+        { search: `%${filter.search}%` },
       );
     }
 
     if (filter.storeId) {
-      queryBuilder.andWhere('storeProduct.storeId = :storeId', { storeId: filter.storeId });
+      queryBuilder.andWhere('storeProduct.storeId = :storeId', {
+        storeId: filter.storeId,
+      });
     }
 
     if (filter.productId) {
-      queryBuilder.andWhere('storeProduct.productId = :productId', { productId: filter.productId });
+      queryBuilder.andWhere('storeProduct.productId = :productId', {
+        productId: filter.productId,
+      });
     }
 
     if (filter.status) {
-      queryBuilder.andWhere('storeProduct.status = :status', { status: filter.status });
+      queryBuilder.andWhere('storeProduct.status = :status', {
+        status: filter.status,
+      });
     }
 
     if (filter.availability) {
-      queryBuilder.andWhere('storeProduct.availability = :availability', { availability: filter.availability });
+      queryBuilder.andWhere('storeProduct.availability = :availability', {
+        availability: filter.availability,
+      });
     }
 
     if (filter.scrapingStatus) {
-      queryBuilder.andWhere('storeProduct.scrapingStatus = :scrapingStatus', { scrapingStatus: filter.scrapingStatus });
+      queryBuilder.andWhere('storeProduct.scrapingStatus = :scrapingStatus', {
+        scrapingStatus: filter.scrapingStatus,
+      });
     }
 
     if (filter.hasOnlinePrice !== undefined) {
       if (filter.hasOnlinePrice) {
-        queryBuilder.andWhere('storeProduct.onlinePrice IS NOT NULL AND storeProduct.onlinePrice > 0');
+        queryBuilder.andWhere(
+          'storeProduct.onlinePrice IS NOT NULL AND storeProduct.onlinePrice > 0',
+        );
       } else {
-        queryBuilder.andWhere('(storeProduct.onlinePrice IS NULL OR storeProduct.onlinePrice = 0)');
+        queryBuilder.andWhere(
+          '(storeProduct.onlinePrice IS NULL OR storeProduct.onlinePrice = 0)',
+        );
       }
     }
 
     if (filter.hasPhysicalPrice !== undefined) {
       if (filter.hasPhysicalPrice) {
-        queryBuilder.andWhere('storeProduct.physicalPrice IS NOT NULL AND storeProduct.physicalPrice > 0');
+        queryBuilder.andWhere(
+          'storeProduct.physicalPrice IS NOT NULL AND storeProduct.physicalPrice > 0',
+        );
       } else {
-        queryBuilder.andWhere('(storeProduct.physicalPrice IS NULL OR storeProduct.physicalPrice = 0)');
+        queryBuilder.andWhere(
+          '(storeProduct.physicalPrice IS NULL OR storeProduct.physicalPrice = 0)',
+        );
       }
     }
 
     if (filter.isOnSale !== undefined) {
-      queryBuilder.andWhere('storeProduct.isOnSale = :isOnSale', { isOnSale: filter.isOnSale });
+      queryBuilder.andWhere('storeProduct.isOnSale = :isOnSale', {
+        isOnSale: filter.isOnSale,
+      });
     }
 
     if (filter.minPrice !== undefined) {
-      queryBuilder.andWhere('(storeProduct.onlinePrice >= :minPrice OR storeProduct.physicalPrice >= :minPrice)', { minPrice: filter.minPrice });
+      queryBuilder.andWhere(
+        '(storeProduct.onlinePrice >= :minPrice OR storeProduct.physicalPrice >= :minPrice)',
+        { minPrice: filter.minPrice },
+      );
     }
 
     if (filter.maxPrice !== undefined) {
-      queryBuilder.andWhere('(storeProduct.onlinePrice <= :maxPrice OR storeProduct.physicalPrice <= :maxPrice)', { maxPrice: filter.maxPrice });
+      queryBuilder.andWhere(
+        '(storeProduct.onlinePrice <= :maxPrice OR storeProduct.physicalPrice <= :maxPrice)',
+        { maxPrice: filter.maxPrice },
+      );
     }
 
     if (filter.currency) {
-      queryBuilder.andWhere('storeProduct.currency = :currency', { currency: filter.currency });
+      queryBuilder.andWhere('storeProduct.currency = :currency', {
+        currency: filter.currency,
+      });
     }
 
     if (filter.minStock !== undefined) {
-      queryBuilder.andWhere('storeProduct.stockQuantity >= :minStock', { minStock: filter.minStock });
+      queryBuilder.andWhere('storeProduct.stockQuantity >= :minStock', {
+        minStock: filter.minStock,
+      });
     }
 
     if (filter.maxStock !== undefined) {
-      queryBuilder.andWhere('storeProduct.stockQuantity <= :maxStock', { maxStock: filter.maxStock });
+      queryBuilder.andWhere('storeProduct.stockQuantity <= :maxStock', {
+        maxStock: filter.maxStock,
+      });
     }
 
     if (filter.needsScraping !== undefined) {
       if (filter.needsScraping) {
-        queryBuilder.andWhere('storeProduct.nextScrapingDate <= :now', { now: new Date() });
+        queryBuilder.andWhere('storeProduct.nextScrapingDate <= :now', {
+          now: new Date(),
+        });
       } else {
-        queryBuilder.andWhere('storeProduct.nextScrapingDate > :now', { now: new Date() });
+        queryBuilder.andWhere('storeProduct.nextScrapingDate > :now', {
+          now: new Date(),
+        });
       }
     }
 
     if (filter.createdBy) {
-      queryBuilder.andWhere('storeProduct.createdBy = :createdBy', { createdBy: filter.createdBy });
+      queryBuilder.andWhere('storeProduct.createdBy = :createdBy', {
+        createdBy: filter.createdBy,
+      });
     }
 
     if (filter.createdAfter) {
-      queryBuilder.andWhere('storeProduct.createdAt >= :createdAfter', { createdAfter: filter.createdAfter });
+      queryBuilder.andWhere('storeProduct.createdAt >= :createdAfter', {
+        createdAfter: filter.createdAfter,
+      });
     }
 
     if (filter.createdBefore) {
-      queryBuilder.andWhere('storeProduct.createdAt <= :createdBefore', { createdBefore: filter.createdBefore });
+      queryBuilder.andWhere('storeProduct.createdAt <= :createdBefore', {
+        createdBefore: filter.createdBefore,
+      });
     }
 
     if (filter.lastScrapedAfter) {
-      queryBuilder.andWhere('storeProduct.lastScraped >= :lastScrapedAfter', { lastScrapedAfter: filter.lastScrapedAfter });
+      queryBuilder.andWhere('storeProduct.lastScraped >= :lastScrapedAfter', {
+        lastScrapedAfter: filter.lastScrapedAfter,
+      });
     }
 
     if (filter.lastScrapedBefore) {
-      queryBuilder.andWhere('storeProduct.lastScraped <= :lastScrapedBefore', { lastScrapedBefore: filter.lastScrapedBefore });
+      queryBuilder.andWhere('storeProduct.lastScraped <= :lastScrapedBefore', {
+        lastScrapedBefore: filter.lastScrapedBefore,
+      });
     }
   }
 
-  private canUserEditStoreProduct(user: User, storeProduct: StoreProduct): boolean {
-    const userRoles = user.roles.map(role => role.name.toLowerCase());
-    return userRoles.includes(RoleType.SUPER_ADMIN) || 
-           userRoles.includes(RoleType.ADMIN) || 
-           userRoles.includes(RoleType.STORE_ADMIN) ||
-           storeProduct.createdBy === user.id;
+  private canUserEditStoreProduct(
+    user: User,
+    storeProduct: StoreProduct,
+  ): boolean {
+    const userRoles = user.roles.map((role) => role.name.toLowerCase());
+    return (
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.ADMIN) ||
+      userRoles.includes(RoleType.STORE_ADMIN) ||
+      storeProduct.createdBy === user.id
+    );
   }
 
-  private canUserDeleteStoreProduct(user: User, storeProduct: StoreProduct): boolean {
-    const userRoles = user.roles.map(role => role.name.toLowerCase());
-    return userRoles.includes(RoleType.SUPER_ADMIN) || 
-           userRoles.includes(RoleType.ADMIN);
+  private canUserDeleteStoreProduct(
+    user: User,
+    storeProduct: StoreProduct,
+  ): boolean {
+    const userRoles = user.roles.map((role) => role.name.toLowerCase());
+    return (
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.ADMIN)
+    );
   }
 
-  private canUserChangeStoreProductStatus(user: User, storeProduct: StoreProduct): boolean {
-    const userRoles = user.roles.map(role => role.name.toLowerCase());
-    return userRoles.includes(RoleType.SUPER_ADMIN) || 
-           userRoles.includes(RoleType.ADMIN) || 
-           userRoles.includes(RoleType.STORE_ADMIN);
+  private canUserChangeStoreProductStatus(
+    user: User,
+    storeProduct: StoreProduct,
+  ): boolean {
+    const userRoles = user.roles.map((role) => role.name.toLowerCase());
+    return (
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.ADMIN) ||
+      userRoles.includes(RoleType.STORE_ADMIN)
+    );
   }
 
   private canUserViewAnalytics(user: User): boolean {
-    const userRoles = user.roles.map(role => role.name.toLowerCase());
-    return userRoles.includes(RoleType.SUPER_ADMIN) || 
-           userRoles.includes(RoleType.ADMIN) || 
-           userRoles.includes(RoleType.STORE_ADMIN);
+    const userRoles = user.roles.map((role) => role.name.toLowerCase());
+    return (
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.ADMIN) ||
+      userRoles.includes(RoleType.STORE_ADMIN)
+    );
   }
 
   private canUserViewScrapingJobs(user: User): boolean {
-    const userRoles = user.roles.map(role => role.name.toLowerCase());
-    return userRoles.includes(RoleType.SUPER_ADMIN) || 
-           userRoles.includes(RoleType.ADMIN) || 
-           userRoles.includes(RoleType.STORE_ADMIN);
+    const userRoles = user.roles.map((role) => role.name.toLowerCase());
+    return (
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.ADMIN) ||
+      userRoles.includes(RoleType.STORE_ADMIN)
+    );
   }
 
-  private calculateScrapingPriority(storeProduct: StoreProduct): 'low' | 'normal' | 'high' | 'urgent' {
+  private calculateScrapingPriority(
+    storeProduct: StoreProduct,
+  ): 'low' | 'normal' | 'high' | 'urgent' {
     if (storeProduct.scrapingOverdue) return 'urgent';
     if (storeProduct.needsScraping) return 'high';
     if (storeProduct.status === StoreProductStatus.ACTIVE) return 'normal';
     return 'low';
   }
 
-  private async updatePriceHistory(storeProduct: StoreProduct, type: 'online' | 'physical', price: number, source: 'scraping' | 'manual'): Promise<void> {
+  private async updatePriceHistory(
+    storeProduct: StoreProduct,
+    type: 'online' | 'physical',
+    price: number,
+    source: 'scraping' | 'manual',
+  ): Promise<void> {
     if (!storeProduct.priceHistory) {
       storeProduct.priceHistory = [];
     }
@@ -488,7 +660,7 @@ export class StoreProductsService {
       price,
       currency: storeProduct.currency,
       type,
-      source
+      source,
     });
 
     // Keep only last 100 price entries
@@ -497,7 +669,12 @@ export class StoreProductsService {
     }
   }
 
-  private async updateAvailabilityHistory(storeProduct: StoreProduct, availability: Availability, source: 'scraping' | 'manual', stockQuantity?: number): Promise<void> {
+  private async updateAvailabilityHistory(
+    storeProduct: StoreProduct,
+    availability: Availability,
+    source: 'scraping' | 'manual',
+    stockQuantity?: number,
+  ): Promise<void> {
     if (!storeProduct.availabilityHistory) {
       storeProduct.availabilityHistory = [];
     }
@@ -506,16 +683,20 @@ export class StoreProductsService {
       timestamp: new Date(),
       availability,
       stockQuantity,
-      source
+      source,
     });
 
     // Keep only last 100 availability entries
     if (storeProduct.availabilityHistory.length > 100) {
-      storeProduct.availabilityHistory = storeProduct.availabilityHistory.slice(-100);
+      storeProduct.availabilityHistory =
+        storeProduct.availabilityHistory.slice(-100);
     }
   }
 
-  private async updateScrapingHistory(storeProduct: StoreProduct, scrapingResult: ScrapingResultDto): Promise<void> {
+  private async updateScrapingHistory(
+    storeProduct: StoreProduct,
+    scrapingResult: ScrapingResultDto,
+  ): Promise<void> {
     if (!storeProduct.scrapingHistory) {
       storeProduct.scrapingHistory = [];
     }
@@ -527,7 +708,7 @@ export class StoreProductsService {
       availability: scrapingResult.availability,
       stockQuantity: scrapingResult.stockQuantity,
       error: scrapingResult.error,
-      responseTime: scrapingResult.responseTime
+      responseTime: scrapingResult.responseTime,
     });
 
     // Keep only last 100 scraping entries
@@ -536,7 +717,9 @@ export class StoreProductsService {
     }
   }
 
-  private mapToStoreProductResponse(storeProduct: StoreProduct): IStoreProductResponse {
+  private mapToStoreProductResponse(
+    storeProduct: StoreProduct,
+  ): IStoreProductResponse {
     return {
       ...storeProduct,
       storeId: storeProduct.store.id,
@@ -545,13 +728,18 @@ export class StoreProductsService {
       productName: storeProduct.product.name,
       productCode: storeProduct.product.code,
       creatorId: storeProduct.creator.id,
-      creatorName: storeProduct.creator.firstName + ' ' + storeProduct.creator.lastName,
+      creatorName:
+        storeProduct.creator.firstName + ' ' + storeProduct.creator.lastName,
       verifierId: storeProduct.verifier?.id,
-      verifierName: storeProduct.verifier ? storeProduct.verifier.firstName + ' ' + storeProduct.verifier.lastName : undefined
+      verifierName: storeProduct.verifier
+        ? storeProduct.verifier.firstName + ' ' + storeProduct.verifier.lastName
+        : undefined,
     };
   }
 
-  private mapToStoreProductSummary(storeProduct: StoreProduct): IStoreProductSummary {
+  private mapToStoreProductSummary(
+    storeProduct: StoreProduct,
+  ): IStoreProductSummary {
     return {
       id: storeProduct.id,
       name: storeProduct.name,
@@ -569,12 +757,14 @@ export class StoreProductsService {
       isOnSale: storeProduct.isOnSale,
       discountPercentage: storeProduct.discountPercentage,
       lastScraped: storeProduct.lastScraped,
-      createdAt: storeProduct.createdAt
+      createdAt: storeProduct.createdAt,
     };
   }
 
   // Analytics helper methods
-  private async getProductsByStatus(): Promise<Record<StoreProductStatus, number>> {
+  private async getProductsByStatus(): Promise<
+    Record<StoreProductStatus, number>
+  > {
     const result = await this.storeProductRepository
       .createQueryBuilder('storeProduct')
       .select('storeProduct.status', 'status')
@@ -588,17 +778,19 @@ export class StoreProductsService {
       [StoreProductStatus.OUT_OF_STOCK]: 0,
       [StoreProductStatus.DISCONTINUED]: 0,
       [StoreProductStatus.COMING_SOON]: 0,
-      [StoreProductStatus.ERROR]: 0
+      [StoreProductStatus.ERROR]: 0,
     };
 
-    result.forEach(item => {
+    result.forEach((item) => {
       productsByStatus[item.status] = parseInt(item.count);
     });
 
     return productsByStatus;
   }
 
-  private async getProductsByAvailability(): Promise<Record<Availability, number>> {
+  private async getProductsByAvailability(): Promise<
+    Record<Availability, number>
+  > {
     const result = await this.storeProductRepository
       .createQueryBuilder('storeProduct')
       .select('storeProduct.availability', 'availability')
@@ -611,17 +803,19 @@ export class StoreProductsService {
       [Availability.LOW_STOCK]: 0,
       [Availability.OUT_OF_STOCK]: 0,
       [Availability.PRE_ORDER]: 0,
-      [Availability.BACKORDER]: 0
+      [Availability.BACKORDER]: 0,
     };
 
-    result.forEach(item => {
+    result.forEach((item) => {
       productsByAvailability[item.availability] = parseInt(item.count);
     });
 
     return productsByAvailability;
   }
 
-  private async getProductsByScrapingStatus(): Promise<Record<ScrapingStatus, number>> {
+  private async getProductsByScrapingStatus(): Promise<
+    Record<ScrapingStatus, number>
+  > {
     const result = await this.storeProductRepository
       .createQueryBuilder('storeProduct')
       .select('storeProduct.scrapingStatus', 'scrapingStatus')
@@ -634,10 +828,10 @@ export class StoreProductsService {
       [ScrapingStatus.IN_PROGRESS]: 0,
       [ScrapingStatus.COMPLETED]: 0,
       [ScrapingStatus.FAILED]: 0,
-      [ScrapingStatus.SCHEDULED]: 0
+      [ScrapingStatus.SCHEDULED]: 0,
     };
 
-    result.forEach(item => {
+    result.forEach((item) => {
       productsByScrapingStatus[item.scrapingStatus] = parseInt(item.count);
     });
 
@@ -648,7 +842,9 @@ export class StoreProductsService {
     const result = await this.storeProductRepository
       .createQueryBuilder('storeProduct')
       .select('AVG(storeProduct.onlinePrice)', 'average')
-      .where('storeProduct.onlinePrice IS NOT NULL AND storeProduct.onlinePrice > 0')
+      .where(
+        'storeProduct.onlinePrice IS NOT NULL AND storeProduct.onlinePrice > 0',
+      )
       .getRawOne();
 
     return result?.average ? parseFloat(result.average) : 0;
@@ -658,7 +854,9 @@ export class StoreProductsService {
     const result = await this.storeProductRepository
       .createQueryBuilder('storeProduct')
       .select('AVG(storeProduct.physicalPrice)', 'average')
-      .where('storeProduct.physicalPrice IS NOT NULL AND storeProduct.physicalPrice > 0')
+      .where(
+        'storeProduct.physicalPrice IS NOT NULL AND storeProduct.physicalPrice > 0',
+      )
       .getRawOne();
 
     return result?.average ? parseFloat(result.average) : 0;
@@ -668,7 +866,9 @@ export class StoreProductsService {
     const result = await this.storeProductRepository
       .createQueryBuilder('storeProduct')
       .select('AVG(storeProduct.discountPercentage)', 'average')
-      .where('storeProduct.discountPercentage IS NOT NULL AND storeProduct.discountPercentage > 0')
+      .where(
+        'storeProduct.discountPercentage IS NOT NULL AND storeProduct.discountPercentage > 0',
+      )
       .getRawOne();
 
     return result?.average ? parseFloat(result.average) : 0;
@@ -676,18 +876,20 @@ export class StoreProductsService {
 
   private async getProductsNeedingScraping(): Promise<number> {
     return await this.storeProductRepository.count({
-      where: { nextScrapingDate: LessThan(new Date()) }
+      where: { nextScrapingDate: LessThan(new Date()) },
     });
   }
 
   private async getProductsOverdueScraping(): Promise<number> {
     const overdueDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
     return await this.storeProductRepository.count({
-      where: { nextScrapingDate: LessThan(overdueDate) }
+      where: { nextScrapingDate: LessThan(overdueDate) },
     });
   }
 
-  private async getTopStores(): Promise<Array<{ storeId: string; storeName: string; productCount: number }>> {
+  private async getTopStores(): Promise<
+    Array<{ storeId: string; storeName: string; productCount: number }>
+  > {
     return await this.storeProductRepository
       .createQueryBuilder('storeProduct')
       .leftJoin('storeProduct.store', 'store')
@@ -701,7 +903,9 @@ export class StoreProductsService {
       .getRawMany();
   }
 
-  private async getTopProducts(): Promise<Array<{ productId: string; productName: string; storeCount: number }>> {
+  private async getTopProducts(): Promise<
+    Array<{ productId: string; productName: string; storeCount: number }>
+  > {
     return await this.storeProductRepository
       .createQueryBuilder('storeProduct')
       .leftJoin('storeProduct.product', 'product')
@@ -715,7 +919,9 @@ export class StoreProductsService {
       .getRawMany();
   }
 
-  private async getRecentScrapingActivity(): Promise<Array<{ storeProductId: string; status: ScrapingStatus; timestamp: Date }>> {
+  private async getRecentScrapingActivity(): Promise<
+    Array<{ storeProductId: string; status: ScrapingStatus; timestamp: Date }>
+  > {
     const storeProducts = await this.storeProductRepository
       .createQueryBuilder('storeProduct')
       .where('storeProduct.lastScraped IS NOT NULL')
@@ -723,29 +929,36 @@ export class StoreProductsService {
       .limit(20)
       .getMany();
 
-    return storeProducts.map(sp => ({
+    return storeProducts.map((sp) => ({
       storeProductId: sp.id,
       status: sp.scrapingStatus,
-      timestamp: sp.lastScraped
+      timestamp: sp.lastScraped,
     }));
   }
 
-  private async getPriceChangeTrends(): Promise<Array<{ date: string; averagePrice: number; productCount: number }>> {
+  private async getPriceChangeTrends(): Promise<
+    Array<{ date: string; averagePrice: number; productCount: number }>
+  > {
     // This is a simplified version - in a real implementation you'd want more sophisticated date grouping
     const result = await this.storeProductRepository
       .createQueryBuilder('storeProduct')
       .select('DATE(storeProduct.updatedAt)', 'date')
-      .addSelect('AVG(COALESCE(storeProduct.onlinePrice, storeProduct.physicalPrice))', 'averagePrice')
+      .addSelect(
+        'AVG(COALESCE(storeProduct.onlinePrice, storeProduct.physicalPrice))',
+        'averagePrice',
+      )
       .addSelect('COUNT(*)', 'productCount')
-      .where('storeProduct.updatedAt >= :date', { date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }) // Last 30 days
+      .where('storeProduct.updatedAt >= :date', {
+        date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      }) // Last 30 days
       .groupBy('DATE(storeProduct.updatedAt)')
       .orderBy('date', 'ASC')
       .getRawMany();
 
-    return result.map(item => ({
+    return result.map((item) => ({
       date: item.date,
       averagePrice: parseFloat(item.averagePrice) || 0,
-      productCount: parseInt(item.productCount)
+      productCount: parseInt(item.productCount),
     }));
   }
 }

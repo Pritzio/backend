@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments, registerDecorator, ValidationOptions } from 'class-validator';
+import {
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  ValidationArguments,
+  registerDecorator,
+  ValidationOptions,
+} from 'class-validator';
 
 @ValidatorConstraint({ name: 'isAdult', async: false })
 @Injectable()
@@ -11,8 +17,11 @@ export class IsAdultConstraint implements ValidatorConstraintInterface {
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
 
@@ -32,7 +41,7 @@ export class IsNotFutureDateConstraint implements ValidatorConstraintInterface {
 
     const birthDate = new Date(dateOfBirth);
     const today = new Date();
-    
+
     return birthDate <= today;
   }
 
@@ -43,7 +52,9 @@ export class IsNotFutureDateConstraint implements ValidatorConstraintInterface {
 
 @ValidatorConstraint({ name: 'isValidPhoneNumber', async: false })
 @Injectable()
-export class IsValidPhoneNumberConstraint implements ValidatorConstraintInterface {
+export class IsValidPhoneNumberConstraint
+  implements ValidatorConstraintInterface
+{
   validate(phone: string, args: ValidationArguments) {
     if (!phone) return true;
 
@@ -78,7 +89,7 @@ export class IsValidWebsiteConstraint implements ValidatorConstraintInterface {
 
 // Decorators
 export function IsAdult(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,
@@ -90,7 +101,7 @@ export function IsAdult(validationOptions?: ValidationOptions) {
 }
 
 export function IsNotFutureDate(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,
@@ -102,7 +113,7 @@ export function IsNotFutureDate(validationOptions?: ValidationOptions) {
 }
 
 export function IsValidPhoneNumber(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,
@@ -114,7 +125,7 @@ export function IsValidPhoneNumber(validationOptions?: ValidationOptions) {
 }
 
 export function IsValidWebsite(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,

@@ -8,9 +8,12 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const logger = new Logger('Main');
 
-  const logLevels = (process.env.NESTJS_LOG_LEVELS?.split(',') || ['error', 'warn']) as Array<'error' | 'warn' | 'verbose' | 'debug' | 'log' | 'fatal'>;
+  const logLevels = (process.env.NESTJS_LOG_LEVELS?.split(',') || [
+    'error',
+    'warn',
+  ]) as Array<'error' | 'warn' | 'verbose' | 'debug' | 'log' | 'fatal'>;
   const enableLogging = process.env.ENABLE_LOGGING === 'true';
-  
+
   const app = await NestFactory.create(AppModule, {
     logger: enableLogging ? logLevels : ['error', 'warn'],
   });
@@ -26,13 +29,19 @@ async function bootstrap() {
   }
 
   const corsOrigins = process.env.CORS_ORIGINS?.split(',') || [];
-  
+
   if (process.env.NODE_ENV === 'development' || corsOrigins.length === 0) {
     app.enableCors({
       origin: '*',
       credentials: false,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+      allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'Accept',
+        'Origin',
+        'X-Requested-With',
+      ],
       preflightContinue: false,
       optionsSuccessStatus: 204,
     });
@@ -62,14 +71,29 @@ async function bootstrap() {
       .setDescription('Backend API for Pritzio - Price comparison platform')
       .setVersion('1.0')
       .addBearerAuth()
-      .addTag('Authentication', 'User authentication and authorization endpoints')
-      .addTag('Users', 'User profile management, preferences, and activity tracking')
+      .addTag(
+        'Authentication',
+        'User authentication and authorization endpoints',
+      )
+      .addTag(
+        'Users',
+        'User profile management, preferences, and activity tracking',
+      )
       .addTag('Stores', 'Store management, physical locations, and analytics')
       .addTag('Products', 'Master product management, categories, and brands')
-      .addTag('Store Products', 'Store-specific products with scraping and price tracking')
-      .addTag('Physical Locations', 'Geolocation, business hours, and capacity management')
+      .addTag(
+        'Store Products',
+        'Store-specific products with scraping and price tracking',
+      )
+      .addTag(
+        'Physical Locations',
+        'Geolocation, business hours, and capacity management',
+      )
       .addTag('Scraping', 'Web scraping endpoints for product data extraction')
-      .addTag('Statistics', 'System statistics and analytics for users, stores, and products')
+      .addTag(
+        'Statistics',
+        'System statistics and analytics for users, stores, and products',
+      )
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

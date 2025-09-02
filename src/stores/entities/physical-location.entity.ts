@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { Store } from './store.entity';
 import { StoreProduct } from './store-product.entity';
 
@@ -6,7 +15,7 @@ export enum LocationStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   TEMPORARILY_CLOSED = 'temporarily_closed',
-  PERMANENTLY_CLOSED = 'permanently_closed'
+  PERMANENTLY_CLOSED = 'permanently_closed',
 }
 
 @Entity('physical_locations')
@@ -62,7 +71,7 @@ export class PhysicalLocation {
   @Column({
     type: 'enum',
     enum: LocationStatus,
-    default: LocationStatus.ACTIVE
+    default: LocationStatus.ACTIVE,
   })
   status: LocationStatus;
 
@@ -79,11 +88,17 @@ export class PhysicalLocation {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => Store, store => store.physicalLocations, { nullable: false })
+  @ManyToOne(() => Store, (store) => store.physicalLocations, {
+    nullable: false,
+  })
   @JoinColumn({ name: 'storeId' })
   store: Store;
 
-  @ManyToOne(() => StoreProduct, storeProduct => storeProduct.physicalLocations, { nullable: true })
+  @ManyToOne(
+    () => StoreProduct,
+    (storeProduct) => storeProduct.physicalLocations,
+    { nullable: true },
+  )
   @JoinColumn({ name: 'storeProductId' })
   storeProduct: StoreProduct;
 

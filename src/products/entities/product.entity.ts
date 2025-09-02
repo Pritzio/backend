@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 
 export enum ProductStatus {
@@ -6,21 +16,21 @@ export enum ProductStatus {
   INACTIVE = 'inactive',
   DISCONTINUED = 'discontinued',
   OUT_OF_STOCK = 'out_of_stock',
-  COMING_SOON = 'coming_soon'
+  COMING_SOON = 'coming_soon',
 }
 
 export enum ProductType {
   PHYSICAL = 'physical',
   DIGITAL = 'digital',
   SERVICE = 'service',
-  SUBSCRIPTION = 'subscription'
+  SUBSCRIPTION = 'subscription',
 }
 
 export enum ProductCondition {
   NEW = 'new',
   USED = 'used',
   REFURBISHED = 'refurbished',
-  OPEN_BOX = 'open_box'
+  OPEN_BOX = 'open_box',
 }
 
 @Entity('products')
@@ -65,21 +75,21 @@ export class Product {
   @Column({
     type: 'enum',
     enum: ProductType,
-    default: ProductType.PHYSICAL
+    default: ProductType.PHYSICAL,
   })
   type: ProductType;
 
   @Column({
     type: 'enum',
     enum: ProductStatus,
-    default: ProductStatus.ACTIVE
+    default: ProductStatus.ACTIVE,
   })
   status: ProductStatus;
 
   @Column({
     type: 'enum',
     enum: ProductCondition,
-    default: ProductCondition.NEW
+    default: ProductCondition.NEW,
   })
   condition: ProductCondition;
 
@@ -145,7 +155,10 @@ export class Product {
   }
 
   get isAvailable(): boolean {
-    return this.status === ProductStatus.ACTIVE || this.status === ProductStatus.COMING_SOON;
+    return (
+      this.status === ProductStatus.ACTIVE ||
+      this.status === ProductStatus.COMING_SOON
+    );
   }
 
   get isDiscontinued(): boolean {

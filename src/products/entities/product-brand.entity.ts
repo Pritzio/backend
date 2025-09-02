@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 
 @Entity('product_brands')
@@ -114,7 +123,11 @@ export class ProductBrand {
   }
 
   get isMediumCompany(): boolean {
-    return !!(this.employeeCount && this.employeeCount > 100 && this.employeeCount <= 1000);
+    return !!(
+      this.employeeCount &&
+      this.employeeCount > 100 &&
+      this.employeeCount <= 1000
+    );
   }
 
   get isSmallCompany(): boolean {

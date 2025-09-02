@@ -1,14 +1,35 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserProfile, Gender, ProfileVisibility } from '../entities/user-profile.entity';
-import { UserPreferences, Language, Currency, TimeZone } from '../entities/user-preferences.entity';
-import { UserActivity, ActivityType, ActivityLevel } from '../entities/user-activity.entity';
+import {
+  UserProfile,
+  Gender,
+  ProfileVisibility,
+} from '../entities/user-profile.entity';
+import {
+  UserPreferences,
+  Language,
+  Currency,
+  TimeZone,
+} from '../entities/user-preferences.entity';
+import {
+  UserActivity,
+  ActivityType,
+  ActivityLevel,
+} from '../entities/user-activity.entity';
 import { CreateUserProfileDto } from '../dto/create-user-profile.dto';
 import { UpdateUserProfileDto } from '../dto/update-user-profile.dto';
 import { CreateUserPreferencesDto } from '../dto/create-user-preferences.dto';
 import { UpdateUserPreferencesDto } from '../dto/update-user-preferences.dto';
-import { IUserProfileResponse, IUserProfileSummary } from '../interfaces/user-profile.interface';
+import {
+  IUserProfileResponse,
+  IUserProfileSummary,
+} from '../interfaces/user-profile.interface';
 import { UserStatus } from '../../auth/entities/user.entity';
 
 @Injectable()
@@ -22,8 +43,13 @@ export class UsersService {
     private readonly userActivityRepository: Repository<UserActivity>,
   ) {}
 
-  async createUserProfile(userId: string, createUserProfileDto: CreateUserProfileDto): Promise<UserProfile> {
-    const existingProfile = await this.userProfileRepository.findOne({ where: { userId } });
+  async createUserProfile(
+    userId: string,
+    createUserProfileDto: CreateUserProfileDto,
+  ): Promise<UserProfile> {
+    const existingProfile = await this.userProfileRepository.findOne({
+      where: { userId },
+    });
     if (existingProfile) {
       throw new BadRequestException('User profile already exists');
     }
@@ -38,22 +64,38 @@ export class UsersService {
 
     const savedProfile = await this.userProfileRepository.save(profile);
 
-    await this.logUserActivity(userId, ActivityType.PROFILE_UPDATE, ActivityLevel.INFO, 'Profile created');
+    await this.logUserActivity(
+      userId,
+      ActivityType.PROFILE_UPDATE,
+      ActivityLevel.INFO,
+      'Profile created',
+    );
 
     return savedProfile;
   }
 
-  async getUserProfile(userId: string, requestingUserId: string): Promise<IUserProfileResponse> {
-    const profile = await this.userProfileRepository.findOne({ where: { userId } });
+  async getUserProfile(
+    userId: string,
+    requestingUserId: string,
+  ): Promise<IUserProfileResponse> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { userId },
+    });
     if (!profile) {
       throw new NotFoundException('User profile not found');
     }
 
-    if (profile.profileVisibility === ProfileVisibility.PRIVATE && userId !== requestingUserId) {
+    if (
+      profile.profileVisibility === ProfileVisibility.PRIVATE &&
+      userId !== requestingUserId
+    ) {
       throw new ForbiddenException('Profile is private');
     }
 
-    if (profile.profileVisibility === ProfileVisibility.FRIENDS && userId !== requestingUserId) {
+    if (
+      profile.profileVisibility === ProfileVisibility.FRIENDS &&
+      userId !== requestingUserId
+    ) {
       // TODO: Implement friend check logic
       throw new ForbiddenException('Profile is only visible to friends');
     }
@@ -61,8 +103,13 @@ export class UsersService {
     return this.enrichProfileResponse(profile);
   }
 
-  async updateUserProfile(userId: string, updateUserProfileDto: UpdateUserProfileDto): Promise<UserProfile> {
-    const profile = await this.userProfileRepository.findOne({ where: { userId } });
+  async updateUserProfile(
+    userId: string,
+    updateUserProfileDto: UpdateUserProfileDto,
+  ): Promise<UserProfile> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { userId },
+    });
     if (!profile) {
       throw new NotFoundException('User profile not found');
     }
@@ -71,37 +118,57 @@ export class UsersService {
     this.validateProfileData(updateUserProfileDto);
 
     // Business rule: Check for significant changes that require verification
-    const significantChanges = this.checkSignificantChanges(profile, updateUserProfileDto);
+    const significantChanges = this.checkSignificantChanges(
+      profile,
+      updateUserProfileDto,
+    );
     if (significantChanges.length > 0) {
       await this.logUserActivity(
-        userId, 
-        ActivityType.PROFILE_UPDATE, 
-        ActivityLevel.WARNING, 
+        userId,
+        ActivityType.PROFILE_UPDATE,
+        ActivityLevel.WARNING,
         'Significant profile changes detected',
-        `Changed fields: ${significantChanges.join(', ')}`
+        `Changed fields: ${significantChanges.join(', ')}`,
       );
     }
 
     Object.assign(profile, updateUserProfileDto);
     const updatedProfile = await this.userProfileRepository.save(profile);
 
-    await this.logUserActivity(userId, ActivityType.PROFILE_UPDATE, ActivityLevel.INFO, 'Profile updated');
+    await this.logUserActivity(
+      userId,
+      ActivityType.PROFILE_UPDATE,
+      ActivityLevel.INFO,
+      'Profile updated',
+    );
 
     return updatedProfile;
   }
 
   async deleteUserProfile(userId: string): Promise<void> {
-    const profile = await this.userProfileRepository.findOne({ where: { userId } });
+    const profile = await this.userProfileRepository.findOne({
+      where: { userId },
+    });
     if (!profile) {
       throw new NotFoundException('User profile not found');
     }
 
     await this.userProfileRepository.remove(profile);
-    await this.logUserActivity(userId, ActivityType.PROFILE_UPDATE, ActivityLevel.INFO, 'Profile deleted');
+    await this.logUserActivity(
+      userId,
+      ActivityType.PROFILE_UPDATE,
+      ActivityLevel.INFO,
+      'Profile deleted',
+    );
   }
 
-  async createUserPreferences(userId: string, createUserPreferencesDto: CreateUserPreferencesDto): Promise<UserPreferences> {
-    const existingPreferences = await this.userPreferencesRepository.findOne({ where: { userId } });
+  async createUserPreferences(
+    userId: string,
+    createUserPreferencesDto: CreateUserPreferencesDto,
+  ): Promise<UserPreferences> {
+    const existingPreferences = await this.userPreferencesRepository.findOne({
+      where: { userId },
+    });
     if (existingPreferences) {
       throw new BadRequestException('User preferences already exist');
     }
@@ -111,15 +178,23 @@ export class UsersService {
       ...createUserPreferencesDto,
     });
 
-    const savedPreferences = await this.userPreferencesRepository.save(preferences);
+    const savedPreferences =
+      await this.userPreferencesRepository.save(preferences);
 
-    await this.logUserActivity(userId, ActivityType.PREFERENCES_UPDATE, ActivityLevel.INFO, 'Preferences created');
+    await this.logUserActivity(
+      userId,
+      ActivityType.PREFERENCES_UPDATE,
+      ActivityLevel.INFO,
+      'Preferences created',
+    );
 
     return savedPreferences;
   }
 
   async getUserPreferences(userId: string): Promise<UserPreferences> {
-    const preferences = await this.userPreferencesRepository.findOne({ where: { userId } });
+    const preferences = await this.userPreferencesRepository.findOne({
+      where: { userId },
+    });
     if (!preferences) {
       throw new NotFoundException('User preferences not found');
     }
@@ -127,34 +202,51 @@ export class UsersService {
     return preferences;
   }
 
-  async updateUserPreferences(userId: string, updateUserPreferencesDto: UpdateUserPreferencesDto): Promise<UserPreferences> {
-    const preferences = await this.userPreferencesRepository.findOne({ where: { userId } });
+  async updateUserPreferences(
+    userId: string,
+    updateUserPreferencesDto: UpdateUserPreferencesDto,
+  ): Promise<UserPreferences> {
+    const preferences = await this.userPreferencesRepository.findOne({
+      where: { userId },
+    });
     if (!preferences) {
       throw new NotFoundException('User preferences not found');
     }
 
     Object.assign(preferences, updateUserPreferencesDto);
-    const updatedPreferences = await this.userPreferencesRepository.save(preferences);
+    const updatedPreferences =
+      await this.userPreferencesRepository.save(preferences);
 
-    await this.logUserActivity(userId, ActivityType.PREFERENCES_UPDATE, ActivityLevel.INFO, 'Preferences updated');
+    await this.logUserActivity(
+      userId,
+      ActivityType.PREFERENCES_UPDATE,
+      ActivityLevel.INFO,
+      'Preferences updated',
+    );
 
     return updatedPreferences;
   }
 
-  async searchUsers(query: string, requestingUserId: string, limit: number = 10): Promise<IUserProfileSummary[]> {
+  async searchUsers(
+    query: string,
+    requestingUserId: string,
+    limit: number = 10,
+  ): Promise<IUserProfileSummary[]> {
     const profiles = await this.userProfileRepository
       .createQueryBuilder('profile')
-      .where('profile.profileVisibility = :visibility', { visibility: ProfileVisibility.PUBLIC })
+      .where('profile.profileVisibility = :visibility', {
+        visibility: ProfileVisibility.PUBLIC,
+      })
       .andWhere(
         '(profile.firstName ILIKE :query OR profile.lastName ILIKE :query OR profile.bio ILIKE :query)',
-        { query: `%${query}%` }
+        { query: `%${query}%` },
       )
       .andWhere('profile.userId != :requestingUserId', { requestingUserId })
       .andWhere('profile.isActive = :isActive', { isActive: true })
       .limit(limit)
       .getMany();
 
-    return profiles.map(profile => ({
+    return profiles.map((profile) => ({
       id: profile.id,
       firstName: profile.firstName,
       lastName: profile.lastName,
@@ -164,7 +256,10 @@ export class UsersService {
     }));
   }
 
-  async getUserActivity(userId: string, limit: number = 50): Promise<UserActivity[]> {
+  async getUserActivity(
+    userId: string,
+    limit: number = 50,
+  ): Promise<UserActivity[]> {
     return this.userActivityRepository.find({
       where: { userId },
       order: { createdAt: 'DESC' },
@@ -228,7 +323,9 @@ export class UsersService {
     const response: IUserProfileResponse = { ...profile };
 
     if (profile.firstName || profile.lastName) {
-      response.fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
+      response.fullName = [profile.firstName, profile.lastName]
+        .filter(Boolean)
+        .join(' ');
       response.displayName = response.fullName;
     }
 
@@ -237,20 +334,29 @@ export class UsersService {
       const birthDate = new Date(profile.dateOfBirth);
       response.age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+      ) {
         response.age--;
       }
     }
 
     if (profile.city || profile.state || profile.country) {
-      response.location = [profile.city, profile.state, profile.country].filter(Boolean).join(', ');
+      response.location = [profile.city, profile.state, profile.country]
+        .filter(Boolean)
+        .join(', ');
     }
 
     return response;
   }
 
-  async getProfileStats(userId: string): Promise<{ profileCompleteness: number; lastActivity: Date | undefined }> {
-    const profile = await this.userProfileRepository.findOne({ where: { userId } });
+  async getProfileStats(
+    userId: string,
+  ): Promise<{ profileCompleteness: number; lastActivity: Date | undefined }> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { userId },
+    });
     const lastActivity = await this.userActivityRepository.findOne({
       where: { userId },
       order: { createdAt: 'DESC' },
@@ -259,12 +365,24 @@ export class UsersService {
     let profileCompleteness = 0;
     if (profile) {
       const fields = [
-        profile.firstName, profile.lastName, profile.dateOfBirth, profile.gender,
-        profile.phone, profile.address, profile.city, profile.state,
-        profile.zipCode, profile.country, profile.website, profile.bio,
-        profile.avatar, profile.coverPhoto
+        profile.firstName,
+        profile.lastName,
+        profile.dateOfBirth,
+        profile.gender,
+        profile.phone,
+        profile.address,
+        profile.city,
+        profile.state,
+        profile.zipCode,
+        profile.country,
+        profile.website,
+        profile.bio,
+        profile.avatar,
+        profile.coverPhoto,
       ];
-      const filledFields = fields.filter(field => field !== null && field !== undefined).length;
+      const filledFields = fields.filter(
+        (field) => field !== null && field !== undefined,
+      ).length;
       profileCompleteness = Math.round((filledFields / fields.length) * 100);
     }
 
@@ -279,18 +397,28 @@ export class UsersService {
     if (profileData.phone && profileData.email) {
       const phoneDigits = profileData.phone.replace(/\D/g, '');
       if (profileData.email.includes(phoneDigits)) {
-        throw new BadRequestException('Phone number and email should not be similar');
+        throw new BadRequestException(
+          'Phone number and email should not be similar',
+        );
       }
     }
 
     // Business rule: Website should match user's professional context
     if (profileData.website && profileData.bio) {
-      const suspiciousPatterns = ['spam', 'click here', 'buy now', 'free money'];
-      const combinedText = `${profileData.website} ${profileData.bio}`.toLowerCase();
-      
+      const suspiciousPatterns = [
+        'spam',
+        'click here',
+        'buy now',
+        'free money',
+      ];
+      const combinedText =
+        `${profileData.website} ${profileData.bio}`.toLowerCase();
+
       for (const pattern of suspiciousPatterns) {
         if (combinedText.includes(pattern)) {
-          throw new BadRequestException('Profile content appears to be promotional or spam');
+          throw new BadRequestException(
+            'Profile content appears to be promotional or spam',
+          );
         }
       }
     }
@@ -298,17 +426,29 @@ export class UsersService {
     // Business rule: Address components should be consistent
     if (profileData.zipCode && profileData.country) {
       const isUSZip = /^\d{5}(-\d{4})?$/.test(profileData.zipCode);
-      const isUSCountry = profileData.country.toLowerCase().includes('usa') || 
-                         profileData.country.toLowerCase().includes('united states');
-      
+      const isUSCountry =
+        profileData.country.toLowerCase().includes('usa') ||
+        profileData.country.toLowerCase().includes('united states');
+
       if (isUSZip && !isUSCountry) {
-        throw new BadRequestException('ZIP code format does not match the specified country');
+        throw new BadRequestException(
+          'ZIP code format does not match the specified country',
+        );
       }
     }
   }
 
-  private checkSignificantChanges(currentProfile: UserProfile, updateData: any): string[] {
-    const significantFields = ['firstName', 'lastName', 'dateOfBirth', 'phone', 'email'];
+  private checkSignificantChanges(
+    currentProfile: UserProfile,
+    updateData: any,
+  ): string[] {
+    const significantFields = [
+      'firstName',
+      'lastName',
+      'dateOfBirth',
+      'phone',
+      'email',
+    ];
     const changes: string[] = [];
 
     for (const field of significantFields) {
@@ -322,9 +462,14 @@ export class UsersService {
 
   // ===== ADMINISTRATIVE METHODS =====
 
-  async getAllUsers(page: number = 1, limit: number = 20, status?: string, role?: string) {
+  async getAllUsers(
+    page: number = 1,
+    limit: number = 20,
+    status?: string,
+    role?: string,
+  ) {
     const skip = (page - 1) * limit;
-    
+
     let query = this.userProfileRepository
       .createQueryBuilder('profile')
       .leftJoinAndSelect('profile.user', 'user')
@@ -343,7 +488,7 @@ export class UsersService {
     const [profiles, total] = await query.getManyAndCount();
 
     return {
-      users: profiles.map(profile => ({
+      users: profiles.map((profile) => ({
         id: profile.user.id,
         username: profile.user.username,
         email: profile.user.email,
@@ -355,11 +500,12 @@ export class UsersService {
           isActive: profile.isActive,
           profileVisibility: profile.profileVisibility,
         },
-        roles: profile.user.roles?.map(role => ({
-          id: role.id,
-          name: role.name,
-          displayName: role.displayName,
-        })) || [],
+        roles:
+          profile.user.roles?.map((role) => ({
+            id: role.id,
+            name: role.name,
+            displayName: role.displayName,
+          })) || [],
         createdAt: profile.user.createdAt,
         lastLoginAt: profile.user.lastLoginAt,
       })),
@@ -405,19 +551,21 @@ export class UsersService {
         user: undefined, // Remove circular reference
       },
       preferences: preferences || null,
-      roles: profile.user.roles?.map(role => ({
-        id: role.id,
-        name: role.name,
-        displayName: role.displayName,
-        description: role.description,
-        permissions: role.permissions?.map(permission => ({
-          id: permission.id,
-          name: permission.name,
-          displayName: permission.displayName,
-          category: permission.category,
+      roles:
+        profile.user.roles?.map((role) => ({
+          id: role.id,
+          name: role.name,
+          displayName: role.displayName,
+          description: role.description,
+          permissions:
+            role.permissions?.map((permission) => ({
+              id: permission.id,
+              name: permission.name,
+              displayName: permission.displayName,
+              category: permission.category,
+            })) || [],
         })) || [],
-      })) || [],
-      recentActivity: recentActivity.map(activity => ({
+      recentActivity: recentActivity.map((activity) => ({
         id: activity.id,
         activityType: activity.activityType,
         description: activity.description,
@@ -442,9 +590,11 @@ export class UsersService {
     }
 
     // Update user status in the main user table
-    await this.userProfileRepository.manager.getRepository('users').update(userId, {
-      status,
-    });
+    await this.userProfileRepository.manager
+      .getRepository('users')
+      .update(userId, {
+        status,
+      });
 
     // Update profile active status
     profile.isActive = status === 'active';
@@ -457,7 +607,7 @@ export class UsersService {
       ActivityLevel.WARNING,
       `User status changed to ${status}`,
       reason ? `Reason: ${reason}` : undefined,
-      { previousStatus: profile.user.status, newStatus: status, reason }
+      { previousStatus: profile.user.status, newStatus: status, reason },
     );
 
     return { message: `User status updated to ${status}`, userId, status };
@@ -474,13 +624,13 @@ export class UsersService {
     }
 
     const targetUser = profile.user;
-    const currentUserRoles = currentUser.roles?.map(role => role.name) || [];
+    const currentUserRoles = currentUser.roles || [];
 
     // Security rules for user deletion
     const canDelete = this.validateUserDeletionPermissions(
       currentUserRoles,
-      targetUser.roles?.map(role => role.name) || [],
-      currentUser.id === userId
+      targetUser.roles?.map((role) => role.name) || [],
+      currentUser.id === userId,
     );
 
     if (!canDelete.allowed) {
@@ -497,7 +647,9 @@ export class UsersService {
     };
 
     // Update user status to inactive and mark as deleted
-    await this.userProfileRepository.manager.getRepository('users').update(userId, deletionData);
+    await this.userProfileRepository.manager
+      .getRepository('users')
+      .update(userId, deletionData);
 
     // Update profile active status
     profile.isActive = false;
@@ -515,8 +667,8 @@ export class UsersService {
         deletionReason: softDeleteDto?.reason,
         notes: softDeleteDto?.notes,
         timestamp: new Date().toISOString(),
-        action: 'soft_delete'
-      }
+        action: 'soft_delete',
+      },
     );
 
     // Log activity for the admin who performed the deletion
@@ -531,8 +683,8 @@ export class UsersService {
         targetUsername: targetUser.username,
         targetEmail: targetUser.email,
         deletionReason: softDeleteDto?.reason,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     );
 
     return {
@@ -545,14 +697,19 @@ export class UsersService {
   }
 
   private validateUserDeletionPermissions(
-    currentUserRoles: string[],
+    currentUserRoles: any[],
     targetUserRoles: string[],
-    isSelfDeletion: boolean
+    isSelfDeletion: boolean,
   ): { allowed: boolean; reason?: string } {
-    const isSuperAdmin = currentUserRoles.includes('SUPER_ADMIN');
-    const isAdmin = currentUserRoles.includes('ADMIN');
-    const targetIsSuperAdmin = targetUserRoles.includes('SUPER_ADMIN');
-    const targetIsAdmin = targetUserRoles.includes('ADMIN');
+    // Handle both string arrays and role object arrays
+    const currentRoleNames = currentUserRoles.map(role => 
+      typeof role === 'string' ? role : role.name
+    );
+    
+    const isSuperAdmin = currentRoleNames.includes('super_admin');
+    const isAdmin = currentRoleNames.includes('admin');
+    const targetIsSuperAdmin = targetUserRoles.includes('super_admin');
+    const targetIsAdmin = targetUserRoles.includes('admin');
 
     // SUPER_ADMIN can delete anyone (including other SUPER_ADMINs)
     if (isSuperAdmin) {
@@ -562,16 +719,25 @@ export class UsersService {
     // ADMIN can delete users but NOT SUPER_ADMINs or other ADMINs
     if (isAdmin) {
       if (targetIsSuperAdmin) {
-        return { allowed: false, reason: 'ADMIN cannot delete SUPER_ADMIN users' };
+        return {
+          allowed: false,
+          reason: 'ADMIN cannot delete SUPER_ADMIN users',
+        };
       }
       if (targetIsAdmin) {
-        return { allowed: false, reason: 'ADMIN cannot delete other ADMIN users' };
+        return {
+          allowed: false,
+          reason: 'ADMIN cannot delete other ADMIN users',
+        };
       }
       return { allowed: true };
     }
 
     // Regular users cannot delete anyone
-    return { allowed: false, reason: 'Insufficient permissions to delete users' };
+    return {
+      allowed: false,
+      reason: 'Insufficient permissions to delete users',
+    };
   }
 
   async restoreUser(userId: string, currentUser: any, restoreReason?: string) {
@@ -589,9 +755,11 @@ export class UsersService {
     }
 
     // Only SUPER_ADMIN can restore users
-    const currentUserRoles = currentUser.roles?.map(role => role.name) || [];
+    const currentUserRoles = currentUser.roles?.map((role) => role.name) || [];
     if (!currentUserRoles.includes('SUPER_ADMIN')) {
-      throw new ForbiddenException('Only SUPER_ADMIN can restore deleted users');
+      throw new ForbiddenException(
+        'Only SUPER_ADMIN can restore deleted users',
+      );
     }
 
     // Restore the user
@@ -604,7 +772,9 @@ export class UsersService {
     };
 
     // Update user status and remove deletion markers
-    await this.userProfileRepository.manager.getRepository('users').update(userId, restoreData);
+    await this.userProfileRepository.manager
+      .getRepository('users')
+      .update(userId, restoreData);
 
     // Update profile active status
     profile.isActive = true;
@@ -621,8 +791,8 @@ export class UsersService {
         restoredBy: currentUser.id,
         restoreReason,
         timestamp: new Date().toISOString(),
-        action: 'restore'
-      }
+        action: 'restore',
+      },
     );
 
     // Log activity for the admin who performed the restoration
@@ -637,8 +807,8 @@ export class UsersService {
         targetUsername: profile.user.username,
         targetEmail: profile.user.email,
         restoreReason,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     );
 
     return {
@@ -652,13 +822,17 @@ export class UsersService {
 
   async getUserAnalytics() {
     const totalUsers = await this.userProfileRepository.count();
-    const activeUsers = await this.userProfileRepository.count({ where: { isActive: true } });
-    const verifiedUsers = await this.userProfileRepository.count({ where: { isVerified: true } });
+    const activeUsers = await this.userProfileRepository.count({
+      where: { isActive: true },
+    });
+    const verifiedUsers = await this.userProfileRepository.count({
+      where: { isVerified: true },
+    });
 
     // Get user registration trend (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
+
     const newUsers = await this.userProfileRepository
       .createQueryBuilder('profile')
       .where('profile.createdAt >= :date', { date: thirtyDaysAgo })
@@ -679,7 +853,7 @@ export class UsersService {
       '76-100%': 0,
     };
 
-    profiles.forEach(profile => {
+    profiles.forEach((profile) => {
       const completeness = this.calculateProfileCompleteness(profile);
       if (completeness <= 25) completenessStats['0-25%']++;
       else if (completeness <= 50) completenessStats['26-50%']++;
@@ -693,13 +867,16 @@ export class UsersService {
         activeUsers,
         verifiedUsers,
         newUsersLast30Days: newUsers,
-        activePercentage: totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0,
-        verifiedPercentage: totalUsers > 0 ? Math.round((verifiedUsers / totalUsers) * 100) : 0,
+        activePercentage:
+          totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0,
+        verifiedPercentage:
+          totalUsers > 0 ? Math.round((verifiedUsers / totalUsers) * 100) : 0,
       },
       activity: {
         totalActivities,
         recentActivities,
-        averageActivitiesPerUser: totalUsers > 0 ? Math.round(totalActivities / totalUsers) : 0,
+        averageActivitiesPerUser:
+          totalUsers > 0 ? Math.round(totalActivities / totalUsers) : 0,
       },
       profileCompleteness: completenessStats,
       trends: {
@@ -711,12 +888,24 @@ export class UsersService {
 
   private calculateProfileCompleteness(profile: UserProfile): number {
     const fields = [
-      profile.firstName, profile.lastName, profile.dateOfBirth, profile.gender,
-      profile.phone, profile.address, profile.city, profile.state,
-      profile.zipCode, profile.country, profile.website, profile.bio,
-      profile.avatar, profile.coverPhoto
+      profile.firstName,
+      profile.lastName,
+      profile.dateOfBirth,
+      profile.gender,
+      profile.phone,
+      profile.address,
+      profile.city,
+      profile.state,
+      profile.zipCode,
+      profile.country,
+      profile.website,
+      profile.bio,
+      profile.avatar,
+      profile.coverPhoto,
     ];
-    const filledFields = fields.filter(field => field !== null && field !== undefined).length;
+    const filledFields = fields.filter(
+      (field) => field !== null && field !== undefined,
+    ).length;
     return Math.round((filledFields / fields.length) * 100);
   }
 }

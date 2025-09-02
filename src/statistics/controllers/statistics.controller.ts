@@ -1,10 +1,21 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
-import { StatisticsService, UserStatistics, StoreStatistics, ProductStatistics, SystemStatistics } from '../services/statistics.service';
+import {
+  StatisticsService,
+  UserStatistics,
+  StoreStatistics,
+  ProductStatistics,
+  SystemStatistics,
+} from '../services/statistics.service';
 import { RoleType } from '../../auth/entities/role.entity';
 import { PermissionType } from '../../auth/entities/permission.entity';
 
@@ -18,9 +29,10 @@ export class StatisticsController {
   @Get('users')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.ANALYTICS_READ)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get user statistics',
-    description: 'Returns comprehensive statistics about users including total, active, inactive, pending verification, suspended, and deleted users'
+    description:
+      'Returns comprehensive statistics about users including total, active, inactive, pending verification, suspended, and deleted users',
   })
   @ApiResponse({
     status: 200,
@@ -31,11 +43,17 @@ export class StatisticsController {
         total: { type: 'number', description: 'Total number of users' },
         active: { type: 'number', description: 'Number of active users' },
         inactive: { type: 'number', description: 'Number of inactive users' },
-        pendingVerification: { type: 'number', description: 'Number of users pending email verification' },
+        pendingVerification: {
+          type: 'number',
+          description: 'Number of users pending email verification',
+        },
         suspended: { type: 'number', description: 'Number of suspended users' },
-        deleted: { type: 'number', description: 'Number of soft-deleted users' }
-      }
-    }
+        deleted: {
+          type: 'number',
+          description: 'Number of soft-deleted users',
+        },
+      },
+    },
   })
   async getUserStatistics(): Promise<UserStatistics> {
     return this.statisticsService.getUserStatistics();
@@ -44,9 +62,10 @@ export class StatisticsController {
   @Get('stores')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.STORE_READ, PermissionType.ANALYTICS_READ)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get store statistics',
-    description: 'Returns comprehensive statistics about stores including total, verified, pending verification, suspended, and deleted stores'
+    description:
+      'Returns comprehensive statistics about stores including total, verified, pending verification, suspended, and deleted stores',
   })
   @ApiResponse({
     status: 200,
@@ -56,11 +75,20 @@ export class StatisticsController {
       properties: {
         total: { type: 'number', description: 'Total number of stores' },
         verified: { type: 'number', description: 'Number of verified stores' },
-        pendingVerification: { type: 'number', description: 'Number of stores pending verification' },
-        suspended: { type: 'number', description: 'Number of suspended stores' },
-        deleted: { type: 'number', description: 'Number of soft-deleted stores' }
-      }
-    }
+        pendingVerification: {
+          type: 'number',
+          description: 'Number of stores pending verification',
+        },
+        suspended: {
+          type: 'number',
+          description: 'Number of suspended stores',
+        },
+        deleted: {
+          type: 'number',
+          description: 'Number of soft-deleted stores',
+        },
+      },
+    },
   })
   async getStoreStatistics(): Promise<StoreStatistics> {
     return this.statisticsService.getStoreStatistics();
@@ -69,9 +97,10 @@ export class StatisticsController {
   @Get('products')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.PRODUCT_READ, PermissionType.ANALYTICS_READ)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get product statistics',
-    description: 'Returns comprehensive statistics about products including total, active, inactive, and deleted products'
+    description:
+      'Returns comprehensive statistics about products including total, active, inactive, and deleted products',
   })
   @ApiResponse({
     status: 200,
@@ -81,10 +110,16 @@ export class StatisticsController {
       properties: {
         total: { type: 'number', description: 'Total number of products' },
         active: { type: 'number', description: 'Number of active products' },
-        inactive: { type: 'number', description: 'Number of inactive products' },
-        deleted: { type: 'number', description: 'Number of soft-deleted products' }
-      }
-    }
+        inactive: {
+          type: 'number',
+          description: 'Number of inactive products',
+        },
+        deleted: {
+          type: 'number',
+          description: 'Number of soft-deleted products',
+        },
+      },
+    },
   })
   async getProductStatistics(): Promise<ProductStatistics> {
     return this.statisticsService.getProductStatistics();
@@ -93,9 +128,10 @@ export class StatisticsController {
   @Get('system')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.ANALYTICS_READ)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get complete system statistics',
-    description: 'Returns comprehensive statistics for the entire system including users, stores, and products'
+    description:
+      'Returns comprehensive statistics for the entire system including users, stores, and products',
   })
   @ApiResponse({
     status: 200,
@@ -111,8 +147,8 @@ export class StatisticsController {
             inactive: { type: 'number' },
             pendingVerification: { type: 'number' },
             suspended: { type: 'number' },
-            deleted: { type: 'number' }
-          }
+            deleted: { type: 'number' },
+          },
         },
         stores: {
           type: 'object',
@@ -121,8 +157,8 @@ export class StatisticsController {
             verified: { type: 'number' },
             pendingVerification: { type: 'number' },
             suspended: { type: 'number' },
-            deleted: { type: 'number' }
-          }
+            deleted: { type: 'number' },
+          },
         },
         products: {
           type: 'object',
@@ -130,12 +166,12 @@ export class StatisticsController {
             total: { type: 'number' },
             active: { type: 'number' },
             inactive: { type: 'number' },
-            deleted: { type: 'number' }
-          }
+            deleted: { type: 'number' },
+          },
         },
-        lastUpdated: { type: 'string', format: 'date-time' }
-      }
-    }
+        lastUpdated: { type: 'string', format: 'date-time' },
+      },
+    },
   })
   async getSystemStatistics(): Promise<SystemStatistics> {
     return this.statisticsService.getSystemStatistics();
@@ -144,9 +180,10 @@ export class StatisticsController {
   @Get('users/by-role')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.ANALYTICS_READ)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get user statistics by role',
-    description: 'Returns user count grouped by role (customer, admin, super_admin, etc.)'
+    description:
+      'Returns user count grouped by role (customer, admin, super_admin, etc.)',
   })
   @ApiResponse({
     status: 200,
@@ -154,14 +191,14 @@ export class StatisticsController {
     schema: {
       type: 'object',
       additionalProperties: {
-        type: 'number'
+        type: 'number',
       },
       example: {
         customer: 150,
         admin: 5,
-        super_admin: 2
-      }
-    }
+        super_admin: 2,
+      },
+    },
   })
   async getUserStatisticsByRole(): Promise<Record<string, number>> {
     return this.statisticsService.getUserStatisticsByRole();
@@ -170,9 +207,10 @@ export class StatisticsController {
   @Get('stores/by-status')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.STORE_READ, PermissionType.ANALYTICS_READ)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get store statistics by verification status',
-    description: 'Returns store count grouped by verification status (verified, pending, suspended)'
+    description:
+      'Returns store count grouped by verification status (verified, pending, suspended)',
   })
   @ApiResponse({
     status: 200,
@@ -182,9 +220,9 @@ export class StatisticsController {
       properties: {
         verified: { type: 'number' },
         pending: { type: 'number' },
-        suspended: { type: 'number' }
-      }
-    }
+        suspended: { type: 'number' },
+      },
+    },
   })
   async getStoreStatisticsByStatus(): Promise<Record<string, number>> {
     return this.statisticsService.getStoreStatisticsByVerificationStatus();
@@ -193,9 +231,9 @@ export class StatisticsController {
   @Get('products/by-category')
   @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.PRODUCT_READ, PermissionType.ANALYTICS_READ)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get product statistics by category',
-    description: 'Returns product count grouped by category'
+    description: 'Returns product count grouped by category',
   })
   @ApiResponse({
     status: 200,
@@ -203,14 +241,14 @@ export class StatisticsController {
     schema: {
       type: 'object',
       additionalProperties: {
-        type: 'number'
+        type: 'number',
       },
       example: {
         electronics: 50,
         clothing: 30,
-        food: 25
-      }
-    }
+        food: 25,
+      },
+    },
   })
   async getProductStatisticsByCategory(): Promise<Record<string, number>> {
     return this.statisticsService.getProductStatisticsByCategory();

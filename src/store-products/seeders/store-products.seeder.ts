@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { StoreProduct, StoreProductStatus, Availability, ScrapingStatus } from '../entities/store-product.entity';
+import {
+  StoreProduct,
+  StoreProductStatus,
+  Availability,
+  ScrapingStatus,
+} from '../entities/store-product.entity';
 import { Store } from '../../stores/entities/store.entity';
 import { Product } from '../../products/entities/product.entity';
 import { User } from '../../auth/entities/user.entity';
@@ -26,13 +31,19 @@ export class StoreProductsSeeder {
     const users = await this.userRepository.find();
 
     if (stores.length === 0 || products.length === 0 || users.length === 0) {
-      console.log('Skipping store products seeding: No stores, products, or users found');
+      console.log(
+        'Skipping store products seeding: No stores, products, or users found',
+      );
       return;
     }
 
-    const adminUser = users.find(user => 
-      user.roles.some(role => role.name === RoleType.SUPER_ADMIN || role.name === RoleType.ADMIN)
-    ) || users[0];
+    const adminUser =
+      users.find((user) =>
+        user.roles.some(
+          (role) =>
+            role.name === RoleType.SUPER_ADMIN || role.name === RoleType.ADMIN,
+        ),
+      ) || users[0];
 
     const sampleStoreProducts = [
       {
@@ -57,8 +68,8 @@ export class StoreProductsSeeder {
         metadata: {
           color: 'Titanium',
           storage: '128GB',
-          carrier: 'Unlocked'
-        }
+          carrier: 'Unlocked',
+        },
       },
       {
         name: 'Samsung Galaxy S24 - Premium',
@@ -82,8 +93,8 @@ export class StoreProductsSeeder {
         metadata: {
           color: 'Phantom Black',
           storage: '256GB',
-          carrier: 'Verizon'
-        }
+          carrier: 'Verizon',
+        },
       },
       {
         name: 'MacBook Air M2 - Student Edition',
@@ -107,8 +118,8 @@ export class StoreProductsSeeder {
         metadata: {
           color: 'Space Gray',
           storage: '256GB',
-          ram: '8GB'
-        }
+          ram: '8GB',
+        },
       },
       {
         name: 'AirPods Pro 2nd Gen',
@@ -132,8 +143,8 @@ export class StoreProductsSeeder {
         metadata: {
           color: 'White',
           connectivity: 'Bluetooth 5.0',
-          warranty: '1 year'
-        }
+          warranty: '1 year',
+        },
       },
       {
         name: 'iPad Air 5th Gen',
@@ -157,21 +168,21 @@ export class StoreProductsSeeder {
         metadata: {
           color: 'Space Gray',
           storage: '64GB',
-          cellular: false
-        }
-      }
+          cellular: false,
+        },
+      },
     ];
 
     for (const productData of sampleStoreProducts) {
       const store = stores[Math.floor(Math.random() * stores.length)];
       const product = products[Math.floor(Math.random() * products.length)];
-      
+
       const existingStoreProduct = await this.storeProductRepository.findOne({
         where: {
           storeId: store.id,
           productId: product.id,
-          sku: productData.sku
-        }
+          sku: productData.sku,
+        },
       });
 
       if (!existingStoreProduct) {
@@ -179,11 +190,13 @@ export class StoreProductsSeeder {
           ...productData,
           storeId: store.id,
           productId: product.id,
-          createdBy: adminUser.id
+          createdBy: adminUser.id,
         });
 
         await this.storeProductRepository.save(storeProduct);
-        console.log(`Created store product: ${storeProduct.name} for store: ${store.name}`);
+        console.log(
+          `Created store product: ${storeProduct.name} for store: ${store.name}`,
+        );
       }
     }
 

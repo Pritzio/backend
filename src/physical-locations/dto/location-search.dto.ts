@@ -1,12 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional, Min, Max, IsLatitude, IsLongitude } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  Min,
+  Max,
+  IsLatitude,
+  IsLongitude,
+} from 'class-validator';
 
 export class LocationSearchDto {
   @ApiProperty({
     description: 'Latitude coordinate for search center',
     example: 40.7128,
     minimum: -90,
-    maximum: 90
+    maximum: 90,
   })
   @IsNumber()
   @IsLatitude()
@@ -16,9 +23,9 @@ export class LocationSearchDto {
 
   @ApiProperty({
     description: 'Longitude coordinate for search center',
-    example: -74.0060,
+    example: -74.006,
     minimum: -180,
-    maximum: 180
+    maximum: 180,
   })
   @IsNumber()
   @IsLongitude()
@@ -31,7 +38,7 @@ export class LocationSearchDto {
     example: 10,
     minimum: 0.1,
     maximum: 1000,
-    default: 10
+    default: 10,
   })
   @IsOptional()
   @IsNumber()
@@ -44,7 +51,7 @@ export class LocationSearchDto {
     example: 20,
     minimum: 1,
     maximum: 100,
-    default: 20
+    default: 20,
   })
   @IsOptional()
   @IsNumber()
@@ -55,7 +62,7 @@ export class LocationSearchDto {
   @ApiProperty({
     description: 'Whether to include only open locations',
     example: true,
-    default: false
+    default: false,
   })
   @IsOptional()
   includeOpenOnly?: boolean;
@@ -63,7 +70,7 @@ export class LocationSearchDto {
   @ApiProperty({
     description: 'Whether to sort by distance',
     example: true,
-    default: true
+    default: true,
   })
   @IsOptional()
   sortByDistance?: boolean;

@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Role, RoleType } from '../entities/role.entity';
-import { Permission, PermissionType, PermissionCategory } from '../entities/permission.entity';
+import {
+  Permission,
+  PermissionType,
+  PermissionCategory,
+} from '../entities/permission.entity';
 
 @Injectable()
 export class AuthSeeder {
@@ -504,7 +508,7 @@ export class AuthSeeder {
         // Assign permissions to role
         if (roleData.permissions) {
           const permissions = await this.permissionRepository.find({
-            where: roleData.permissions.map(name => ({ name })),
+            where: roleData.permissions.map((name) => ({ name })),
           });
 
           savedRole.permissions = permissions;

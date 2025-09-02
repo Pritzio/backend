@@ -1,12 +1,23 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsUrl, IsNumber, IsBoolean, IsObject, MaxLength, MinLength, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsUrl,
+  IsNumber,
+  IsBoolean,
+  IsObject,
+  MaxLength,
+  MinLength,
+  Min,
+  Max,
+} from 'class-validator';
 
 export class CreateProductCategoryDto {
   @ApiProperty({
     description: 'Category name',
     example: 'Electronics',
     minLength: 2,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsString()
   @MinLength(2)
@@ -17,7 +28,7 @@ export class CreateProductCategoryDto {
     description: 'Unique category slug',
     example: 'electronics',
     minLength: 2,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsString()
   @MinLength(2)
@@ -28,7 +39,7 @@ export class CreateProductCategoryDto {
     description: 'Category description',
     example: 'Electronic devices and gadgets',
     required: false,
-    maxLength: 1000
+    maxLength: 1000,
   })
   @IsOptional()
   @IsString()
@@ -39,7 +50,7 @@ export class CreateProductCategoryDto {
     description: 'Category image URL',
     example: 'https://example.com/electronics.jpg',
     required: false,
-    maxLength: 500
+    maxLength: 500,
   })
   @IsOptional()
   @IsString()
@@ -51,7 +62,7 @@ export class CreateProductCategoryDto {
     description: 'Category icon',
     example: 'fas fa-mobile-alt',
     required: false,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -62,7 +73,7 @@ export class CreateProductCategoryDto {
     description: 'Category color (hex)',
     example: '#007AFF',
     required: false,
-    maxLength: 7
+    maxLength: 7,
   })
   @IsOptional()
   @IsString()
@@ -74,7 +85,7 @@ export class CreateProductCategoryDto {
     example: 1,
     required: false,
     minimum: 0,
-    maximum: 999
+    maximum: 999,
   })
   @IsOptional()
   @IsNumber()
@@ -85,7 +96,7 @@ export class CreateProductCategoryDto {
   @ApiProperty({
     description: 'Whether category is active',
     example: true,
-    default: true
+    default: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -94,7 +105,7 @@ export class CreateProductCategoryDto {
   @ApiProperty({
     description: 'Whether category is featured',
     example: false,
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -103,7 +114,7 @@ export class CreateProductCategoryDto {
   @ApiProperty({
     description: 'Whether category is system-managed',
     example: false,
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -112,7 +123,7 @@ export class CreateProductCategoryDto {
   @ApiProperty({
     description: 'Parent category ID',
     example: 'uuid-parent-category',
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsString()
@@ -120,8 +131,11 @@ export class CreateProductCategoryDto {
 
   @ApiProperty({
     description: 'Additional metadata',
-    example: { seoTitle: 'Best Electronics', seoDescription: 'Find the latest electronics' },
-    required: false
+    example: {
+      seoTitle: 'Best Electronics',
+      seoDescription: 'Find the latest electronics',
+    },
+    required: false,
   })
   @IsOptional()
   @IsObject()

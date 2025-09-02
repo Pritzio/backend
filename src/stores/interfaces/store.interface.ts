@@ -1,8 +1,25 @@
-import { Store, StoreType, StoreStatus, StoreCategory } from '../entities/store.entity';
+import {
+  Store,
+  StoreType,
+  StoreStatus,
+  StoreCategory,
+} from '../entities/store.entity';
 import { PhysicalLocation } from '../entities/physical-location.entity';
 import { StoreProduct } from '../entities/store-product.entity';
 
-export interface IStoreResponse extends Omit<Store, 'creator' | 'storeProducts' | 'physicalLocations' | 'isActive' | 'hasPhysicalLocations' | 'isOnlineOnly' | 'displayName' | 'storeTypeDisplay' | 'statusDisplay'> {
+export interface IStoreResponse
+  extends Omit<
+    Store,
+    | 'creator'
+    | 'storeProducts'
+    | 'physicalLocations'
+    | 'isActive'
+    | 'hasPhysicalLocations'
+    | 'isOnlineOnly'
+    | 'displayName'
+    | 'storeTypeDisplay'
+    | 'statusDisplay'
+  > {
   creator: {
     id: string;
     username: string;

@@ -1,11 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsEnum, IsOptional, IsBoolean, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsEnum,
+  IsOptional,
+  IsBoolean,
+  IsDateString,
+} from 'class-validator';
 import { Availability, ScrapingStatus } from '../entities/store-product.entity';
 
 export class ScrapingResultDto {
   @ApiProperty({
     description: 'Store product ID',
-    example: 'uuid-store-product-id'
+    example: 'uuid-store-product-id',
   })
   @IsString()
   storeProductId: string;
@@ -13,7 +20,7 @@ export class ScrapingResultDto {
   @ApiProperty({
     description: 'Scraping status',
     enum: ScrapingStatus,
-    example: ScrapingStatus.COMPLETED
+    example: ScrapingStatus.COMPLETED,
   })
   @IsEnum(ScrapingStatus)
   status: ScrapingStatus;
@@ -21,7 +28,7 @@ export class ScrapingResultDto {
   @ApiProperty({
     description: 'Online price found',
     example: 999.99,
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsNumber()
@@ -30,7 +37,7 @@ export class ScrapingResultDto {
   @ApiProperty({
     description: 'Physical store price found',
     example: 989.99,
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsNumber()
@@ -40,7 +47,7 @@ export class ScrapingResultDto {
     description: 'Product availability',
     enum: Availability,
     example: Availability.IN_STOCK,
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsEnum(Availability)
@@ -49,7 +56,7 @@ export class ScrapingResultDto {
   @ApiProperty({
     description: 'Stock quantity found',
     example: 50,
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsNumber()
@@ -58,7 +65,7 @@ export class ScrapingResultDto {
   @ApiProperty({
     description: 'Whether product is on sale',
     example: true,
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -67,7 +74,7 @@ export class ScrapingResultDto {
   @ApiProperty({
     description: 'Original price before discount',
     example: 1099.99,
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsNumber()
@@ -76,7 +83,7 @@ export class ScrapingResultDto {
   @ApiProperty({
     description: 'Discount percentage',
     example: 9.09,
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsNumber()
@@ -85,7 +92,7 @@ export class ScrapingResultDto {
   @ApiProperty({
     description: 'Sale end date',
     example: '2024-12-31',
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsDateString()
@@ -94,7 +101,7 @@ export class ScrapingResultDto {
   @ApiProperty({
     description: 'Error message if scraping failed',
     example: 'Element not found: .price-selector',
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsString()
@@ -103,7 +110,7 @@ export class ScrapingResultDto {
   @ApiProperty({
     description: 'Response time in milliseconds',
     example: 1250,
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsNumber()
@@ -111,8 +118,11 @@ export class ScrapingResultDto {
 
   @ApiProperty({
     description: 'Additional metadata from scraping',
-    example: { imageUrl: 'https://example.com/image.jpg', description: 'Updated description' },
-    required: false
+    example: {
+      imageUrl: 'https://example.com/image.jpg',
+      description: 'Updated description',
+    },
+    required: false,
   })
   @IsOptional()
   metadata?: Record<string, any>;

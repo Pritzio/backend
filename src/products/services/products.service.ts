@@ -1,9 +1,27 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Between, In, IsNull, Not } from 'typeorm';
-import { Product, ProductStatus, ProductType, ProductCondition } from '../entities/product.entity';
+import {
+  Product,
+  ProductStatus,
+  ProductType,
+  ProductCondition,
+} from '../entities/product.entity';
 import { CreateProductDto, UpdateProductDto } from '../dto';
-import { IProductResponse, IProductSummary, IProductFilter, IProductAnalytics, IProductSearchResult, IProductBulkOperation, IProductBulkOperationInput } from '../interfaces/product.interface';
+import {
+  IProductResponse,
+  IProductSummary,
+  IProductFilter,
+  IProductAnalytics,
+  IProductSearchResult,
+  IProductBulkOperation,
+  IProductBulkOperationInput,
+} from '../interfaces/product.interface';
 import { User } from '../../auth/entities/user.entity';
 import { RoleType } from '../../auth/entities/role.entity';
 
@@ -14,20 +32,25 @@ export class ProductsService {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  async createProduct(createProductDto: CreateProductDto, user: User): Promise<IProductResponse> {
+  async createProduct(
+    createProductDto: CreateProductDto,
+    user: User,
+  ): Promise<IProductResponse> {
     // Check if product code already exists
     const existingProduct = await this.productRepository.findOne({
-      where: { code: createProductDto.code }
+      where: { code: createProductDto.code },
     });
 
     if (existingProduct) {
-      throw new BadRequestException(`Product with code '${createProductDto.code}' already exists`);
+      throw new BadRequestException(
+        `Product with code '${createProductDto.code}' already exists`,
+      );
     }
 
     // Create new product
     const product = this.productRepository.create({
       ...createProductDto,
-      createdBy: user.id
+      createdBy: user.id,
     });
 
     const savedProduct = await this.productRepository.save(product);
@@ -38,7 +61,7 @@ export class ProductsService {
     user: User,
     filter: IProductFilter = {},
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
   ): Promise<IProductSearchResult> {
     const queryBuilder = this.productRepository
       .createQueryBuilder('product')
@@ -54,7 +77,9 @@ export class ProductsService {
 
     const [products, total] = await queryBuilder.getManyAndCount();
 
-    const productSummaries = products.map(product => this.mapToProductSummary(product));
+    const productSummaries = products.map((product) =>
+      this.mapToProductSummary(product),
+    );
     const totalPages = Math.ceil(total / limit);
 
     return {
@@ -64,14 +89,14 @@ export class ProductsService {
       limit,
       totalPages,
       hasNext: page < totalPages,
-      hasPrev: page > 1
+      hasPrev: page > 1,
     };
   }
 
   async getProductById(id: string, user: User): Promise<IProductResponse> {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['creator']
+      relations: ['creator'],
     });
 
     if (!product) {
@@ -84,7 +109,7 @@ export class ProductsService {
   async getProductByCode(code: string, user: User): Promise<IProductResponse> {
     const product = await this.productRepository.findOne({
       where: { code },
-      relations: ['creator']
+      relations: ['creator'],
     });
 
     if (!product) {
@@ -94,10 +119,14 @@ export class ProductsService {
     return this.mapToProductResponse(product);
   }
 
-  async updateProduct(id: string, updateProductDto: UpdateProductDto, user: User): Promise<IProductResponse> {
+  async updateProduct(
+    id: string,
+    updateProductDto: UpdateProductDto,
+    user: User,
+  ): Promise<IProductResponse> {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['creator']
+      relations: ['creator'],
     });
 
     if (!product) {
@@ -106,17 +135,21 @@ export class ProductsService {
 
     // Check if user can edit this product
     if (!this.canUserEditProduct(user, product)) {
-      throw new ForbiddenException('You do not have permission to edit this product');
+      throw new ForbiddenException(
+        'You do not have permission to edit this product',
+      );
     }
 
     // Check if code is being changed and if it's already taken
     if (updateProductDto.code && updateProductDto.code !== product.code) {
       const existingProduct = await this.productRepository.findOne({
-        where: { code: updateProductDto.code }
+        where: { code: updateProductDto.code },
       });
 
       if (existingProduct) {
-        throw new BadRequestException(`Product with code '${updateProductDto.code}' already exists`);
+        throw new BadRequestException(
+          `Product with code '${updateProductDto.code}' already exists`,
+        );
       }
     }
 
@@ -130,7 +163,7 @@ export class ProductsService {
   async deleteProduct(id: string, user: User): Promise<void> {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['creator']
+      relations: ['creator'],
     });
 
     if (!product) {
@@ -139,16 +172,22 @@ export class ProductsService {
 
     // Check if user can delete this product
     if (!this.canUserDeleteProduct(user, product)) {
-      throw new ForbiddenException('You do not have permission to delete this product');
+      throw new ForbiddenException(
+        'You do not have permission to delete this product',
+      );
     }
 
     await this.productRepository.remove(product);
   }
 
-  async changeProductStatus(id: string, status: ProductStatus, user: User): Promise<IProductResponse> {
+  async changeProductStatus(
+    id: string,
+    status: ProductStatus,
+    user: User,
+  ): Promise<IProductResponse> {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['creator']
+      relations: ['creator'],
     });
 
     if (!product) {
@@ -157,7 +196,9 @@ export class ProductsService {
 
     // Check if user can change status
     if (!this.canUserChangeProductStatus(user, product)) {
-      throw new ForbiddenException('You do not have permission to change this product status');
+      throw new ForbiddenException(
+        'You do not have permission to change this product status',
+      );
     }
 
     product.status = status;
@@ -169,7 +210,9 @@ export class ProductsService {
   async getProductAnalytics(user: User): Promise<IProductAnalytics> {
     // Check if user has permission to view analytics
     if (!this.canUserViewAnalytics(user)) {
-      throw new ForbiddenException('You do not have permission to view product analytics');
+      throw new ForbiddenException(
+        'You do not have permission to view product analytics',
+      );
     }
 
     const [
@@ -189,25 +232,37 @@ export class ProductsService {
       topBrands,
       recentProducts,
       productsCreatedThisMonth,
-      productsCreatedThisYear
+      productsCreatedThisYear,
     ] = await Promise.all([
       this.productRepository.count(),
       this.productRepository.count({ where: { status: ProductStatus.ACTIVE } }),
-      this.productRepository.count({ where: { status: ProductStatus.INACTIVE } }),
-      this.productRepository.count({ where: { status: ProductStatus.DISCONTINUED } }),
+      this.productRepository.count({
+        where: { status: ProductStatus.INACTIVE },
+      }),
+      this.productRepository.count({
+        where: { status: ProductStatus.DISCONTINUED },
+      }),
       this.getProductsByType(),
       this.getProductsByStatus(),
       this.getProductsByCategory(),
       this.getProductsByBrand(),
       this.getAverageWarranty(),
-      this.productRepository.count({ where: { warrantyMonths: Not(IsNull()) } }),
-      this.productRepository.count({ where: { length: Not(IsNull()), width: Not(IsNull()), height: Not(IsNull()) } }),
+      this.productRepository.count({
+        where: { warrantyMonths: Not(IsNull()) },
+      }),
+      this.productRepository.count({
+        where: {
+          length: Not(IsNull()),
+          width: Not(IsNull()),
+          height: Not(IsNull()),
+        },
+      }),
       this.productRepository.count({ where: { weight: Not(IsNull()) } }),
       this.getTopCategories(),
       this.getTopBrands(),
       this.getRecentProducts(),
       this.getProductsCreatedThisMonth(),
-      this.getProductsCreatedThisYear()
+      this.getProductsCreatedThisYear(),
     ]);
 
     return {
@@ -227,34 +282,51 @@ export class ProductsService {
       topBrands,
       recentProducts,
       productsCreatedThisMonth,
-      productsCreatedThisYear
+      productsCreatedThisYear,
     };
   }
 
-  async bulkUpdateProducts(operation: IProductBulkOperationInput, user: User): Promise<IProductBulkOperation> {
+  async bulkUpdateProducts(
+    operation: IProductBulkOperationInput,
+    user: User,
+  ): Promise<IProductBulkOperation> {
     // Check if user has permission for bulk operations
     if (!this.canUserPerformBulkOperations(user)) {
-      throw new ForbiddenException('You do not have permission to perform bulk operations');
+      throw new ForbiddenException(
+        'You do not have permission to perform bulk operations',
+      );
     }
 
     const result: IProductBulkOperation = {
       ...operation,
       successCount: 0,
       errorCount: 0,
-      errors: []
+      errors: [],
     };
 
     for (const productId of operation.productIds) {
       try {
         switch (operation.operation) {
           case 'activate':
-            await this.changeProductStatus(productId, ProductStatus.ACTIVE, user);
+            await this.changeProductStatus(
+              productId,
+              ProductStatus.ACTIVE,
+              user,
+            );
             break;
           case 'deactivate':
-            await this.changeProductStatus(productId, ProductStatus.INACTIVE, user);
+            await this.changeProductStatus(
+              productId,
+              ProductStatus.INACTIVE,
+              user,
+            );
             break;
           case 'discontinue':
-            await this.changeProductStatus(productId, ProductStatus.DISCONTINUED, user);
+            await this.changeProductStatus(
+              productId,
+              ProductStatus.DISCONTINUED,
+              user,
+            );
             break;
           case 'delete':
             await this.deleteProduct(productId, user);
@@ -270,7 +342,7 @@ export class ProductsService {
         result.errorCount++;
         result.errors.push({
           productId,
-          error: error.message
+          error: error.message,
         });
       }
     }
@@ -283,16 +355,20 @@ export class ProductsService {
     if (filter.search) {
       queryBuilder.andWhere(
         '(product.name ILIKE :search OR product.description ILIKE :search OR product.code ILIKE :search)',
-        { search: `%${filter.search}%` }
+        { search: `%${filter.search}%` },
       );
     }
 
     if (filter.category) {
-      queryBuilder.andWhere('product.category = :category', { category: filter.category });
+      queryBuilder.andWhere('product.category = :category', {
+        category: filter.category,
+      });
     }
 
     if (filter.subcategory) {
-      queryBuilder.andWhere('product.subcategory = :subcategory', { subcategory: filter.subcategory });
+      queryBuilder.andWhere('product.subcategory = :subcategory', {
+        subcategory: filter.subcategory,
+      });
     }
 
     if (filter.brand) {
@@ -304,51 +380,73 @@ export class ProductsService {
     }
 
     if (filter.status) {
-      queryBuilder.andWhere('product.status = :status', { status: filter.status });
+      queryBuilder.andWhere('product.status = :status', {
+        status: filter.status,
+      });
     }
 
     if (filter.condition) {
-      queryBuilder.andWhere('product.condition = :condition', { condition: filter.condition });
+      queryBuilder.andWhere('product.condition = :condition', {
+        condition: filter.condition,
+      });
     }
 
     if (filter.hasWarranty !== undefined) {
       if (filter.hasWarranty) {
-        queryBuilder.andWhere('product.warrantyMonths IS NOT NULL AND product.warrantyMonths > 0');
+        queryBuilder.andWhere(
+          'product.warrantyMonths IS NOT NULL AND product.warrantyMonths > 0',
+        );
       } else {
-        queryBuilder.andWhere('(product.warrantyMonths IS NULL OR product.warrantyMonths = 0)');
+        queryBuilder.andWhere(
+          '(product.warrantyMonths IS NULL OR product.warrantyMonths = 0)',
+        );
       }
     }
 
     if (filter.hasDimensions !== undefined) {
       if (filter.hasDimensions) {
-        queryBuilder.andWhere('product.length IS NOT NULL AND product.width IS NOT NULL AND product.height IS NOT NULL');
+        queryBuilder.andWhere(
+          'product.length IS NOT NULL AND product.width IS NOT NULL AND product.height IS NOT NULL',
+        );
       } else {
-        queryBuilder.andWhere('(product.length IS NULL OR product.width IS NULL OR product.height IS NULL)');
+        queryBuilder.andWhere(
+          '(product.length IS NULL OR product.width IS NULL OR product.height IS NULL)',
+        );
       }
     }
 
     if (filter.hasWeight !== undefined) {
       if (filter.hasWeight) {
-        queryBuilder.andWhere('product.weight IS NOT NULL AND product.weight > 0');
+        queryBuilder.andWhere(
+          'product.weight IS NOT NULL AND product.weight > 0',
+        );
       } else {
         queryBuilder.andWhere('(product.weight IS NULL OR product.weight = 0)');
       }
     }
 
     if (filter.minWeight !== undefined) {
-      queryBuilder.andWhere('product.weight >= :minWeight', { minWeight: filter.minWeight });
+      queryBuilder.andWhere('product.weight >= :minWeight', {
+        minWeight: filter.minWeight,
+      });
     }
 
     if (filter.maxWeight !== undefined) {
-      queryBuilder.andWhere('product.weight <= :maxWeight', { maxWeight: filter.maxWeight });
+      queryBuilder.andWhere('product.weight <= :maxWeight', {
+        maxWeight: filter.maxWeight,
+      });
     }
 
     if (filter.minWarranty !== undefined) {
-      queryBuilder.andWhere('product.warrantyMonths >= :minWarranty', { minWarranty: filter.minWarranty });
+      queryBuilder.andWhere('product.warrantyMonths >= :minWarranty', {
+        minWarranty: filter.minWarranty,
+      });
     }
 
     if (filter.maxWarranty !== undefined) {
-      queryBuilder.andWhere('product.warrantyMonths <= :maxWarranty', { maxWarranty: filter.maxWarranty });
+      queryBuilder.andWhere('product.warrantyMonths <= :maxWarranty', {
+        maxWarranty: filter.maxWarranty,
+      });
     }
 
     if (filter.tags && filter.tags.length > 0) {
@@ -356,54 +454,72 @@ export class ProductsService {
     }
 
     if (filter.features && filter.features.length > 0) {
-      queryBuilder.andWhere('product.features @> :features', { features: filter.features });
+      queryBuilder.andWhere('product.features @> :features', {
+        features: filter.features,
+      });
     }
 
     if (filter.createdBy) {
-      queryBuilder.andWhere('product.createdBy = :createdBy', { createdBy: filter.createdBy });
+      queryBuilder.andWhere('product.createdBy = :createdBy', {
+        createdBy: filter.createdBy,
+      });
     }
 
     if (filter.createdAfter) {
-      queryBuilder.andWhere('product.createdAt >= :createdAfter', { createdAfter: filter.createdAfter });
+      queryBuilder.andWhere('product.createdAt >= :createdAfter', {
+        createdAfter: filter.createdAfter,
+      });
     }
 
     if (filter.createdBefore) {
-      queryBuilder.andWhere('product.createdAt <= :createdBefore', { createdBefore: filter.createdBefore });
+      queryBuilder.andWhere('product.createdAt <= :createdBefore', {
+        createdBefore: filter.createdBefore,
+      });
     }
   }
 
   private canUserEditProduct(user: User, product: Product): boolean {
-    const userRoles = user.roles.map(role => role.name.toLowerCase());
-    return userRoles.includes(RoleType.SUPER_ADMIN) || 
-           userRoles.includes(RoleType.ADMIN) || 
-           userRoles.includes(RoleType.STORE_ADMIN) ||
-           product.createdBy === user.id;
+    const userRoles = user.roles.map((role) => role.name.toLowerCase());
+    return (
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.ADMIN) ||
+      userRoles.includes(RoleType.STORE_ADMIN) ||
+      product.createdBy === user.id
+    );
   }
 
   private canUserDeleteProduct(user: User, product: Product): boolean {
-    const userRoles = user.roles.map(role => role.name.toLowerCase());
-    return userRoles.includes(RoleType.SUPER_ADMIN) || 
-           userRoles.includes(RoleType.ADMIN);
+    const userRoles = user.roles.map((role) => role.name.toLowerCase());
+    return (
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.ADMIN)
+    );
   }
 
   private canUserChangeProductStatus(user: User, product: Product): boolean {
-    const userRoles = user.roles.map(role => role.name.toLowerCase());
-    return userRoles.includes(RoleType.SUPER_ADMIN) || 
-           userRoles.includes(RoleType.ADMIN) || 
-           userRoles.includes(RoleType.STORE_ADMIN);
+    const userRoles = user.roles.map((role) => role.name.toLowerCase());
+    return (
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.ADMIN) ||
+      userRoles.includes(RoleType.STORE_ADMIN)
+    );
   }
 
   private canUserViewAnalytics(user: User): boolean {
-    const userRoles = user.roles.map(role => role.name.toLowerCase());
-    return userRoles.includes(RoleType.SUPER_ADMIN) || 
-           userRoles.includes(RoleType.ADMIN) || 
-           userRoles.includes(RoleType.STORE_ADMIN);
+    const userRoles = user.roles.map((role) => role.name.toLowerCase());
+    return (
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.ADMIN) ||
+      userRoles.includes(RoleType.STORE_ADMIN)
+    );
   }
 
   private canUserPerformBulkOperations(user: User): boolean {
-    const userRoles = user.roles.map(role => role.name.toLowerCase());
-    return userRoles.includes(RoleType.SUPER_ADMIN) || 
-           userRoles.includes(RoleType.ADMIN);
+    const userRoles = user.roles.map((role) => role.name.toLowerCase());
+    return (
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.ADMIN)
+    );
   }
 
   private mapToProductResponse(product: Product): IProductResponse {
@@ -411,7 +527,7 @@ export class ProductsService {
       ...product,
       creatorId: product.creator.id,
       creatorName: product.creator.firstName + ' ' + product.creator.lastName,
-      creatorEmail: product.creator.email
+      creatorEmail: product.creator.email,
     };
   }
 
@@ -425,7 +541,7 @@ export class ProductsService {
       type: product.type,
       status: product.status,
       image: product.image,
-      createdAt: product.createdAt
+      createdAt: product.createdAt,
     };
   }
 
@@ -442,10 +558,10 @@ export class ProductsService {
       [ProductType.PHYSICAL]: 0,
       [ProductType.DIGITAL]: 0,
       [ProductType.SERVICE]: 0,
-      [ProductType.SUBSCRIPTION]: 0
+      [ProductType.SUBSCRIPTION]: 0,
     };
 
-    result.forEach(item => {
+    result.forEach((item) => {
       productsByType[item.type] = parseInt(item.count);
     });
 
@@ -465,10 +581,10 @@ export class ProductsService {
       [ProductStatus.INACTIVE]: 0,
       [ProductStatus.DISCONTINUED]: 0,
       [ProductStatus.OUT_OF_STOCK]: 0,
-      [ProductStatus.COMING_SOON]: 0
+      [ProductStatus.COMING_SOON]: 0,
     };
 
-    result.forEach(item => {
+    result.forEach((item) => {
       productsByStatus[item.status] = parseInt(item.count);
     });
 
@@ -484,7 +600,7 @@ export class ProductsService {
       .getRawMany();
 
     const productsByCategory: Record<string, number> = {};
-    result.forEach(item => {
+    result.forEach((item) => {
       productsByCategory[item.category] = parseInt(item.count);
     });
 
@@ -501,7 +617,7 @@ export class ProductsService {
       .getRawMany();
 
     const productsByBrand: Record<string, number> = {};
-    result.forEach(item => {
+    result.forEach((item) => {
       productsByBrand[item.brand] = parseInt(item.count);
     });
 
@@ -512,13 +628,17 @@ export class ProductsService {
     const result = await this.productRepository
       .createQueryBuilder('product')
       .select('AVG(product.warrantyMonths)', 'average')
-      .where('product.warrantyMonths IS NOT NULL AND product.warrantyMonths > 0')
+      .where(
+        'product.warrantyMonths IS NOT NULL AND product.warrantyMonths > 0',
+      )
       .getRawOne();
 
     return result?.average ? parseFloat(result.average) : 0;
   }
 
-  private async getTopCategories(): Promise<Array<{ category: string; count: number }>> {
+  private async getTopCategories(): Promise<
+    Array<{ category: string; count: number }>
+  > {
     return await this.productRepository
       .createQueryBuilder('product')
       .select('product.category', 'category')
@@ -529,7 +649,9 @@ export class ProductsService {
       .getRawMany();
   }
 
-  private async getTopBrands(): Promise<Array<{ brand: string; count: number }>> {
+  private async getTopBrands(): Promise<
+    Array<{ brand: string; count: number }>
+  > {
     return await this.productRepository
       .createQueryBuilder('product')
       .select('product.brand', 'brand')
@@ -549,7 +671,7 @@ export class ProductsService {
       .limit(10)
       .getMany();
 
-    return products.map(product => this.mapToProductSummary(product));
+    return products.map((product) => this.mapToProductSummary(product));
   }
 
   private async getProductsCreatedThisMonth(): Promise<number> {
@@ -558,7 +680,7 @@ export class ProductsService {
     startOfMonth.setHours(0, 0, 0, 0);
 
     return await this.productRepository.count({
-      where: { createdAt: Between(startOfMonth, new Date()) }
+      where: { createdAt: Between(startOfMonth, new Date()) },
     });
   }
 
@@ -568,7 +690,7 @@ export class ProductsService {
     startOfYear.setHours(0, 0, 0, 0);
 
     return await this.productRepository.count({
-      where: { createdAt: Between(startOfYear, new Date()) }
+      where: { createdAt: Between(startOfYear, new Date()) },
     });
   }
 }

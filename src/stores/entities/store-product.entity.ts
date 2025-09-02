@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { Store } from './store.entity';
 import { PhysicalLocation } from './physical-location.entity';
 
@@ -7,14 +17,14 @@ export enum Availability {
   OUT_OF_STOCK = 'out_of_stock',
   LIMITED = 'limited',
   PRE_ORDER = 'pre_order',
-  DISCONTINUED = 'discontinued'
+  DISCONTINUED = 'discontinued',
 }
 
 export enum StoreProductStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   ERROR = 'error',
-  PENDING_VERIFICATION = 'pending_verification'
+  PENDING_VERIFICATION = 'pending_verification',
 }
 
 @Entity('store_products')
@@ -51,14 +61,14 @@ export class StoreProduct {
   @Column({
     type: 'enum',
     enum: Availability,
-    default: Availability.IN_STOCK
+    default: Availability.IN_STOCK,
   })
   availability: Availability;
 
   @Column({
     type: 'enum',
     enum: StoreProductStatus,
-    default: StoreProductStatus.PENDING_VERIFICATION
+    default: StoreProductStatus.PENDING_VERIFICATION,
   })
   status: StoreProductStatus;
 
@@ -81,11 +91,13 @@ export class StoreProduct {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => Store, store => store.storeProducts, { nullable: false })
+  @ManyToOne(() => Store, (store) => store.storeProducts, { nullable: false })
   @JoinColumn({ name: 'storeId' })
   store: Store;
 
-  @OneToMany(() => PhysicalLocation, location => location.storeProduct, { cascade: true })
+  @OneToMany(() => PhysicalLocation, (location) => location.storeProduct, {
+    cascade: true,
+  })
   physicalLocations: PhysicalLocation[];
 
   // Virtual properties
@@ -105,7 +117,10 @@ export class StoreProduct {
   }
 
   get isInStock(): boolean {
-    return this.availability === Availability.IN_STOCK || this.availability === Availability.LIMITED;
+    return (
+      this.availability === Availability.IN_STOCK ||
+      this.availability === Availability.LIMITED
+    );
   }
 
   get displayOnlinePrice(): string {
@@ -121,7 +136,8 @@ export class StoreProduct {
 
   get needsScraping(): boolean {
     if (!this.lastScraped) return true;
-    const hoursSinceLastScrape = (Date.now() - this.lastScraped.getTime()) / (1000 * 60 * 60);
+    const hoursSinceLastScrape =
+      (Date.now() - this.lastScraped.getTime()) / (1000 * 60 * 60);
     return hoursSinceLastScrape > 24; // Scrape every 24 hours
   }
 }

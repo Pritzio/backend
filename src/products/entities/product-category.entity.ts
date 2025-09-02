@@ -1,8 +1,21 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn, Index, Tree, TreeChildren, TreeParent } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+  Index,
+  Tree,
+  TreeChildren,
+  TreeParent,
+} from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 
 @Entity('product_categories')
-@Tree("closure-table")
+@Tree('closure-table')
 @Index(['name'])
 @Index(['slug'])
 @Index(['isActive'])

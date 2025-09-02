@@ -1,6 +1,27 @@
-import { Product, ProductStatus, ProductType, ProductCondition } from '../entities/product.entity';
+import {
+  Product,
+  ProductStatus,
+  ProductType,
+  ProductCondition,
+} from '../entities/product.entity';
 
-export interface IProductResponse extends Omit<Product, 'creator' | 'isActive' | 'isAvailable' | 'isDiscontinued' | 'displayName' | 'fullCode' | 'hasWarranty' | 'hasDimensions' | 'hasWeight' | 'isPhysical' | 'isDigital' | 'isService' | 'isSubscription'> {
+export interface IProductResponse
+  extends Omit<
+    Product,
+    | 'creator'
+    | 'isActive'
+    | 'isAvailable'
+    | 'isDiscontinued'
+    | 'displayName'
+    | 'fullCode'
+    | 'hasWarranty'
+    | 'hasDimensions'
+    | 'hasWeight'
+    | 'isPhysical'
+    | 'isDigital'
+    | 'isService'
+    | 'isSubscription'
+  > {
   creatorId: string;
   creatorName: string;
   creatorEmail: string;

@@ -16,11 +16,13 @@ export class ApiKeyGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
-    
+
     const apiKey = request.get('X-API-Key');
-    
+
     if (!apiKey) {
-      this.logger.warn(`API key missing from request: ${request.ip} - ${request.url}`);
+      this.logger.warn(
+        `API key missing from request: ${request.ip} - ${request.url}`,
+      );
       throw new UnauthorizedException('API key is required');
     }
 
@@ -30,20 +32,20 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     this.logger.log(`API key validated for: ${request.ip} - ${request.url}`);
-    
+
     return true;
   }
 
   private isValidApiKey(apiKey: string): boolean {
     const validApiKeys = this.configService.get<string>('VALID_API_KEYS', '');
-    
+
     if (!validApiKeys) {
       this.logger.warn('No API keys configured in environment');
       return false;
     }
 
-    const allowedKeys = validApiKeys.split(',').map(key => key.trim());
-    
+    const allowedKeys = validApiKeys.split(',').map((key) => key.trim());
+
     return allowedKeys.includes(apiKey);
   }
 }

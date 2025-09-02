@@ -51,31 +51,25 @@ export class StatisticsService {
    * Obtiene estadísticas completas de usuarios
    */
   async getUserStatistics(): Promise<UserStatistics> {
-    const [
-      total,
-      active,
-      inactive,
-      pendingVerification,
-      suspended,
-      deleted,
-    ] = await Promise.all([
-      this.userRepository.count(),
-      this.userRepository.count({
-        where: { status: UserStatus.ACTIVE, isDeleted: false },
-      }),
-      this.userRepository.count({
-        where: { status: UserStatus.INACTIVE, isDeleted: false },
-      }),
-      this.userRepository.count({
-        where: { status: UserStatus.PENDING_VERIFICATION, isDeleted: false },
-      }),
-      this.userRepository.count({
-        where: { status: UserStatus.SUSPENDED, isDeleted: false },
-      }),
-      this.userRepository.count({
-        where: { isDeleted: true },
-      }),
-    ]);
+    const [total, active, inactive, pendingVerification, suspended, deleted] =
+      await Promise.all([
+        this.userRepository.count(),
+        this.userRepository.count({
+          where: { status: UserStatus.ACTIVE, isDeleted: false },
+        }),
+        this.userRepository.count({
+          where: { status: UserStatus.INACTIVE, isDeleted: false },
+        }),
+        this.userRepository.count({
+          where: { status: UserStatus.PENDING_VERIFICATION, isDeleted: false },
+        }),
+        this.userRepository.count({
+          where: { status: UserStatus.SUSPENDED, isDeleted: false },
+        }),
+        this.userRepository.count({
+          where: { isDeleted: true },
+        }),
+      ]);
 
     return {
       total,
@@ -91,23 +85,20 @@ export class StatisticsService {
    * Obtiene estadísticas completas de tiendas
    */
   async getStoreStatistics(): Promise<StoreStatistics> {
-    const [
-      total,
-      verified,
-      pendingVerification,
-      suspended,
-    ] = await Promise.all([
-      this.storeRepository.count(),
-      this.storeRepository.count({
-        where: { isVerified: true },
-      }),
-      this.storeRepository.count({
-        where: { isVerified: false },
-      }),
-      this.storeRepository.count({
-        where: { status: StoreStatus.SUSPENDED },
-      }),
-    ]);
+    const [total, verified, pendingVerification, suspended] = await Promise.all(
+      [
+        this.storeRepository.count(),
+        this.storeRepository.count({
+          where: { isVerified: true },
+        }),
+        this.storeRepository.count({
+          where: { isVerified: false },
+        }),
+        this.storeRepository.count({
+          where: { status: StoreStatus.SUSPENDED },
+        }),
+      ],
+    );
 
     return {
       total,
@@ -122,11 +113,7 @@ export class StatisticsService {
    * Obtiene estadísticas completas de productos
    */
   async getProductStatistics(): Promise<ProductStatistics> {
-    const [
-      total,
-      active,
-      inactive,
-    ] = await Promise.all([
+    const [total, active, inactive] = await Promise.all([
       this.productRepository.count(),
       this.productRepository.count({
         where: { status: ProductStatus.ACTIVE },
@@ -186,7 +173,9 @@ export class StatisticsService {
   /**
    * Obtiene estadísticas de tiendas por estado de verificación
    */
-  async getStoreStatisticsByVerificationStatus(): Promise<Record<string, number>> {
+  async getStoreStatisticsByVerificationStatus(): Promise<
+    Record<string, number>
+  > {
     const result = await this.storeRepository
       .createQueryBuilder('store')
       .select('store.isVerified', 'isVerified')

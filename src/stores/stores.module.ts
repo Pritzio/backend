@@ -8,13 +8,7 @@ import { StoreProduct } from './entities/store-product.entity';
 import { StoresSeeder } from './seeders/stores.seeder';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      Store,
-      PhysicalLocation,
-      StoreProduct,
-    ]),
-  ],
+  imports: [TypeOrmModule.forFeature([Store, PhysicalLocation, StoreProduct])],
   controllers: [StoresController],
   providers: [StoresService, StoresSeeder],
   exports: [StoresService, StoresSeeder],

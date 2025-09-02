@@ -110,10 +110,6 @@ export class AuthResponseDto {
   user: UserResponseDto;
 }
 
-
-
-
-
 export class TokenResponseDto {
   @ApiProperty({ description: 'JWT access token' })
   accessToken: string;

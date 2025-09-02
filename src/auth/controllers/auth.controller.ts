@@ -47,13 +47,13 @@ import {
 } from '../dto/auth-response.dto';
 import { RoleType } from '../entities/role.entity';
 import { PermissionType } from '../entities/permission.entity';
-import { 
-  BasicSecurity, 
-  StrictSecurity, 
-  ApiKeyProtected, 
+import {
+  BasicSecurity,
+  StrictSecurity,
+  ApiKeyProtected,
   AdminOnly,
   ValidatePayload,
-  SecurityLogging 
+  SecurityLogging,
 } from '../../common/security/decorators/security.decorators';
 
 @ApiTags('Authentication')
@@ -72,13 +72,11 @@ export class AuthController {
       const hash = await bcrypt.hash(password, saltRounds);
       return { message: 'Auth module is working with hash!', hash };
     } catch (error) {
-      return { message: `Auth module is working but hash failed: ${error.message}` };
+      return {
+        message: `Auth module is working but hash failed: ${error.message}`,
+      };
     }
   }
-
-
-
-
 
   @Post('register')
   @BasicSecurity()
@@ -125,7 +123,9 @@ export class AuthController {
     status: 401,
     description: 'Invalid refresh token',
   })
-  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto): Promise<AuthResponseDto> {
+  async refreshToken(
+    @Body() refreshTokenDto: RefreshTokenDto,
+  ): Promise<AuthResponseDto> {
     return this.authService.refreshToken(refreshTokenDto);
   }
 
@@ -151,7 +151,9 @@ export class AuthController {
     description: 'Password reset email sent (if user exists)',
     type: MessageResponseDto,
   })
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto): Promise<MessageResponseDto> {
+  async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<MessageResponseDto> {
     return this.authService.forgotPassword(forgotPasswordDto);
   }
 
@@ -167,7 +169,9 @@ export class AuthController {
     status: 400,
     description: 'Invalid or expired reset token',
   })
-  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto): Promise<MessageResponseDto> {
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<MessageResponseDto> {
     return this.authService.resetPassword(resetPasswordDto);
   }
 
@@ -204,7 +208,9 @@ export class AuthController {
     status: 400,
     description: 'Invalid verification token',
   })
-  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<MessageResponseDto> {
+  async verifyEmail(
+    @Body() verifyEmailDto: VerifyEmailDto,
+  ): Promise<MessageResponseDto> {
     // TODO: Implement email verification
     return { message: 'Email verification endpoint - implementation pending' };
   }
@@ -221,7 +227,9 @@ export class AuthController {
     status: 400,
     description: 'Invalid verification code',
   })
-  async verifyPhone(@Body() verifyPhoneDto: VerifyPhoneDto): Promise<MessageResponseDto> {
+  async verifyPhone(
+    @Body() verifyPhoneDto: VerifyPhoneDto,
+  ): Promise<MessageResponseDto> {
     // TODO: Implement phone verification
     return { message: 'Phone verification endpoint - implementation pending' };
   }
@@ -273,7 +281,9 @@ export class AuthController {
     status: 403,
     description: 'Insufficient permissions',
   })
-  async assignRole(@Body() assignRoleDto: AssignRoleDto): Promise<MessageResponseDto> {
+  async assignRole(
+    @Body() assignRoleDto: AssignRoleDto,
+  ): Promise<MessageResponseDto> {
     return this.authService.assignRole(assignRoleDto);
   }
 
@@ -293,7 +303,9 @@ export class AuthController {
     status: 403,
     description: 'Insufficient permissions',
   })
-  async removeRole(@Body() removeRoleDto: RemoveRoleDto): Promise<MessageResponseDto> {
+  async removeRole(
+    @Body() removeRoleDto: RemoveRoleDto,
+  ): Promise<MessageResponseDto> {
     return this.authService.removeRole(removeRoleDto);
   }
 
@@ -313,7 +325,9 @@ export class AuthController {
     status: 403,
     description: 'Insufficient permissions',
   })
-  async updateUserStatus(@Body() updateUserStatusDto: UpdateUserStatusDto): Promise<MessageResponseDto> {
+  async updateUserStatus(
+    @Body() updateUserStatusDto: UpdateUserStatusDto,
+  ): Promise<MessageResponseDto> {
     return this.authService.updateUserStatus(updateUserStatusDto);
   }
 }

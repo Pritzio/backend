@@ -1,9 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserProfile, Gender, ProfileVisibility } from '../entities/user-profile.entity';
-import { UserPreferences, Language, Currency, TimeZone } from '../entities/user-preferences.entity';
-import { UserActivity, ActivityType, ActivityLevel } from '../entities/user-activity.entity';
+import {
+  UserProfile,
+  Gender,
+  ProfileVisibility,
+} from '../entities/user-profile.entity';
+import {
+  UserPreferences,
+  Language,
+  Currency,
+  TimeZone,
+} from '../entities/user-preferences.entity';
+import {
+  UserActivity,
+  ActivityType,
+  ActivityLevel,
+} from '../entities/user-activity.entity';
 
 @Injectable()
 export class UsersSeeder {
@@ -28,7 +41,10 @@ export class UsersSeeder {
     }
   }
 
-  async createDefaultProfile(userId: string, profileData: Partial<UserProfile> = {}): Promise<UserProfile> {
+  async createDefaultProfile(
+    userId: string,
+    profileData: Partial<UserProfile> = {},
+  ): Promise<UserProfile> {
     const defaultProfile = this.userProfileRepository.create({
       userId,
       firstName: profileData.firstName || 'Default',
@@ -42,7 +58,10 @@ export class UsersSeeder {
     return this.userProfileRepository.save(defaultProfile);
   }
 
-  async createDefaultPreferences(userId: string, preferencesData: Partial<UserPreferences> = {}): Promise<UserPreferences> {
+  async createDefaultPreferences(
+    userId: string,
+    preferencesData: Partial<UserPreferences> = {},
+  ): Promise<UserPreferences> {
     const defaultPreferences = this.userPreferencesRepository.create({
       userId,
       language: Language.ENGLISH,
@@ -68,7 +87,11 @@ export class UsersSeeder {
     return this.userPreferencesRepository.save(defaultPreferences);
   }
 
-  async logInitialActivity(userId: string, activityType: ActivityType, description: string): Promise<void> {
+  async logInitialActivity(
+    userId: string,
+    activityType: ActivityType,
+    description: string,
+  ): Promise<void> {
     const activity = this.userActivityRepository.create({
       userId,
       activityType,

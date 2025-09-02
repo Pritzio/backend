@@ -1,11 +1,30 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEnum, IsOptional, IsUrl, IsNumber, IsArray, IsBoolean, IsObject, MaxLength, MinLength, Min, Max, IsUUID, IsLatitude, IsLongitude } from 'class-validator';
-import { LocationStatus, LocationType } from '../entities/physical-location.entity';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsUrl,
+  IsNumber,
+  IsArray,
+  IsBoolean,
+  IsObject,
+  MaxLength,
+  MinLength,
+  Min,
+  Max,
+  IsUUID,
+  IsLatitude,
+  IsLongitude,
+} from 'class-validator';
+import {
+  LocationStatus,
+  LocationType,
+} from '../entities/physical-location.entity';
 
 export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'Store ID',
-    example: 'uuid-store-id'
+    example: 'uuid-store-id',
   })
   @IsUUID()
   storeId: string;
@@ -14,7 +33,7 @@ export class CreatePhysicalLocationDto {
     description: 'Location name',
     example: 'Downtown Store',
     minLength: 2,
-    maxLength: 200
+    maxLength: 200,
   })
   @IsString()
   @MinLength(2)
@@ -25,7 +44,7 @@ export class CreatePhysicalLocationDto {
     description: 'Location description',
     example: 'Main store location in downtown area',
     required: false,
-    maxLength: 1000
+    maxLength: 1000,
   })
   @IsOptional()
   @IsString()
@@ -36,7 +55,7 @@ export class CreatePhysicalLocationDto {
     description: 'Location type',
     enum: LocationType,
     example: LocationType.STORE,
-    default: LocationType.STORE
+    default: LocationType.STORE,
   })
   @IsEnum(LocationType)
   type: LocationType;
@@ -45,7 +64,7 @@ export class CreatePhysicalLocationDto {
     description: 'Location status',
     enum: LocationStatus,
     example: LocationStatus.ACTIVE,
-    default: LocationStatus.ACTIVE
+    default: LocationStatus.ACTIVE,
   })
   @IsEnum(LocationStatus)
   status: LocationStatus;
@@ -53,7 +72,7 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'Street address',
     example: '123 Main Street',
-    maxLength: 200
+    maxLength: 200,
   })
   @IsString()
   @MaxLength(200)
@@ -63,7 +82,7 @@ export class CreatePhysicalLocationDto {
     description: 'Additional address line',
     example: 'Suite 100',
     required: false,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -73,7 +92,7 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'City',
     example: 'New York',
-    maxLength: 100
+    maxLength: 100,
   })
   @IsString()
   @MaxLength(100)
@@ -82,7 +101,7 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'State/Province',
     example: 'NY',
-    maxLength: 100
+    maxLength: 100,
   })
   @IsString()
   @MaxLength(100)
@@ -91,7 +110,7 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'Country',
     example: 'United States',
-    maxLength: 100
+    maxLength: 100,
   })
   @IsString()
   @MaxLength(100)
@@ -100,7 +119,7 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'Postal/ZIP code',
     example: '10001',
-    maxLength: 20
+    maxLength: 20,
   })
   @IsString()
   @MaxLength(20)
@@ -110,7 +129,7 @@ export class CreatePhysicalLocationDto {
     description: 'Latitude coordinate',
     example: 40.7128,
     minimum: -90,
-    maximum: 90
+    maximum: 90,
   })
   @IsNumber()
   @IsLatitude()
@@ -120,9 +139,9 @@ export class CreatePhysicalLocationDto {
 
   @ApiProperty({
     description: 'Longitude coordinate',
-    example: -74.0060,
+    example: -74.006,
     minimum: -180,
-    maximum: 180
+    maximum: 180,
   })
   @IsNumber()
   @IsLongitude()
@@ -134,7 +153,7 @@ export class CreatePhysicalLocationDto {
     description: 'Phone number',
     example: '+1-555-123-4567',
     required: false,
-    maxLength: 20
+    maxLength: 20,
   })
   @IsOptional()
   @IsString()
@@ -145,7 +164,7 @@ export class CreatePhysicalLocationDto {
     description: 'Email address',
     example: 'downtown@store.com',
     required: false,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -156,7 +175,7 @@ export class CreatePhysicalLocationDto {
     description: 'Website URL',
     example: 'https://store.com/downtown',
     required: false,
-    maxLength: 500
+    maxLength: 500,
   })
   @IsOptional()
   @IsString()
@@ -167,21 +186,24 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'Business hours configuration',
     example: { monday: { open: '09:00', close: '18:00', isOpen: true } },
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsObject()
-  businessHours?: Record<string, {
-    open: string;
-    close: string;
-    isOpen: boolean;
-    specialHours?: string;
-  }>;
+  businessHours?: Record<
+    string,
+    {
+      open: string;
+      close: string;
+      isOpen: boolean;
+      specialHours?: string;
+    }
+  >;
 
   @ApiProperty({
     description: 'Whether location is open 24 hours',
     example: false,
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -190,7 +212,7 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'Whether location has parking',
     example: true,
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -199,7 +221,7 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'Whether location has wheelchair access',
     example: true,
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -208,7 +230,7 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'Whether location has public transport access',
     example: true,
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -217,7 +239,7 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'Available amenities',
     example: ['WiFi', 'Restroom', 'ATM'],
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsArray()
@@ -227,7 +249,7 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'Available services',
     example: ['Pickup', 'Delivery', 'Returns'],
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsArray()
@@ -238,7 +260,7 @@ export class CreatePhysicalLocationDto {
     description: 'Physical location price (overrides store price)',
     example: 999.99,
     required: false,
-    minimum: 0
+    minimum: 0,
   })
   @IsOptional()
   @IsNumber()
@@ -249,7 +271,7 @@ export class CreatePhysicalLocationDto {
     description: 'Currency code',
     example: 'USD',
     required: false,
-    maxLength: 10
+    maxLength: 10,
   })
   @IsOptional()
   @IsString()
@@ -258,24 +280,34 @@ export class CreatePhysicalLocationDto {
 
   @ApiProperty({
     description: 'Price adjustments for this location',
-    example: { 'rush_hour': { reason: 'Rush hour surcharge', adjustment: 5, percentage: true, validFrom: '2024-01-01' } },
-    required: false
+    example: {
+      rush_hour: {
+        reason: 'Rush hour surcharge',
+        adjustment: 5,
+        percentage: true,
+        validFrom: '2024-01-01',
+      },
+    },
+    required: false,
   })
   @IsOptional()
   @IsObject()
-  priceAdjustments?: Record<string, {
-    reason: string;
-    adjustment: number;
-    percentage: boolean;
-    validFrom: Date;
-    validTo?: Date;
-  }>;
+  priceAdjustments?: Record<
+    string,
+    {
+      reason: string;
+      adjustment: number;
+      percentage: boolean;
+      validFrom: Date;
+      validTo?: Date;
+    }
+  >;
 
   @ApiProperty({
     description: 'Maximum capacity',
     example: 100,
     required: false,
-    minimum: 1
+    minimum: 1,
   })
   @IsOptional()
   @IsNumber()
@@ -286,7 +318,7 @@ export class CreatePhysicalLocationDto {
     description: 'Current capacity',
     example: 50,
     required: false,
-    minimum: 0
+    minimum: 0,
   })
   @IsOptional()
   @IsNumber()
@@ -296,7 +328,7 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'Operating hours for each day',
     example: { monday: { open: '09:00', close: '18:00', isOpen: true } },
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsObject()
@@ -312,8 +344,16 @@ export class CreatePhysicalLocationDto {
 
   @ApiProperty({
     description: 'Special operating hours',
-    example: [{ date: '2024-12-25', open: '10:00', close: '16:00', isOpen: true, reason: 'Christmas Day' }],
-    required: false
+    example: [
+      {
+        date: '2024-12-25',
+        open: '10:00',
+        close: '16:00',
+        isOpen: true,
+        reason: 'Christmas Day',
+      },
+    ],
+    required: false,
   })
   @IsOptional()
   @IsArray()
@@ -328,7 +368,7 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'Holiday schedules',
     example: [{ date: '2024-12-25', name: 'Christmas Day', isOpen: false }],
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsArray()
@@ -343,7 +383,7 @@ export class CreatePhysicalLocationDto {
   @ApiProperty({
     description: 'Additional metadata',
     example: { timezone: 'America/New_York', taxRate: 0.0875 },
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsObject()

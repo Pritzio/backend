@@ -53,7 +53,9 @@ export class SecurityMiddleware implements NestMiddleware {
       origin: (origin, callback) => {
         // Obtener orígenes permitidos desde variable de entorno
         const corsOrigin = this.configService.get<string>('CORS_ORIGIN');
-        const allowedOrigins = corsOrigin ? corsOrigin.split(',').map(o => o.trim()) : [];
+        const allowedOrigins = corsOrigin
+          ? corsOrigin.split(',').map((o) => o.trim())
+          : [];
 
         // Allow requests with no origin (like mobile apps or Postman)
         if (!origin) {
@@ -64,7 +66,9 @@ export class SecurityMiddleware implements NestMiddleware {
         if (allowedOrigins.includes(origin)) {
           callback(null, true);
         } else {
-          this.logger.warn(`Blocked request from unauthorized origin: ${origin}`);
+          this.logger.warn(
+            `Blocked request from unauthorized origin: ${origin}`,
+          );
           callback(new Error('Not allowed by CORS'));
         }
       },
@@ -108,7 +112,9 @@ export class SecurityMiddleware implements NestMiddleware {
   private logSecurityEvent(req: Request): void {
     // Sanitize and limit sensitive information in logs
     const securityInfo = {
-      ip: this.sanitizeIP(req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress),
+      ip: this.sanitizeIP(
+        req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress,
+      ),
       userAgent: this.sanitizeUserAgent(req.get('User-Agent')),
       method: req.method,
       url: this.sanitizeURL(req.url),
@@ -150,7 +156,9 @@ export class SecurityMiddleware implements NestMiddleware {
     if (!url) return 'unknown';
     // Remove query parameters that might contain sensitive data
     const cleanUrl = url.split('?')[0];
-    return cleanUrl.length > 100 ? cleanUrl.substring(0, 100) + '...' : cleanUrl;
+    return cleanUrl.length > 100
+      ? cleanUrl.substring(0, 100) + '...'
+      : cleanUrl;
   }
 
   private sanitizeOrigin(origin: string | undefined): string {
@@ -177,24 +185,31 @@ export class SecurityMiddleware implements NestMiddleware {
 
   private addSecurityHeaders(res: Response): void {
     // Content Security Policy
-    res.setHeader('Content-Security-Policy', 
+    res.setHeader(
+      'Content-Security-Policy',
       "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-      "style-src 'self' 'unsafe-inline'; " +
-      "img-src 'self' data: https:; " +
-      "font-src 'self' data:; " +
-      "connect-src 'self'; " +
-      "frame-ancestors 'none';"
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "img-src 'self' data: https:; " +
+        "font-src 'self' data:; " +
+        "connect-src 'self'; " +
+        "frame-ancestors 'none';",
     );
-    
+
     // Security headers
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=()');
+    res.setHeader(
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains; preload',
+    );
+    res.setHeader(
+      'Permissions-Policy',
+      'geolocation=(), microphone=(), camera=(), payment=(), usb=()',
+    );
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    
+
     // Custom headers
     res.setHeader('X-API-Version', '1.0.0');
     res.setHeader('X-DNS-Prefetch-Control', 'off');
@@ -202,14 +217,23 @@ export class SecurityMiddleware implements NestMiddleware {
     res.setHeader('X-Powered-By', 'Pritzio Backend');
   }
 
-  private validateRequest(req: Request, res: Response, next: NextFunction): void {
+  private validateRequest(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): void {
     // Validate payload size
     const contentLength = parseInt(req.get('Content-Length') || '0');
-    const maxPayloadSize = this.configService.get<number>('MAX_PAYLOAD_SIZE', 10485760);
+    const maxPayloadSize = this.configService.get<number>(
+      'MAX_PAYLOAD_SIZE',
+      10485760,
+    );
 
     if (contentLength > maxPayloadSize) {
       const sanitizedIP = this.sanitizeIP(req.ip);
-      this.logger.warn(`Request payload too large: ${contentLength} bytes from ${sanitizedIP}`);
+      this.logger.warn(
+        `Request payload too large: ${contentLength} bytes from ${sanitizedIP}`,
+      );
       res.status(413).json({
         error: 'Payload too large',
         message: 'Request payload exceeds maximum allowed size',
@@ -222,7 +246,9 @@ export class SecurityMiddleware implements NestMiddleware {
     const userAgent = req.get('User-Agent');
     if (!userAgent || userAgent.length < 10) {
       const sanitizedIP = this.sanitizeIP(req.ip);
-      this.logger.warn(`Suspicious User-Agent: ${userAgent} from ${sanitizedIP}`);
+      this.logger.warn(
+        `Suspicious User-Agent: ${userAgent} from ${sanitizedIP}`,
+      );
       res.status(400).json({
         error: 'Invalid User-Agent',
         message: 'User-Agent header is required and must be valid',
@@ -234,7 +260,9 @@ export class SecurityMiddleware implements NestMiddleware {
     const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'];
     if (!allowedMethods.includes(req.method)) {
       const sanitizedIP = this.sanitizeIP(req.ip);
-      this.logger.warn(`Invalid HTTP method: ${req.method} from ${sanitizedIP}`);
+      this.logger.warn(
+        `Invalid HTTP method: ${req.method} from ${sanitizedIP}`,
+      );
       res.status(405).json({
         error: 'Method not allowed',
         message: `HTTP method ${req.method} is not allowed`,
@@ -247,7 +275,9 @@ export class SecurityMiddleware implements NestMiddleware {
     const suspiciousHeaders = this.detectSuspiciousHeaders(req);
     if (suspiciousHeaders.length > 0) {
       const sanitizedIP = this.sanitizeIP(req.ip);
-      this.logger.warn(`Suspicious headers detected from ${sanitizedIP}: ${suspiciousHeaders.join(', ')}`);
+      this.logger.warn(
+        `Suspicious headers detected from ${sanitizedIP}: ${suspiciousHeaders.join(', ')}`,
+      );
       res.status(400).json({
         error: 'Suspicious headers detected',
         message: 'Request contains potentially malicious headers',

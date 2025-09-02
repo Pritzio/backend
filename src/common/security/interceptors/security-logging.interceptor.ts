@@ -63,7 +63,7 @@ export class SecurityLoggingInterceptor implements NestInterceptor {
       tap((data) => {
         const endTime = Date.now();
         const responseTime = endTime - startTime;
-        
+
         const completedEvent: SecurityEvent = {
           ...securityEvent,
           statusCode: response.statusCode,
@@ -76,7 +76,7 @@ export class SecurityLoggingInterceptor implements NestInterceptor {
       catchError((error) => {
         const endTime = Date.now();
         const responseTime = endTime - startTime;
-        
+
         const errorEvent: SecurityEvent = {
           ...securityEvent,
           statusCode: error.status || 500,
@@ -123,7 +123,7 @@ export class SecurityLoggingInterceptor implements NestInterceptor {
     ];
 
     const headers: Record<string, string> = {};
-    securityHeaders.forEach(header => {
+    securityHeaders.forEach((header) => {
       const value = request.get(header);
       if (value) {
         headers[header] = value;
@@ -136,10 +136,16 @@ export class SecurityLoggingInterceptor implements NestInterceptor {
   private sanitizeBody(body: any): any {
     if (!body) return body;
 
-    const sensitiveFields = ['password', 'token', 'secret', 'key', 'authorization'];
+    const sensitiveFields = [
+      'password',
+      'token',
+      'secret',
+      'key',
+      'authorization',
+    ];
     const sanitized = { ...body };
 
-    sensitiveFields.forEach(field => {
+    sensitiveFields.forEach((field) => {
       if (sanitized[field]) {
         sanitized[field] = '[REDACTED]';
       }
@@ -197,16 +203,11 @@ export class SecurityLoggingInterceptor implements NestInterceptor {
       /thunder client/i,
     ];
 
-    return suspiciousPatterns.some(pattern => pattern.test(userAgent));
+    return suspiciousPatterns.some((pattern) => pattern.test(userAgent));
   }
 
   private isSuspiciousIP(ip: string): boolean {
-    const suspiciousIPs = [
-      '127.0.0.1',
-      '0.0.0.0',
-      '::1',
-      'localhost',
-    ];
+    const suspiciousIPs = ['127.0.0.1', '0.0.0.0', '::1', 'localhost'];
 
     return suspiciousIPs.includes(ip);
   }
@@ -235,7 +236,7 @@ export class SecurityLoggingInterceptor implements NestInterceptor {
 
     const allContent = `${body} ${query} ${params}`;
 
-    return maliciousPatterns.some(pattern => pattern.test(allContent));
+    return maliciousPatterns.some((pattern) => pattern.test(allContent));
   }
 
   private isUnusualRequestPattern(request: Request): boolean {
@@ -245,12 +246,12 @@ export class SecurityLoggingInterceptor implements NestInterceptor {
       parseInt(request.get('Content-Length') || '0') > 5 * 1024 * 1024,
     ];
 
-    return unusualPatterns.some(pattern => pattern);
+    return unusualPatterns.some((pattern) => pattern);
   }
 
   private calculateResponseSize(data: any): number {
     if (!data) return 0;
-    
+
     try {
       return JSON.stringify(data).length;
     } catch {
@@ -258,11 +259,17 @@ export class SecurityLoggingInterceptor implements NestInterceptor {
     }
   }
 
-  private logSecurityEvent(event: SecurityEvent, type: 'SUCCESS' | 'ERROR'): void {
-    const configuredLogLevel = this.configService.get<string>('SECURITY_LOG_LEVEL', 'info');
+  private logSecurityEvent(
+    event: SecurityEvent,
+    type: 'SUCCESS' | 'ERROR',
+  ): void {
+    const configuredLogLevel = this.configService.get<string>(
+      'SECURITY_LOG_LEVEL',
+      'info',
+    );
     const logLevel = type === 'ERROR' ? 'error' : 'log';
     const message = `Security Event [${type}]: ${event.method} ${event.url} - ${event.statusCode} (${event.responseTime}ms)`;
-    
+
     const logData = {
       message,
       event,
@@ -274,18 +281,21 @@ export class SecurityLoggingInterceptor implements NestInterceptor {
     }
   }
 
-  private shouldLog(configuredLevel: string, eventType: 'SUCCESS' | 'ERROR'): boolean {
+  private shouldLog(
+    configuredLevel: string,
+    eventType: 'SUCCESS' | 'ERROR',
+  ): boolean {
     const levels = {
-      'error': ['error'],
-      'warn': ['error', 'warn'],
-      'info': ['error', 'warn', 'info'],
-      'debug': ['error', 'warn', 'info', 'debug'],
-      'verbose': ['error', 'warn', 'info', 'debug', 'verbose'],
+      error: ['error'],
+      warn: ['error', 'warn'],
+      info: ['error', 'warn', 'info'],
+      debug: ['error', 'warn', 'info', 'debug'],
+      verbose: ['error', 'warn', 'info', 'debug', 'verbose'],
     };
 
     const allowedLevels = levels[configuredLevel] || levels['info'];
     const eventLevel = eventType === 'ERROR' ? 'error' : 'info';
-    
+
     return allowedLevels.includes(eventLevel);
   }
 }

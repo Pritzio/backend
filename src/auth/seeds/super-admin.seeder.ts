@@ -32,14 +32,14 @@ export class SuperAdminSeeder {
 
     // Verificar si el usuario ya existe
     const existingUser = await this.userRepository.findOne({
-      where: [
-        { username },
-        { email }
-      ],
+      where: [{ username }, { email }],
     });
 
     if (existingUser) {
-      console.log('⚠️ El usuario Super Admin ya existe:', existingUser.username);
+      console.log(
+        '⚠️ El usuario Super Admin ya existe:',
+        existingUser.username,
+      );
       return;
     }
 
@@ -49,13 +49,15 @@ export class SuperAdminSeeder {
     });
 
     if (!superAdminRole) {
-      console.error('❌ Error: El rol SUPER_ADMIN no existe. Ejecuta primero auth.seeder.ts');
+      console.error(
+        '❌ Error: El rol SUPER_ADMIN no existe. Ejecuta primero auth.seeder.ts',
+      );
       return;
     }
 
     // Crear el usuario Super Admin
     const hashedPassword = await bcrypt.hash(password, 12);
-    
+
     const superAdminUser = this.userRepository.create({
       username,
       email,
@@ -71,8 +73,8 @@ export class SuperAdminSeeder {
       metadata: {
         createdBy: 'system',
         purpose: 'super_admin_initial_setup',
-        notes: 'Usuario Super Admin creado por seeder'
-      }
+        notes: 'Usuario Super Admin creado por seeder',
+      },
     });
 
     try {
@@ -83,10 +85,12 @@ export class SuperAdminSeeder {
       console.log(`   🔑 Contraseña: losbar191184`);
       console.log(`   🏷️ Tipo: ${savedUser.type}`);
       console.log(`   📊 Estado: ${savedUser.status}`);
-      console.log(`   🔐 Roles: ${savedUser.roles.map(role => role.name).join(', ')}`);
+      console.log(
+        `   🔐 Roles: ${savedUser.roles.map((role) => role.name).join(', ')}`,
+      );
       console.log(`   🆔 ID: ${savedUser.id}`);
       console.log(`   📅 Creado: ${savedUser.createdAt}`);
-      
+
       // Verificar que el usuario tiene el rol correcto
       const userWithRoles = await this.userRepository.findOne({
         where: { id: savedUser.id },
@@ -94,9 +98,10 @@ export class SuperAdminSeeder {
       });
 
       if (userWithRoles && userWithRoles.roles.length > 0) {
-        console.log(`   🔐 Permisos totales: ${userWithRoles.roles.reduce((total, role) => total + (role.permissions?.length || 0), 0)}`);
+        console.log(
+          `   🔐 Permisos totales: ${userWithRoles.roles.reduce((total, role) => total + (role.permissions?.length || 0), 0)}`,
+        );
       }
-
     } catch (error) {
       console.error('❌ Error creando Super Admin:', error.message);
       throw error;
@@ -105,9 +110,9 @@ export class SuperAdminSeeder {
 
   async verifySuperAdmin(): Promise<void> {
     console.log('🔍 Verificando Super Admin existente...');
-    
+
     const username = process.env.SUPER_ADMIN_USERNAME || 'admin';
-    
+
     const superAdmin = await this.userRepository.findOne({
       where: { username },
       relations: ['roles', 'roles.permissions'],
@@ -119,11 +124,16 @@ export class SuperAdminSeeder {
       console.log(`   📧 Email: ${superAdmin.email}`);
       console.log(`   🏷️ Tipo: ${superAdmin.type}`);
       console.log(`   📊 Estado: ${superAdmin.status}`);
-      console.log(`   🔐 Roles: ${superAdmin.roles.map(role => role.name).join(', ')}`);
+      console.log(
+        `   🔐 Roles: ${superAdmin.roles.map((role) => role.name).join(', ')}`,
+      );
       console.log(`   📅 Creado: ${superAdmin.createdAt}`);
-      
+
       if (superAdmin.roles.length > 0) {
-        const totalPermissions = superAdmin.roles.reduce((total, role) => total + (role.permissions?.length || 0), 0);
+        const totalPermissions = superAdmin.roles.reduce(
+          (total, role) => total + (role.permissions?.length || 0),
+          0,
+        );
         console.log(`   🔐 Permisos totales: ${totalPermissions}`);
       }
     } else {

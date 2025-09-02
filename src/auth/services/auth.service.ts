@@ -1,4 +1,10 @@
-import { Injectable, UnauthorizedException, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -23,9 +29,16 @@ import {
   RemoveRoleDto,
   UpdateUserStatusDto,
 } from '../dto/auth.dto';
-import { AuthResponseDto, UserResponseDto, MessageResponseDto } from '../dto/auth-response.dto';
+import {
+  AuthResponseDto,
+  UserResponseDto,
+  MessageResponseDto,
+} from '../dto/auth-response.dto';
 import { UsersSeeder } from '../../users/seeders/users.seeder';
-import { ActivityType, ActivityLevel } from '../../users/entities/user-activity.entity';
+import {
+  ActivityType,
+  ActivityLevel,
+} from '../../users/entities/user-activity.entity';
 
 @Injectable()
 export class AuthService {
@@ -44,18 +57,19 @@ export class AuthService {
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
     // Validate terms and conditions acceptance
     if (!registerDto.acceptTermsAndConditions) {
-      throw new BadRequestException('Terms and conditions must be accepted to register');
+      throw new BadRequestException(
+        'Terms and conditions must be accepted to register',
+      );
     }
 
     const existingUser = await this.userRepository.findOne({
-      where: [
-        { email: registerDto.email },
-        { username: registerDto.username },
-      ],
+      where: [{ email: registerDto.email }, { username: registerDto.username }],
     });
 
     if (existingUser) {
-      throw new ConflictException('User with this email or username already exists');
+      throw new ConflictException(
+        'User with this email or username already exists',
+      );
     }
 
     const saltRounds = 12;
@@ -70,7 +84,9 @@ export class AuthService {
       termsAcceptedAt: new Date(),
     });
 
-    const defaultRole = await this.getDefaultRole(registerDto.type || UserType.INDIVIDUAL);
+    const defaultRole = await this.getDefaultRole(
+      registerDto.type || UserType.INDIVIDUAL,
+    );
     if (defaultRole) {
       user.roles = [defaultRole];
     }
@@ -83,16 +99,19 @@ export class AuthService {
         firstName: registerDto.firstName,
         lastName: registerDto.lastName,
       });
-      
+
       await this.usersSeeder.createDefaultPreferences(savedUser.id);
-      
+
       await this.usersSeeder.logInitialActivity(
         savedUser.id,
         ActivityType.LOGIN,
-        'User registered and initial profile created'
+        'User registered and initial profile created',
       );
     } catch (error) {
-      console.warn('Failed to create default user profile/preferences:', error.message);
+      console.warn(
+        'Failed to create default user profile/preferences:',
+        error.message,
+      );
     }
 
     const tokens = this.jwtService.generateTokenPair(savedUser);
@@ -120,7 +139,10 @@ export class AuthService {
       throw new UnauthorizedException('Account is not active');
     }
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -133,7 +155,7 @@ export class AuthService {
       await this.usersSeeder.logInitialActivity(
         user.id,
         ActivityType.LOGIN,
-        'User logged in successfully'
+        'User logged in successfully',
       );
     } catch (error) {
       console.warn('Failed to log login activity:', error.message);
@@ -147,9 +169,13 @@ export class AuthService {
     };
   }
 
-  async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<AuthResponseDto> {
-    const payload = this.jwtService.verifyRefreshToken(refreshTokenDto.refreshToken);
-    
+  async refreshToken(
+    refreshTokenDto: RefreshTokenDto,
+  ): Promise<AuthResponseDto> {
+    const payload = this.jwtService.verifyRefreshToken(
+      refreshTokenDto.refreshToken,
+    );
+
     const user = await this.userRepository.findOne({
       where: { id: payload.sub },
       relations: ['roles', 'roles.permissions'],
@@ -182,7 +208,7 @@ export class AuthService {
       await this.usersSeeder.logInitialActivity(
         userId,
         ActivityType.LOGOUT,
-        'User logged out successfully'
+        'User logged out successfully',
       );
     } catch (error) {
       console.warn('Failed to log logout activity:', error.message);
@@ -191,14 +217,18 @@ export class AuthService {
     return { message: 'Successfully logged out' };
   }
 
-  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<MessageResponseDto> {
+  async forgotPassword(
+    forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<MessageResponseDto> {
     const user = await this.userRepository.findOne({
       where: { email: forgotPasswordDto.email },
     });
 
     if (!user) {
       // Don't reveal if user exists or not
-      return { message: 'If the email exists, a password reset link has been sent' };
+      return {
+        message: 'If the email exists, a password reset link has been sent',
+      };
     }
 
     // Generate reset token (in production, send email)
@@ -206,10 +236,14 @@ export class AuthService {
     // TODO: Send email with reset token
     // await this.emailService.sendPasswordReset(user.email, resetToken);
 
-    return { message: 'If the email exists, a password reset link has been sent' };
+    return {
+      message: 'If the email exists, a password reset link has been sent',
+    };
   }
 
-  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<MessageResponseDto> {
+  async resetPassword(
+    resetPasswordDto: ResetPasswordDto,
+  ): Promise<MessageResponseDto> {
     // TODO: Implement token validation from database or cache
     // For now, we'll assume the token is valid
 
@@ -218,7 +252,7 @@ export class AuthService {
 
     // Find user by token (implement proper token lookup)
     // const user = await this.findUserByResetToken(resetPasswordDto.token);
-    
+
     // if (!user) {
     //   throw new BadRequestException('Invalid or expired reset token');
     // }
@@ -233,7 +267,10 @@ export class AuthService {
     return { message: 'Password successfully reset' };
   }
 
-  async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<MessageResponseDto> {
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<MessageResponseDto> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -243,7 +280,10 @@ export class AuthService {
     }
 
     // Verify current password
-    const isCurrentPasswordValid = await bcrypt.compare(changePasswordDto.currentPassword, user.password);
+    const isCurrentPasswordValid = await bcrypt.compare(
+      changePasswordDto.currentPassword,
+      user.password,
+    );
     if (!isCurrentPasswordValid) {
       throw new UnauthorizedException('Current password is incorrect');
     }
@@ -262,7 +302,10 @@ export class AuthService {
     return { message: 'Password successfully changed' };
   }
 
-  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<UserResponseDto> {
+  async updateProfile(
+    userId: string,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<UserResponseDto> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ['roles', 'roles.permissions'],
@@ -299,7 +342,7 @@ export class AuthService {
     }
 
     // Check if user already has this role
-    if (user.roles.some(userRole => userRole.id === role.id)) {
+    if (user.roles.some((userRole) => userRole.id === role.id)) {
       throw new ConflictException('User already has this role');
     }
 
@@ -321,13 +364,15 @@ export class AuthService {
     }
 
     // Remove role from user
-    user.roles = user.roles.filter(role => role.id !== removeRoleDto.roleId);
+    user.roles = user.roles.filter((role) => role.id !== removeRoleDto.roleId);
     await this.userRepository.save(user);
 
     return { message: 'Role successfully removed from user' };
   }
 
-  async updateUserStatus(updateUserStatusDto: UpdateUserStatusDto): Promise<MessageResponseDto> {
+  async updateUserStatus(
+    updateUserStatusDto: UpdateUserStatusDto,
+  ): Promise<MessageResponseDto> {
     const user = await this.userRepository.findOne({
       where: { id: updateUserStatusDto.userId },
     });
@@ -377,21 +422,23 @@ export class AuthService {
       phoneVerified: user.phoneVerified,
       isVerified: user.isVerified,
       avatar: user.avatar,
-      roles: user.roles?.map(role => ({
-        id: role.id,
-        name: role.name,
-        displayName: role.displayName,
-        description: role.description,
-        priority: role.priority,
-        permissions: role.permissions?.map(permission => ({
-          id: permission.id,
-          name: permission.name,
-          displayName: permission.displayName,
-          description: permission.description,
-          category: permission.category,
-          priority: permission.priority,
+      roles:
+        user.roles?.map((role) => ({
+          id: role.id,
+          name: role.name,
+          displayName: role.displayName,
+          description: role.description,
+          priority: role.priority,
+          permissions:
+            role.permissions?.map((permission) => ({
+              id: permission.id,
+              name: permission.name,
+              displayName: permission.displayName,
+              description: permission.description,
+              category: permission.category,
+              priority: permission.priority,
+            })) || [],
         })) || [],
-      })) || [],
       permissions: this.extractPermissions(user),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
@@ -400,11 +447,11 @@ export class AuthService {
 
   private extractPermissions(user: User): string[] {
     const permissions = new Set<string>();
-    
+
     if (user.roles) {
-      user.roles.forEach(role => {
+      user.roles.forEach((role) => {
         if (role.permissions) {
-          role.permissions.forEach(permission => {
+          role.permissions.forEach((permission) => {
             permissions.add(permission.name);
           });
         }

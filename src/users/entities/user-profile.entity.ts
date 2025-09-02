@@ -1,17 +1,25 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 
 export enum Gender {
   MALE = 'male',
   FEMALE = 'female',
   OTHER = 'other',
-  PREFER_NOT_TO_SAY = 'prefer_not_to_say'
+  PREFER_NOT_TO_SAY = 'prefer_not_to_say',
 }
 
 export enum ProfileVisibility {
   PUBLIC = 'public',
   FRIENDS = 'friends',
-  PRIVATE = 'private'
+  PRIVATE = 'private',
 }
 
 @Entity('user_profiles')
@@ -68,10 +76,10 @@ export class UserProfile {
   @Column({ nullable: true, length: 200 })
   coverPhoto: string;
 
-  @Column({ 
-    type: 'enum', 
-    enum: ProfileVisibility, 
-    default: ProfileVisibility.PUBLIC 
+  @Column({
+    type: 'enum',
+    enum: ProfileVisibility,
+    default: ProfileVisibility.PUBLIC,
   })
   profileVisibility: ProfileVisibility;
 
