@@ -14,6 +14,8 @@ import {
   UserStatistics,
   StoreStatistics,
   ProductStatistics,
+  StoreProductStatistics,
+  CategoryStatistics,
   SystemStatistics,
 } from '../services/statistics.service';
 import { RoleType } from '../../auth/entities/role.entity';
@@ -169,6 +171,25 @@ export class StatisticsController {
             deleted: { type: 'number' },
           },
         },
+        storeProducts: {
+          type: 'object',
+          properties: {
+            total: { type: 'number' },
+            withCategories: { type: 'number' },
+            withoutCategories: { type: 'number' },
+            lastScraped: { type: 'number' },
+          },
+        },
+        categories: {
+          type: 'object',
+          properties: {
+            total: { type: 'number' },
+            active: { type: 'number' },
+            inactive: { type: 'number' },
+            withProducts: { type: 'number' },
+            withoutProducts: { type: 'number' },
+          },
+        },
         lastUpdated: { type: 'string', format: 'date-time' },
       },
     },
@@ -252,5 +273,104 @@ export class StatisticsController {
   })
   async getProductStatisticsByCategory(): Promise<Record<string, number>> {
     return this.statisticsService.getProductStatisticsByCategory();
+  }
+
+  @Get('store-products')
+  @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Permissions(PermissionType.ANALYTICS_READ)
+  @ApiOperation({
+    summary: 'Get store product statistics',
+    description:
+      'Returns comprehensive statistics about store products including total, with categories, without categories, and last scraped',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Store product statistics retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        total: { type: 'number', description: 'Total number of store products' },
+        withCategories: { type: 'number', description: 'Number of products with categories' },
+        withoutCategories: { type: 'number', description: 'Number of products without categories' },
+        lastScraped: { type: 'number', description: 'Number of products with last scraped date' },
+      },
+    },
+  })
+  async getStoreProductStatistics(): Promise<StoreProductStatistics> {
+    return this.statisticsService.getStoreProductStatistics();
+  }
+
+  @Get('categories')
+  @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Permissions(PermissionType.ANALYTICS_READ)
+  @ApiOperation({
+    summary: 'Get category statistics',
+    description:
+      'Returns comprehensive statistics about categories including total, active, inactive, with products, and without products',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Category statistics retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        total: { type: 'number', description: 'Total number of categories' },
+        active: { type: 'number', description: 'Number of active categories' },
+        inactive: { type: 'number', description: 'Number of inactive categories' },
+        withProducts: { type: 'number', description: 'Number of categories with products' },
+        withoutProducts: { type: 'number', description: 'Number of categories without products' },
+      },
+    },
+  })
+  async getCategoryStatistics(): Promise<CategoryStatistics> {
+    return this.statisticsService.getCategoryStatistics();
+  }
+
+  @Get('store-products/by-category')
+  @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Permissions(PermissionType.ANALYTICS_READ)
+  @ApiOperation({
+    summary: 'Get store product statistics by category',
+    description: 'Returns store product count grouped by category',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Store product statistics by category retrieved successfully',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'number',
+      },
+      example: {
+        'Electrónicos': 50,
+        'Hogar y Jardín': 30,
+        'Ropa y Accesorios': 25,
+      },
+    },
+  })
+  async getStoreProductStatisticsByCategory(): Promise<Record<string, number>> {
+    return this.statisticsService.getStoreProductStatisticsByCategory();
+  }
+
+  @Get('categories/by-status')
+  @Roles(RoleType.ADMIN, RoleType.SUPER_ADMIN)
+  @Permissions(PermissionType.ANALYTICS_READ)
+  @ApiOperation({
+    summary: 'Get category statistics by status',
+    description: 'Returns category count grouped by active/inactive status',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Category statistics by status retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        active: { type: 'number' },
+        inactive: { type: 'number' },
+      },
+    },
+  })
+  async getCategoryStatisticsByStatus(): Promise<Record<string, number>> {
+    return this.statisticsService.getCategoryStatisticsByStatus();
   }
 }

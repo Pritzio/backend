@@ -693,4 +693,267 @@ export class ProductsService {
       where: { createdAt: Between(startOfYear, new Date()) },
     });
   }
+
+  async bulkCreateProducts(
+    products: CreateProductDto[],
+    options: { skipDuplicates?: boolean; validateOnly?: boolean } = {},
+    user: User,
+  ): Promise<{
+    success: boolean;
+    data: {
+      created: number;
+      failed: number;
+      total: number;
+      results: Array<{
+        success: boolean;
+        product?: any;
+        error?: string;
+        index: number;
+        validated?: boolean;
+      }>;
+    };
+    message: string;
+    timestamp: string;
+  }> {
+    const { skipDuplicates = true, validateOnly = false } = options;
+
+    // Validate input
+    if (!products || !Array.isArray(products) || products.length === 0) {
+      throw new BadRequestException('Products array is required and cannot be empty');
+    }
+
+    if (products.length > 100) {
+      throw new BadRequestException('Cannot create more than 100 products at once');
+    }
+
+    const results: Array<{
+      success: boolean;
+      product?: any;
+      error?: string;
+      index: number;
+      validated?: boolean;
+    }> = [];
+    let created = 0;
+    let failed = 0;
+
+    // Get existing product codes for duplicate checking
+    const existingCodes = new Set<string>();
+    if (skipDuplicates) {
+      const existingProducts = await this.productRepository.find({
+        select: ['code'],
+        where: { code: In(products.map(p => p.code)) },
+      });
+      existingProducts.forEach(p => existingCodes.add(p.code));
+    }
+
+    for (let i = 0; i < products.length; i++) {
+      const productData = products[i];
+      
+      try {
+        // Check for duplicates if skipDuplicates is enabled
+        if (skipDuplicates && existingCodes.has(productData.code)) {
+          results.push({
+            success: false,
+            product: undefined,
+            error: `Product with code '${productData.code}' already exists`,
+            index: i,
+          });
+          failed++;
+          continue;
+        }
+
+        // Validate product data
+        const validationErrors = await this._validateProductData(productData);
+        if (validationErrors.length > 0) {
+          results.push({
+            success: false,
+            product: undefined,
+            error: `Validation failed: ${validationErrors.join(', ')}`,
+            index: i,
+          });
+          failed++;
+          continue;
+        }
+
+        if (validateOnly) {
+          // Only validate, don't create
+          results.push({
+            success: true,
+            product: undefined,
+            error: undefined,
+            index: i,
+            validated: true,
+          });
+          continue;
+        }
+
+        // Create the product
+        const product = this.productRepository.create({
+          ...productData,
+          createdBy: user.id,
+        });
+
+        const savedProduct = await this.productRepository.save(product);
+        const productResponse = this.mapToProductResponse(savedProduct);
+
+        results.push({
+          success: true,
+          product: productResponse,
+          error: undefined,
+          index: i,
+        });
+
+        created++;
+        existingCodes.add(productData.code); // Add to existing codes to prevent duplicates in same batch
+
+      } catch (error) {
+        results.push({
+          success: false,
+          product: undefined,
+          error: error.message || 'Unknown error occurred',
+          index: i,
+        });
+        failed++;
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        created,
+        failed,
+        total: products.length,
+        results,
+      },
+      message: `Bulk operation completed: ${created} created, ${failed} failed`,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  private async _validateProductData(productData: CreateProductDto): Promise<string[]> {
+    const errors: string[] = [];
+
+    // Basic validation
+    if (!productData.name || productData.name.trim().length < 2) {
+      errors.push('Name must be at least 2 characters long');
+    }
+
+    if (!productData.code || productData.code.trim().length < 3) {
+      errors.push('Code must be at least 3 characters long');
+    }
+
+    if (!productData.category || productData.category.trim().length === 0) {
+      errors.push('Category is required');
+    }
+
+    // Check for duplicate code in database (if not already checked)
+    const existingProduct = await this.productRepository.findOne({
+      where: { code: productData.code },
+    });
+
+    if (existingProduct) {
+      errors.push(`Product with code '${productData.code}' already exists`);
+    }
+
+    return errors;
+  }
+
+  async getProductsForScraping(
+    user: User,
+    options: {
+      limit?: number;
+      priority?: string;
+      category?: string;
+      lastScrapedBefore?: string;
+    } = {},
+  ): Promise<any> {
+    const { limit = 50, priority, category, lastScrapedBefore } = options;
+
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('product')
+      .where('product.status = :status', { status: ProductStatus.ACTIVE })
+      .orderBy('product.createdAt', 'DESC')
+      .limit(limit);
+
+    // Filter by category if provided
+    if (category) {
+      queryBuilder.andWhere('product.category = :category', { category });
+    }
+
+    // Filter by scraping priority (stored in metadata)
+    if (priority && priority !== 'all') {
+      queryBuilder.andWhere("product.metadata->>'scrapingPriority' = :priority", { priority });
+    }
+
+    // Filter by last scraped date
+    if (lastScrapedBefore) {
+      const date = new Date(lastScrapedBefore);
+      queryBuilder.andWhere(
+        "(product.metadata->>'lastScraped' IS NULL OR (product.metadata->>'lastScraped')::timestamp < :date)",
+        { date }
+      );
+    }
+
+    const products = await queryBuilder.getMany();
+
+    const scrapingProducts = products.map(product => ({
+      id: product.id,
+      name: product.name,
+      code: product.code,
+      brand: product.brand,
+      category: product.category,
+      subcategory: product.subcategory,
+      lastScraped: product.metadata?.lastScraped || null,
+      scrapingPriority: product.metadata?.scrapingPriority || 'medium',
+      scrapingMetadata: product.metadata?.scraping || {},
+      scrapingSource: product.metadata?.scrapingSource || null,
+      scrapingStatus: product.metadata?.scrapingStatus || 'pending',
+    }));
+
+    return {
+      success: true,
+      data: scrapingProducts,
+      message: `Found ${scrapingProducts.length} products ready for scraping`,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  async updateScrapingMetadata(
+    productId: string,
+    scrapingData: {
+      lastScraped?: string;
+      scrapingSource?: string;
+      scrapingStatus?: string;
+      scrapingMetadata?: any;
+      scrapingErrors?: string[];
+    },
+    user: User,
+  ): Promise<IProductResponse> {
+    const product = await this.productRepository.findOne({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product with ID '${productId}' not found`);
+    }
+
+    // Update metadata with scraping information
+    const currentMetadata = product.metadata || {};
+    const updatedMetadata = {
+      ...currentMetadata,
+      lastScraped: scrapingData.lastScraped || new Date().toISOString(),
+      scrapingSource: scrapingData.scrapingSource,
+      scrapingStatus: scrapingData.scrapingStatus || 'completed',
+      scraping: {
+        ...currentMetadata.scraping,
+        ...scrapingData.scrapingMetadata,
+      },
+      scrapingErrors: scrapingData.scrapingErrors || [],
+    };
+
+    product.metadata = updatedMetadata;
+    const updatedProduct = await this.productRepository.save(product);
+
+    return this.mapToProductResponse(updatedProduct);
+  }
 }

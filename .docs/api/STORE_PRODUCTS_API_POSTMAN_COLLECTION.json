@@ -1,0 +1,394 @@
+{
+  "info": {
+    "name": "Store Products API",
+    "description": "Complete collection for Store Products API endpoints",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "your-jwt-token-here",
+      "type": "string"
+    },
+    {
+      "key": "store_product_id",
+      "value": "uuid-store-product-id",
+      "type": "string"
+    },
+    {
+      "key": "store_id",
+      "value": "uuid-store-id",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "uuid-product-id",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Store Product Management",
+      "item": [
+        {
+          "name": "Create Store Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"storeId\": \"{{store_id}}\",\n  \"productId\": \"{{product_id}}\",\n  \"name\": \"iPhone 15 Pro - Space Black 256GB\",\n  \"description\": \"Latest iPhone with advanced features\",\n  \"url\": \"https://store.com/iphone-15-pro\",\n  \"sku\": \"STORE-SKU-001\",\n  \"storeProductId\": \"store-internal-id\",\n  \"image\": \"https://store.com/images/iphone-15-pro.jpg\",\n  \"onlinePrice\": 999.99,\n  \"physicalPrice\": 999.99,\n  \"currency\": \"USD\",\n  \"availability\": \"in_stock\",\n  \"status\": \"active\",\n  \"stockQuantity\": 50,\n  \"minStockLevel\": 10,\n  \"isOnSale\": false,\n  \"originalPrice\": 1099.99,\n  \"discountPercentage\": 9.09,\n  \"saleEndDate\": \"2024-12-31\",\n  \"specifications\": {\n    \"storage\": \"256GB\",\n    \"color\": \"Space Black\",\n    \"connectivity\": \"5G\"\n  },\n  \"features\": [\"5G\", \"Face ID\", \"Wireless Charging\"],\n  \"tags\": [\"iPhone\", \"Apple\", \"Smartphone\"],\n  \"metadata\": {\n    \"warranty\": \"1 year\",\n    \"shipping\": \"Free\"\n  },\n  \"scrapingIntervalHours\": 24,\n  \"scrapingConfig\": {\n    \"priceSelector\": \".price\",\n    \"stockSelector\": \".stock-status\"\n  },\n  \"notes\": \"Premium product with high demand\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/store-products",
+              "host": ["{{base_url}}"],
+              "path": ["store-products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Store Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/store-products?page=1&limit=20&status=active&availability=in_stock",
+              "host": ["{{base_url}}"],
+              "path": ["store-products"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "status", "value": "active"},
+                {"key": "availability", "value": "in_stock"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Store Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/store-products/{{store_product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["store-products", "{{store_product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Store Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"onlinePrice\": 899.99,\n  \"physicalPrice\": 899.99,\n  \"stockQuantity\": 25,\n  \"isOnSale\": true,\n  \"discountPercentage\": 10.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/store-products/{{store_product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["store-products", "{{store_product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Store Product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/store-products/{{store_product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["store-products", "{{store_product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change Store Product Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/store-products/{{store_product_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["store-products", "{{store_product_id}}", "status"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Price Comparison",
+      "item": [
+        {
+          "name": "Get Price Comparison",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/store-products/price-comparison/{{product_id}}?currency=USD&includeOutOfStock=false",
+              "host": ["{{base_url}}"],
+              "path": ["store-products", "price-comparison", "{{product_id}}"],
+              "query": [
+                {"key": "currency", "value": "USD"},
+                {"key": "includeOutOfStock", "value": "false"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Products by Store",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/store-products/store/{{store_id}}?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["store-products", "store", "{{store_id}}"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Products by Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/store-products/product/{{product_id}}?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["store-products", "product", "{{product_id}}"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Scraping Management",
+      "item": [
+        {
+          "name": "Get Scraping Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/store-products/scraping/jobs?status=pending&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["store-products", "scraping", "jobs"],
+              "query": [
+                {"key": "status", "value": "pending"},
+                {"key": "limit", "value": "50"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Start Scraping",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/store-products/scraping/start/{{store_product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["store-products", "scraping", "start", "{{store_product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Start Scraping",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"storeProductIds\": [\"{{store_product_id}}\", \"uuid-2\", \"uuid-3\"],\n  \"priority\": \"normal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/store-products/scraping/bulk-start",
+              "host": ["{{base_url}}"],
+              "path": ["store-products", "scraping", "bulk-start"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Scraping Result",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"storeProductId\": \"{{store_product_id}}\",\n  \"status\": \"completed\",\n  \"onlinePrice\": 999.99,\n  \"physicalPrice\": 999.99,\n  \"availability\": \"in_stock\",\n  \"stockQuantity\": 50,\n  \"isOnSale\": false,\n  \"originalPrice\": 1099.99,\n  \"discountPercentage\": 9.09,\n  \"saleEndDate\": \"2024-12-31\",\n  \"error\": null,\n  \"responseTime\": 1500,\n  \"metadata\": {\n    \"scrapedAt\": \"2024-01-15T09:00:00.000Z\",\n    \"userAgent\": \"Mozilla/5.0...\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/store-products/scraping/result",
+              "host": ["{{base_url}}"],
+              "path": ["store-products", "scraping", "result"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics & Reports",
+      "item": [
+        {
+          "name": "Get Store Products Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/store-products/analytics?storeId={{store_id}}&dateFrom=2024-01-01&dateTo=2024-01-31",
+              "host": ["{{base_url}}"],
+              "path": ["store-products", "analytics"],
+              "query": [
+                {"key": "storeId", "value": "{{store_id}}"},
+                {"key": "dateFrom", "value": "2024-01-01"},
+                {"key": "dateTo", "value": "2024-01-31"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Admin Store Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/store-products/admin?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["store-products", "admin"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-generate UUIDs if needed",
+          "if (!pm.variables.get('store_product_id') || pm.variables.get('store_product_id') === 'uuid-store-product-id') {",
+          "    pm.variables.set('store_product_id', pm.variables.replaceIn('{{$randomUUID}}'));",
+          "}",
+          "",
+          "if (!pm.variables.get('store_id') || pm.variables.get('store_id') === 'uuid-store-id') {",
+          "    pm.variables.set('store_id', pm.variables.replaceIn('{{$randomUUID}}'));",
+          "}",
+          "",
+          "if (!pm.variables.get('product_id') || pm.variables.get('product_id') === 'uuid-product-id') {",
+          "    pm.variables.set('product_id', pm.variables.replaceIn('{{$randomUUID}}'));",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Common test for all requests",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has correct content type', function () {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});",
+          "",
+          "// Test for successful responses",
+          "if (pm.response.code >= 200 && pm.response.code < 300) {",
+          "    pm.test('Response is successful', function () {",
+          "        pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+          "    });",
+          "}",
+          "",
+          "// Test for error responses",
+          "if (pm.response.code >= 400) {",
+          "    pm.test('Error response has message', function () {",
+          "        const responseJson = pm.response.json();",
+          "        pm.expect(responseJson).to.have.property('message');",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ]
+}
+
+
+

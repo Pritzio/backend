@@ -22,7 +22,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { ProductsService } from '../services/products.service';
-import { CreateProductDto, UpdateProductDto } from '../dto';
+import { CreateProductDto, UpdateProductDto, BulkCreateProductsDto, BulkCreateProductsResponseDto } from '../dto';
 import {
   IProductResponse,
   IProductSummary,
@@ -39,7 +39,7 @@ import { RoleType } from '../../auth/entities/role.entity';
 import { ProductStatus } from '../entities/product.entity';
 
 @ApiTags('Products')
-@Controller('api/v1/products')
+@Controller('products')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class ProductsController {
@@ -544,5 +544,199 @@ export class ProductsController {
       data,
     };
     return this.productsService.bulkUpdateProducts(operation, req.user);
+  }
+
+  @Post('bulk/create')
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
+  @ApiOperation({ 
+    summary: 'Create multiple products at once',
+    description: 'Create multiple products in a single request. Ideal for automated scraping and bulk imports.'
+  })
+  @ApiResponse({ 
+    status: 201, 
+    description: 'Products created successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        data: {
+          type: 'object',
+          properties: {
+            created: { type: 'number' },
+            failed: { type: 'number' },
+            total: { type: 'number' },
+            results: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  success: { type: 'boolean' },
+                  product: { type: 'object' },
+                  error: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
+        message: { type: 'string' },
+        timestamp: { type: 'string' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - Invalid product data or validation errors',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        products: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/CreateProductDto' },
+          description: 'Array of products to create',
+          minItems: 1,
+          maxItems: 100
+        },
+        options: {
+          type: 'object',
+          properties: {
+            skipDuplicates: { 
+              type: 'boolean', 
+              default: true,
+              description: 'Skip products with duplicate codes instead of failing'
+            },
+            validateOnly: {
+              type: 'boolean',
+              default: false,
+              description: 'Only validate products without creating them'
+            }
+          }
+        }
+      },
+      required: ['products']
+    }
+  })
+  async bulkCreateProducts(
+    @Body() bulkCreateDto: BulkCreateProductsDto,
+    @Request() req: any,
+  ): Promise<BulkCreateProductsResponseDto> {
+    return this.productsService.bulkCreateProducts(
+      bulkCreateDto.products, 
+      bulkCreateDto.options || {}, 
+      req.user
+    );
+  }
+
+  @Get('scraping/ready')
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
+  @ApiOperation({ 
+    summary: 'Get products ready for scraping',
+    description: 'Get products that need price updates or are suitable for scraping operations'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Products ready for scraping retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+              code: { type: 'string' },
+              brand: { type: 'string' },
+              category: { type: 'string' },
+              lastScraped: { type: 'string', nullable: true },
+              scrapingPriority: { type: 'string' },
+              scrapingMetadata: { type: 'object' }
+            }
+          }
+        },
+        message: { type: 'string' },
+        timestamp: { type: 'string' }
+      }
+    }
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Maximum number of products to return (default: 50)',
+  })
+  @ApiQuery({
+    name: 'priority',
+    required: false,
+    enum: ['high', 'medium', 'low', 'all'],
+    description: 'Filter by scraping priority',
+  })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    type: String,
+    description: 'Filter by product category',
+  })
+  @ApiQuery({
+    name: 'lastScrapedBefore',
+    required: false,
+    type: String,
+    description: 'Get products not scraped since this date (ISO string)',
+  })
+  async getProductsForScraping(
+    @Request() req: any,
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
+    @Query('priority') priority?: string,
+    @Query('category') category?: string,
+    @Query('lastScrapedBefore') lastScrapedBefore?: string,
+  ): Promise<any> {
+    return this.productsService.getProductsForScraping(
+      req.user,
+      { limit, priority, category, lastScrapedBefore }
+    );
+  }
+
+  @Post('scraping/update')
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
+  @ApiOperation({ 
+    summary: 'Update scraping metadata for products',
+    description: 'Update scraping information and metadata for products after scraping operations'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Scraping metadata updated successfully',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        productId: { type: 'string' },
+        scrapingData: {
+          type: 'object',
+          properties: {
+            lastScraped: { type: 'string' },
+            scrapingSource: { type: 'string' },
+            scrapingStatus: { type: 'string' },
+            scrapingMetadata: { type: 'object' },
+            scrapingErrors: { type: 'array', items: { type: 'string' } }
+          }
+        }
+      },
+      required: ['productId', 'scrapingData']
+    }
+  })
+  async updateScrapingMetadata(
+    @Body('productId') productId: string,
+    @Body('scrapingData') scrapingData: any,
+    @Request() req: any,
+  ): Promise<IProductResponse> {
+    return this.productsService.updateScrapingMetadata(productId, scrapingData, req.user);
   }
 }

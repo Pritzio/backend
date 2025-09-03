@@ -194,16 +194,8 @@ export class PhysicalLocationsService {
     // Check if user has permission to delete this location
     await this.checkLocationPermission(location, user);
 
-    // Check if location has associated store products
-    const storeProductsCount = await this.storeProductRepository.count({
-      where: { storeId: id },
-    });
-
-    if (storeProductsCount > 0) {
-      throw new BadRequestException(
-        `Cannot delete location with ${storeProductsCount} associated store products`,
-      );
-    }
+    // Since we removed storeId from store_products, we can't check for associated products
+    // This check is no longer needed
 
     await this.physicalLocationRepository.remove(location);
   }

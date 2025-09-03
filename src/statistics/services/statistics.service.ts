@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { User, UserStatus } from '../../auth/entities/user.entity';
 import { Store, StoreStatus } from '../../stores/entities/store.entity';
 import { Product, ProductStatus } from '../../products/entities/product.entity';
+import { StoreProduct } from '../../store-products/entities/store-product.entity';
+import { Category } from '../../store-products/entities/category.entity';
 
 export interface UserStatistics {
   total: number;
@@ -29,10 +31,27 @@ export interface ProductStatistics {
   deleted: number;
 }
 
+export interface StoreProductStatistics {
+  total: number;
+  withCategories: number;
+  withoutCategories: number;
+  lastScraped: number;
+}
+
+export interface CategoryStatistics {
+  total: number;
+  active: number;
+  inactive: number;
+  withProducts: number;
+  withoutProducts: number;
+}
+
 export interface SystemStatistics {
   users: UserStatistics;
   stores: StoreStatistics;
   products: ProductStatistics;
+  storeProducts: StoreProductStatistics;
+  categories: CategoryStatistics;
   lastUpdated: Date;
 }
 
@@ -45,6 +64,10 @@ export class StatisticsService {
     private readonly storeRepository: Repository<Store>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(StoreProduct)
+    private readonly storeProductRepository: Repository<StoreProduct>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
   ) {}
 
   /**
@@ -132,19 +155,82 @@ export class StatisticsService {
   }
 
   /**
+   * Obtiene estadísticas completas de store products
+   */
+  async getStoreProductStatistics(): Promise<StoreProductStatistics> {
+    const [total, withCategories, withoutCategories, lastScraped] = await Promise.all([
+      this.storeProductRepository.count(),
+      this.storeProductRepository
+        .createQueryBuilder('storeProduct')
+        .leftJoin('storeProduct.categories', 'category')
+        .where('category.id IS NOT NULL')
+        .getCount(),
+      this.storeProductRepository
+        .createQueryBuilder('storeProduct')
+        .leftJoin('storeProduct.categories', 'category')
+        .where('category.id IS NULL')
+        .getCount(),
+      this.storeProductRepository
+        .createQueryBuilder('storeProduct')
+        .where('storeProduct.lastScraped IS NOT NULL')
+        .getCount(),
+    ]);
+
+    return {
+      total,
+      withCategories,
+      withoutCategories,
+      lastScraped,
+    };
+  }
+
+  /**
+   * Obtiene estadísticas completas de categorías
+   */
+  async getCategoryStatistics(): Promise<CategoryStatistics> {
+    const [total, active, inactive, withProducts, withoutProducts] = await Promise.all([
+      this.categoryRepository.count(),
+      this.categoryRepository.count({ where: { isActive: true } }),
+      this.categoryRepository.count({ where: { isActive: false } }),
+      this.categoryRepository
+        .createQueryBuilder('category')
+        .leftJoin('category.storeProducts', 'storeProduct')
+        .where('storeProduct.id IS NOT NULL')
+        .getCount(),
+      this.categoryRepository
+        .createQueryBuilder('category')
+        .leftJoin('category.storeProducts', 'storeProduct')
+        .where('storeProduct.id IS NULL')
+        .getCount(),
+    ]);
+
+    return {
+      total,
+      active,
+      inactive,
+      withProducts,
+      withoutProducts,
+    };
+  }
+
+  /**
    * Obtiene estadísticas completas del sistema
    */
   async getSystemStatistics(): Promise<SystemStatistics> {
-    const [users, stores, products] = await Promise.all([
+    const [users, stores, products, storeProducts, categories] = await Promise.all([
       this.getUserStatistics(),
       this.getStoreStatistics(),
       this.getProductStatistics(),
+      this.getStoreProductStatistics(),
+      this.getCategoryStatistics(),
     ]);
 
     return {
       users,
       stores,
       products,
+      storeProducts,
+      categories,
       lastUpdated: new Date(),
     };
   }
@@ -220,5 +306,52 @@ export class StatisticsService {
     });
 
     return categoryStats;
+  }
+
+  /**
+   * Obtiene estadísticas de store products por categoría
+   */
+  async getStoreProductStatisticsByCategory(): Promise<Record<string, number>> {
+    const result = await this.storeProductRepository
+      .createQueryBuilder('storeProduct')
+      .leftJoin('storeProduct.categories', 'category')
+      .select('category.name', 'categoryName')
+      .addSelect('COUNT(storeProduct.id)', 'count')
+      .groupBy('category.name')
+      .getRawMany();
+
+    const categoryStats: Record<string, number> = {};
+    result.forEach((item) => {
+      categoryStats[item.categoryName || 'no_category'] = parseInt(item.count);
+    });
+
+    return categoryStats;
+  }
+
+  /**
+   * Obtiene estadísticas de categorías por estado
+   */
+  async getCategoryStatisticsByStatus(): Promise<Record<string, number>> {
+    const result = await this.categoryRepository
+      .createQueryBuilder('category')
+      .select('category.isActive', 'isActive')
+      .addSelect('COUNT(category.id)', 'count')
+      .groupBy('category.isActive')
+      .getRawMany();
+
+    const statusStats: Record<string, number> = {
+      active: 0,
+      inactive: 0,
+    };
+
+    result.forEach((item) => {
+      if (item.isActive) {
+        statusStats.active = parseInt(item.count);
+      } else {
+        statusStats.inactive = parseInt(item.count);
+      }
+    });
+
+    return statusStats;
   }
 }

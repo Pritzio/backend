@@ -37,7 +37,7 @@ export class JwtService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_SECRET'),
-      expiresIn: this.configService.get<string>('JWT_EXPIRES_IN', '15m'),
+      expiresIn: this.configService.get<string>('JWT_EXPIRES_IN', '1d'),
       issuer: this.configService.get<string>('JWT_ISSUER', 'pritzio-backend'),
       audience: this.configService.get<string>('JWT_AUDIENCE', 'pritzio-users'),
     });
@@ -52,7 +52,7 @@ export class JwtService {
     });
 
     const expiresIn = this.parseExpirationTime(
-      this.configService.get<string>('JWT_EXPIRES_IN', '15m'),
+      this.configService.get<string>('JWT_EXPIRES_IN', '1d'),
     );
 
     return {
@@ -124,7 +124,7 @@ export class JwtService {
 
     const match = expiresIn.match(/^(\d+)([smhd])$/);
     if (!match) {
-      return 900; // Default to 15 minutes
+      return 86400; // Default to 1 day (24 hours)
     }
 
     const value = parseInt(match[1], 10);

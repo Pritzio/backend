@@ -48,7 +48,7 @@ import {
 } from '../entities/physical-location.entity';
 
 @ApiTags('Physical Locations')
-@Controller('api/v1/physical-locations')
+@Controller('physical-locations')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class PhysicalLocationsController {

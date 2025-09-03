@@ -29,7 +29,7 @@ export class ProductsSeeder {
     const users = await this.userRepository.find();
 
     if (users.length === 0) {
-      console.log('Skipping products seeding: No users found');
+
       return;
     }
 
@@ -50,7 +50,7 @@ export class ProductsSeeder {
     // Create products
     await this.createProducts(adminUser.id, categories, brands);
 
-    console.log('Products seeding completed');
+
   }
 
   private async createCategories(
@@ -124,7 +124,7 @@ export class ProductsSeeder {
 
         const savedCategory = await this.categoryRepository.save(category);
         categories.push(savedCategory);
-        console.log(`Created category: ${category.name}`);
+
       } else {
         categories.push(existingCategory);
       }
@@ -242,7 +242,7 @@ export class ProductsSeeder {
 
         const savedBrand = await this.brandRepository.save(brand);
         brands.push(savedBrand);
-        console.log(`Created brand: ${brand.name}`);
+
       } else {
         brands.push(existingBrand);
       }
@@ -451,7 +451,7 @@ export class ProductsSeeder {
         });
 
         await this.productRepository.save(product);
-        console.log(`Created product: ${product.name}`);
+
       }
     }
   }

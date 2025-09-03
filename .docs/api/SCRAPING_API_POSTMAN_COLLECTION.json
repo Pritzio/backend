@@ -1,0 +1,557 @@
+{
+  "info": {
+    "name": "Scraping API - Pritzio Backend",
+    "description": "Complete collection of Scraping API endpoints for testing and development",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api/v1/scraping",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "your-jwt-token-here",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Scraping Operations",
+      "item": [
+        {
+          "name": "Scrape URL - Basic",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://jumbo.cl/marcas-exclusivas",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://jumbo.cl/marcas-exclusivas"
+                }
+              ]
+            },
+            "description": "Basic URL scraping with default options"
+          },
+          "response": []
+        },
+        {
+          "name": "Scrape URL - With Timeout",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://jumbo.cl/marcas-exclusivas&timeout=45000",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://jumbo.cl/marcas-exclusivas"
+                },
+                {
+                  "key": "timeout",
+                  "value": "45000"
+                }
+              ]
+            },
+            "description": "Scrape URL with custom timeout (45 seconds)"
+          },
+          "response": []
+        },
+        {
+          "name": "Scrape URL - With Custom Selector",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://jumbo.cl/marcas-exclusivas&timeout=30000&waitForSelector=[data-cnstrc-item-id]",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://jumbo.cl/marcas-exclusivas"
+                },
+                {
+                  "key": "timeout",
+                  "value": "30000"
+                },
+                {
+                  "key": "waitForSelector",
+                  "value": "[data-cnstrc-item-id]"
+                }
+              ]
+            },
+            "description": "Scrape URL with custom CSS selector to wait for"
+          },
+          "response": []
+        },
+        {
+          "name": "Scrape URL - With Custom User Agent",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://jumbo.cl/marcas-exclusivas&timeout=30000&waitForSelector=[data-cnstrc-item-id]&userAgent=Mozilla/5.0%20(Macintosh;%20Intel%20Mac%20OS%20X%2010_15_7)%20AppleWebKit/537.36%20(KHTML,%20like%20Gecko)%20Chrome/136.0.0.0%20Safari/537.36",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://jumbo.cl/marcas-exclusivas"
+                },
+                {
+                  "key": "timeout",
+                  "value": "30000"
+                },
+                {
+                  "key": "waitForSelector",
+                  "value": "[data-cnstrc-item-id]"
+                },
+                {
+                  "key": "userAgent",
+                  "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+                }
+              ]
+            },
+            "description": "Scrape URL with custom user agent string"
+          },
+          "response": []
+        },
+        {
+          "name": "Scrape URL - E-commerce Site",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://lider.cl/catalogo&timeout=60000&waitForSelector=.product-item",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://lider.cl/catalogo"
+                },
+                {
+                  "key": "timeout",
+                  "value": "60000"
+                },
+                {
+                  "key": "waitForSelector",
+                  "value": ".product-item"
+                }
+              ]
+            },
+            "description": "Scrape e-commerce catalog page with product items"
+          },
+          "response": []
+        },
+        {
+          "name": "Scrape URL - Long Timeout",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://santaisabel.cl/productos&timeout=90000&waitForSelector=.product-grid",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://santaisabel.cl/productos"
+                },
+                {
+                  "key": "timeout",
+                  "value": "90000"
+                },
+                {
+                  "key": "waitForSelector",
+                  "value": ".product-grid"
+                }
+              ]
+            },
+            "description": "Scrape URL with extended timeout for slow-loading sites"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health & Monitoring",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check the health status of the scraping service"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error Testing",
+      "item": [
+        {
+          "name": "Invalid URL",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=invalid-url",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "invalid-url"
+                }
+              ]
+            },
+            "description": "Test error handling with invalid URL"
+          },
+          "response": []
+        },
+        {
+          "name": "Non-existent URL",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://this-domain-does-not-exist-12345.com&timeout=10000",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://this-domain-does-not-exist-12345.com"
+                },
+                {
+                  "key": "timeout",
+                  "value": "10000"
+                }
+              ]
+            },
+            "description": "Test error handling with non-existent domain"
+          },
+          "response": []
+        },
+        {
+          "name": "Timeout Test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://httpstat.us/200?sleep=5000&timeout=2000",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://httpstat.us/200?sleep=5000"
+                },
+                {
+                  "key": "timeout",
+                  "value": "2000"
+                }
+              ]
+            },
+            "description": "Test timeout handling with slow response"
+          },
+          "response": []
+        },
+        {
+          "name": "Missing URL Parameter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"]
+            },
+            "description": "Test error handling when URL parameter is missing"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Different Site Types",
+      "item": [
+        {
+          "name": "News Site",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://www.bbc.com/news&timeout=30000&waitForSelector=main",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://www.bbc.com/news"
+                },
+                {
+                  "key": "timeout",
+                  "value": "30000"
+                },
+                {
+                  "key": "waitForSelector",
+                  "value": "main"
+                }
+              ]
+            },
+            "description": "Scrape news website content"
+          },
+          "response": []
+        },
+        {
+          "name": "Blog Site",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://blog.example.com&timeout=30000&waitForSelector=.post",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://blog.example.com"
+                },
+                {
+                  "key": "timeout",
+                  "value": "30000"
+                },
+                {
+                  "key": "waitForSelector",
+                  "value": ".post"
+                }
+              ]
+            },
+            "description": "Scrape blog website with post content"
+          },
+          "response": []
+        },
+        {
+          "name": "Product Catalog",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://example-store.com/products&timeout=45000&waitForSelector=.product-card",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://example-store.com/products"
+                },
+                {
+                  "key": "timeout",
+                  "value": "45000"
+                },
+                {
+                  "key": "waitForSelector",
+                  "value": ".product-card"
+                }
+              ]
+            },
+            "description": "Scrape product catalog page"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Performance Testing",
+      "item": [
+        {
+          "name": "Fast Site Test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://httpstat.us/200&timeout=15000",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://httpstat.us/200"
+                },
+                {
+                  "key": "timeout",
+                  "value": "15000"
+                }
+              ]
+            },
+            "description": "Test scraping performance with fast-responding site"
+          },
+          "response": []
+        },
+        {
+          "name": "Medium Site Test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://httpstat.us/200?sleep=2000&timeout=30000",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://httpstat.us/200?sleep=2000"
+                },
+                {
+                  "key": "timeout",
+                  "value": "30000"
+                }
+              ]
+            },
+            "description": "Test scraping with medium response time"
+          },
+          "response": []
+        },
+        {
+          "name": "Slow Site Test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape?url=https://httpstat.us/200?sleep=10000&timeout=60000",
+              "host": ["{{base_url}}"],
+              "path": ["scrape"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://httpstat.us/200?sleep=10000"
+                },
+                {
+                  "key": "timeout",
+                  "value": "60000"
+                }
+              ]
+            },
+            "description": "Test scraping with slow-responding site"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set default timeout if not provided",
+          "if (!pm.request.url.query.has('timeout')) {",
+          "    pm.request.url.query.add({",
+          "        key: 'timeout',",
+          "        value: '30000'",
+          "        enabled: true",
+          "    });",
+          "}",
+          "",
+          "// Log request details",
+          "console.log('Scraping URL:', pm.request.url.query.get('url'));",
+          "console.log('Timeout:', pm.request.url.query.get('timeout'));",
+          "console.log('Wait Selector:', pm.request.url.query.get('waitForSelector'));"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Common test scripts for scraping endpoints",
+          "pm.test('Response status code is successful', function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 500]);",
+          "});",
+          "",
+          "pm.test('Response has required fields', function () {",
+          "    const jsonData = pm.response.json();",
+          "    pm.expect(jsonData).to.have.property('success');",
+          "    pm.expect(jsonData).to.have.property('url');",
+          "    pm.expect(jsonData).to.have.property('timestamp');",
+          "    pm.expect(jsonData).to.have.property('executionTime');",
+          "});",
+          "",
+          "pm.test('Execution time is reasonable', function () {",
+          "    const jsonData = pm.response.json();",
+          "    pm.expect(jsonData.executionTime).to.be.a('number');",
+          "    pm.expect(jsonData.executionTime).to.be.above(0);",
+          "    pm.expect(jsonData.executionTime).to.be.below(120000); // Max 2 minutes",
+          "});",
+          "",
+          "// Test success response",
+          "if (pm.response.json().success) {",
+          "    pm.test('Success response has HTML content', function () {",
+          "        const jsonData = pm.response.json();",
+          "        pm.expect(jsonData).to.have.property('html');",
+          "        pm.expect(jsonData.html).to.be.a('string');",
+          "        pm.expect(jsonData.html.length).to.be.above(0);",
+          "    });",
+          "}",
+          "",
+          "// Test error response",
+          "if (!pm.response.json().success) {",
+          "    pm.test('Error response has error message', function () {",
+          "        const jsonData = pm.response.json();",
+          "        pm.expect(jsonData).to.have.property('error');",
+          "        pm.expect(jsonData.error).to.be.a('string');",
+          "        pm.expect(jsonData.error.length).to.be.above(0);",
+          "    });",
+          "}",
+          "",
+          "// Log execution time",
+          "const executionTime = pm.response.json().executionTime;",
+          "console.log('Execution time:', executionTime + 'ms');",
+          "",
+          "// Log success/failure",
+          "const success = pm.response.json().success;",
+          "console.log('Scraping result:', success ? 'SUCCESS' : 'FAILED');",
+          "",
+          "if (success) {",
+          "    const htmlLength = pm.response.json().html ? pm.response.json().html.length : 0;",
+          "    console.log('HTML content length:', htmlLength + ' characters');",
+          "} else {",
+          "    console.log('Error:', pm.response.json().error);",
+          "}"
+        ]
+      }
+    }
+  ]
+}
+
+
+
