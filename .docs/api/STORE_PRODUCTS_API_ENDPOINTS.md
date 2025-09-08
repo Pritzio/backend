@@ -3,7 +3,7 @@
 *This document provides comprehensive documentation for the Store Products API endpoints. Store Products manage the main product catalog with a simplified structure for various integrations and implementations.*
 
 *Last updated: 2025-01-27*
-*API Version: 2.1*
+*API Version: 2.2*
 
 ## 📋 Table of Contents
 
@@ -28,6 +28,8 @@ The Store Products API manages the main product catalog with a simplified struct
 - **Essential Fields Only**: Only necessary fields for product management and display
 - **Automatic Defaults**: System sets default values for required fields
 - **Flexible Metadata**: Support for custom data through metadata field
+- **Auto Store Creation**: Automatically creates stores from scraping data (similar to categories)
+- **Store Association**: Products are automatically associated with their respective stores
 
 ## 🔐 Authentication
 
@@ -69,6 +71,7 @@ Creates a new store product with simplified structure.
   "sku": "HABAS-500G-001",
   "storeProductId": "75413",
   "image": "https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg",
+  "price": 1390,
   "metadata": {
     "brand": "Cuisine & Co",
     "rating": 5,
@@ -83,6 +86,27 @@ Creates a new store product with simplified structure.
 }
 ```
 
+**Optional Store Information** (for manual creation):
+```json
+{
+  "name": "Habas Congeladas 500 g",
+  "description": "Habas congeladas de alta calidad",
+  "url": "https://jumbo.cl/habas-congeladas-500-g-cuisine-and-co-1763679/p",
+  "sku": "HABAS-500G-001",
+  "storeProductId": "75413",
+  "image": "https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg",
+  "price": 1390,
+  "storeName": "Jumbo",
+  "storeWebsite": "https://jumbo.cl",
+  "metadata": {
+    "brand": "Cuisine & Co",
+    "rating": 5,
+    "categories": ["Otras Verduras"]
+  },
+  "notes": "Product with store association"
+}
+```
+
 **Response** (201 Created):
 ```json
 {
@@ -93,6 +117,7 @@ Creates a new store product with simplified structure.
   "sku": "HABAS-500G-001",
   "storeProductId": "75413",
   "image": "https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg",
+  "price": 1390,
   "metadata": {
     "brand": "Cuisine & Co",
     "rating": 5,
@@ -109,6 +134,31 @@ Creates a new store product with simplified structure.
   "createdBy": "uuid-user-id",
   "creatorId": "uuid-user-id",
   "creatorName": "John Doe",
+  "storeId": "uuid-store-id",
+  "store": {
+    "id": "uuid-store-id",
+    "name": "Jumbo",
+    "website": "https://jumbo.cl",
+    "type": "ONLINE",
+    "status": "ACTIVE",
+    "category": "OTHER",
+    "isVerified": false,
+    "displayName": "Jumbo"
+  },
+  "categories": [
+    {
+      "id": "uuid-category-id",
+      "name": "Otras Verduras",
+      "description": "Verduras diversas",
+      "color": "#22C55E",
+      "icon": "leaf",
+      "isActive": true,
+      "productCount": 25,
+      "createdAt": "2025-01-27T10:30:00.000Z",
+      "updatedAt": "2025-01-27T10:30:00.000Z",
+      "displayName": "Otras Verduras"
+    }
+  ],
   "createdAt": "2025-09-03T10:30:00.000Z",
   "updatedAt": "2025-09-03T10:30:00.000Z"
 }
@@ -142,6 +192,7 @@ Retrieves store products with filtering and pagination.
       "sku": "HABAS-500G-001",
       "storeProductId": "75413",
       "image": "https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg",
+      "price": 1390,
       "metadata": {
         "brand": "Cuisine & Co",
         "rating": 5,
@@ -153,6 +204,31 @@ Retrieves store products with filtering and pagination.
       "createdBy": "uuid-user-id",
       "creatorId": "uuid-user-id",
       "creatorName": "John Doe",
+      "storeId": "uuid-store-id",
+      "store": {
+        "id": "uuid-store-id",
+        "name": "Jumbo",
+        "website": "https://jumbo.cl",
+        "type": "ONLINE",
+        "status": "ACTIVE",
+        "category": "OTHER",
+        "isVerified": false,
+        "displayName": "Jumbo"
+      },
+      "categories": [
+        {
+          "id": "uuid-category-id",
+          "name": "Otras Verduras",
+          "description": "Verduras diversas",
+          "color": "#22C55E",
+          "icon": "leaf",
+          "isActive": true,
+          "productCount": 25,
+          "createdAt": "2025-01-27T10:30:00.000Z",
+          "updatedAt": "2025-01-27T10:30:00.000Z",
+          "displayName": "Otras Verduras"
+        }
+      ],
       "createdAt": "2025-09-03T10:30:00.000Z",
       "updatedAt": "2025-09-03T10:30:00.000Z"
     }
@@ -184,6 +260,7 @@ Retrieves a specific store product by ID.
   "sku": "HABAS-500G-001",
   "storeProductId": "75413",
   "image": "https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg",
+  "price": 1390,
   "metadata": {
     "brand": "Cuisine & Co",
     "rating": 5,
@@ -200,6 +277,31 @@ Retrieves a specific store product by ID.
   "createdBy": "uuid-user-id",
   "creatorId": "uuid-user-id",
   "creatorName": "John Doe",
+  "storeId": "uuid-store-id",
+  "store": {
+    "id": "uuid-store-id",
+    "name": "Jumbo",
+    "website": "https://jumbo.cl",
+    "type": "ONLINE",
+    "status": "ACTIVE",
+    "category": "OTHER",
+    "isVerified": false,
+    "displayName": "Jumbo"
+  },
+  "categories": [
+    {
+      "id": "uuid-category-id",
+      "name": "Otras Verduras",
+      "description": "Verduras diversas",
+      "color": "#22C55E",
+      "icon": "leaf",
+      "isActive": true,
+      "productCount": 25,
+      "createdAt": "2025-01-27T10:30:00.000Z",
+      "updatedAt": "2025-01-27T10:30:00.000Z",
+      "displayName": "Otras Verduras"
+    }
+  ],
   "createdAt": "2025-09-03T10:30:00.000Z",
   "updatedAt": "2025-09-03T10:30:00.000Z"
 }
@@ -274,21 +376,25 @@ Adds multiple products from scraping data with automatic duplicate detection.
     "ppum": "$2.786 x kg",
     "highResImageUrl": "https://jumbocl.vtexassets.com/arquivos/ids/363133-91-91/Habas-congeladas-500-g.jpg",
     "categories": ["Otras Verduras"],
-    "price": "$1,390"
+    "price": 1390,
+    "store": "Jumbo",
+    "storeWebsite": "https://jumbo.cl"
   },
   {
     "id": "75414",
     "name": "Arroz Integral 1 kg",
     "description": "Arroz integral de grano largo",
-    "url": "https://jumbo.cl/arroz-integral-1-kg-marca-propia-123456/p",
+    "url": "https://lider.cl/arroz-integral-1-kg-marca-propia-123456/p",
     "sku": "ARROZ-INT-1KG",
-    "imageUrl": "https://jumbocl.vteximg.com.br/arquivos/ids/363134-250-250/Arroz-integral-1-kg.jpg",
+    "imageUrl": "https://lider.cl/arquivos/ids/363134-250-250/Arroz-integral-1-kg.jpg",
     "brand": "Marca Propia",
     "rating": 4,
     "ratingText": "4.2",
     "ppum": "$1,200 x kg",
     "categories": ["Granos y Cereales"],
-    "price": "$1,200"
+    "price": 1200,
+    "store": "Líder",
+    "storeWebsite": "https://lider.cl"
   }
 ]
 ```
@@ -314,6 +420,7 @@ Adds multiple products from scraping data with automatic duplicate detection.
         "sku": "HABAS-500G-001",
         "storeProductId": "75413",
         "image": "https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg",
+        "price": 1390,
         "metadata": {
           "brand": "Cuisine & Co",
           "rating": 5,
@@ -321,7 +428,7 @@ Adds multiple products from scraping data with automatic duplicate detection.
           "ppum": "$2.786 x kg",
           "highResImageUrl": "https://jumbocl.vtexassets.com/arquivos/ids/363133-91-91/Habas-congeladas-500-g.jpg",
           "categories": ["Otras Verduras"],
-          "originalPrice": "$1,390",
+          "originalPrice": 1390,
           "originalData": { /* original scraped data */ }
         },
         "lastScraped": "2025-01-27T10:30:00.000Z",
@@ -364,6 +471,20 @@ Adds multiple products from scraping data with automatic duplicate detection.
 - If a category doesn't exist, it's created with the name from the scraping data
 - Products are automatically associated with their categories
 - Original category data is preserved in `metadata.originalData.categories`
+
+**Automatic Store Creation**:
+- Stores are automatically created from the `store`, `storeName`, or `source` field in scraped data
+- The system checks for existing stores by name before creating new ones
+- If a store doesn't exist, it's created with minimal data (name, website if provided)
+- Products are automatically associated with their respective stores
+- Auto-created stores have `isVerified: false` and need manual verification
+- Store information is preserved in the product's `store` relationship
+
+**Store Field Priority**:
+1. `storeName` - Primary field for store name
+2. `store` - Alternative field for store name (used when `storeName` is not available)
+3. `source` - Fallback field for store name
+4. `'Unknown Store'` - Default value if none of the above are provided
 
 **Error Response** (400 Bad Request):
 ```json
@@ -511,8 +632,13 @@ interface CreateStoreProductDto {
   sku?: string;                    // Store-specific SKU (max 100 characters)
   storeProductId?: string;         // Store-specific product ID (max 100 characters)
   image?: string;                  // Product image URL (max 500 characters, must be valid URL)
+  price?: number;                  // Product price as integer (no decimals)
   metadata?: Record<string, any>;  // Additional metadata (JSON object)
   notes?: string;                  // Notes about the product (max 500 characters)
+  
+  // Store association (optional)
+  storeName?: string;              // Store name for auto-creation
+  storeWebsite?: string;           // Store website for auto-creation
 }
 ```
 
@@ -526,6 +652,7 @@ interface IStoreProductResponse {
   sku?: string;                    // Store-specific SKU
   storeProductId?: string;         // Store-specific product ID
   image?: string;                  // Product image URL
+  price?: number;                  // Product price as integer (no decimals)
   metadata?: Record<string, any>;  // Additional metadata
   lastScraped?: Date;              // Last scraping timestamp
   notes?: string;                  // Notes about the product
@@ -533,6 +660,8 @@ interface IStoreProductResponse {
   createdBy: string;               // Creator user ID
   creatorId: string;               // Creator user ID (alias)
   creatorName: string;             // Creator full name
+  storeId?: string;                // Associated store ID
+  store?: IStoreResponse;          // Associated store information
   createdAt: Date;                 // Creation timestamp
   updatedAt: Date;                 // Last update timestamp
   categories: ICategoryResponse[]; // Associated categories
@@ -549,9 +678,12 @@ interface IStoreProductSummary {
   sku?: string;                    // Store-specific SKU
   storeProductId?: string;         // Store-specific product ID
   image?: string;                  // Product image URL
+  price?: number;                  // Product price as integer (no decimals)
   lastScraped?: Date;              // Last scraping timestamp
   createdAt: Date;                 // Creation timestamp
   creatorName: string;             // Creator full name
+  storeId?: string;                // Associated store ID
+  store?: IStoreResponse;          // Associated store information
   categories: ICategoryResponse[]; // Associated categories
 }
 ```
@@ -561,8 +693,26 @@ interface IStoreProductSummary {
 interface IStoreProductFilter {
   search?: string;                 // Search term for name or description
   createdBy?: string;              // Filter by creator ID
+  storeId?: string;                // Filter by store ID
+  storeName?: string;              // Filter by store name
   dateFrom?: Date;                 // Filter by creation date (from)
   dateTo?: Date;                   // Filter by creation date (to)
+}
+```
+
+### Store Interfaces
+
+### IStoreResponse
+```typescript
+interface IStoreResponse {
+  id: string;                      // UUID
+  name: string;                    // Store name
+  website?: string;                // Store website
+  type: string;                    // Store type (ONLINE, PHYSICAL, HYBRID)
+  status: string;                  // Store status (ACTIVE, INACTIVE, SUSPENDED)
+  category: string;                // Store category
+  isVerified: boolean;             // Verification status
+  displayName: string;             // Display name (virtual property)
 }
 ```
 
@@ -823,6 +973,11 @@ def process_scraped_products(scraped_data, api_client):
 - **New in v2.1**: Enhanced error reporting and statistics
 - **New in v2.1**: Automatic category creation from scraping data
 - **New in v2.1**: Product-category relationships with many-to-many mapping
+- **New in v2.2**: Automatic store creation from scraping data
+- **New in v2.2**: Product-store relationships with auto-association
+- **New in v2.2**: Store information in product responses
+- **New in v2.2**: Store filtering capabilities
+- **New in v2.2**: Price field as integer (no decimals, no currency)
 
 ### Duplicate Detection
 
@@ -848,6 +1003,26 @@ The system automatically manages categories from scraping data:
 - **UI Support**: Categories include color and icon fields for frontend display
 - **Product Counting**: Automatic tracking of products per category
 
+### Store Management
+
+The system automatically manages stores from scraping data:
+
+- **Automatic Creation**: Stores are created automatically from `product.storeName` field
+- **Minimal Data**: Auto-created stores use only essential fields (name, website if provided)
+- **Default Values**: Auto-created stores have sensible defaults (ONLINE type, ACTIVE status, OTHER category)
+- **Verification Required**: Auto-created stores need manual verification (`isVerified: false`)
+- **Product Association**: Products are automatically associated with their respective stores
+- **Metadata Preservation**: Store creation information is preserved in store metadata
+
+### Price Management
+
+The system manages product prices with the following characteristics:
+
+- **Integer Format**: Prices are stored as integers without decimals (e.g., 1390 for $13.90)
+- **No Currency**: No currency field is used - prices are stored as raw numbers
+- **Scraping Integration**: Prices are automatically extracted and converted from scraping data
+- **Original Preservation**: Original price data is preserved in `metadata.originalPrice`
+
 ## 🔗 Related Documentation
 
 - [Categories API](./CATEGORIES_API_ENDPOINTS.md) - Category management endpoints
@@ -855,3 +1030,4 @@ The system automatically manages categories from scraping data:
 - [Frontend Integration Guide](./FRONTEND_INTEGRATION_GUIDE.md) - React/Next.js examples
 - [Mobile Integration Guide](./MOBILE_INTEGRATION_GUIDE.md) - Flutter/React Native examples
 - [API Integration Guide](./API_INTEGRATION_GUIDE.md) - Third-party integration examples
+

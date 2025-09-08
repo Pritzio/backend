@@ -203,7 +203,11 @@ export class PhysicalLocation {
   @JoinColumn({ name: 'createdBy' })
   creator: User;
 
-  // Store products will be linked through storeId
+  @ManyToOne(() => StoreProduct, (storeProduct) => storeProduct.physicalLocations, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'storeProductId' })
+  storeProduct: StoreProduct;
 
   // Virtual properties
   get isActive(): boolean {

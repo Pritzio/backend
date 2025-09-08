@@ -9,7 +9,7 @@ import {
   Min,
   Max,
 } from 'class-validator';
-import { LocationStatus } from '../entities/physical-location.entity';
+import { LocationStatus } from '../../physical-locations/entities/physical-location.entity';
 
 export class CreateStoreLocationDto {
   @ApiProperty({

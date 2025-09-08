@@ -12,6 +12,9 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
   Logger,
+  UseInterceptors,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -28,15 +31,13 @@ import {
 } from '../dto';
 import {
   IStoreProductResponse,
-  IStoreProductSummary,
   IStoreProductFilter,
 } from '../interfaces/store-product.interface';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { RoleType } from '../../auth/entities/role.entity';
-
-import { NotFoundException } from '@nestjs/common';
+import { DateFormatterUtil } from '../../common/utils/date-formatter.util';
 
 @ApiTags('Store Products')
 @Controller('store-products')
@@ -48,6 +49,25 @@ export class StoreProductsController {
   constructor(
     private readonly storeProductsService: StoreProductsService,
   ) {}
+
+  @Get('test-dates')
+  @ApiOperation({ summary: 'Test date formatting' })
+  @ApiResponse({ status: 200, description: 'Test dates returned' })
+  async testDates() {
+    const testData = {
+      currentDate: new Date(),
+      chileTime: DateFormatterUtil.getCurrentChileTime(),
+      formattedDate: DateFormatterUtil.formatToChileanDateTime(new Date()),
+      testObject: {
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastScraped: new Date(),
+        regularField: 'test value'
+      }
+    };
+    
+    return testData;
+  }
 
   @Post()
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
@@ -115,6 +135,79 @@ export class StoreProductsController {
     @Request() req: any,
   ): Promise<{ data: IStoreProductResponse[]; total: number; page: number; limit: number }> {
     return this.storeProductsService.getAllStoreProducts(req.user, {}, 1, 100);
+  }
+
+  @Get('check-url-exists')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
+  @ApiOperation({
+    summary: 'Check if URL exists in database',
+    description: 'Verifies if a URL already exists in the database associated with a product. Returns true if exists, false otherwise.',
+  })
+  @ApiQuery({
+    name: 'url',
+    description: 'URL to check in database',
+    example: 'https://www.example.com/product/123',
+    required: true,
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'URL check completed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        exists: { type: 'boolean', description: 'Whether the URL exists in database' },
+        url: { type: 'string', description: 'The URL that was checked' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid URL format',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
+  })
+  async checkUrlExists(@Query('url') url: string): Promise<{
+    exists: boolean;
+    url: string;
+  }> {
+    try {
+      if (!url) {
+        throw new HttpException(
+          'URL parameter is required',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const exists = await this.storeProductsService.checkUrlExists(url);
+
+      return {
+        exists,
+        url,
+      };
+    } catch (error) {
+      this.logger.error(
+        `URL check error for ${url}: ${error.message}`,
+        error.stack,
+      );
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        'An unexpected error occurred during URL check',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get(':id')
@@ -193,10 +286,6 @@ export class StoreProductsController {
     @Body() data: any,
     @Request() req: any,
   ): Promise<any> {
-    console.log('🔥🔥🔥 SCRAPING ENDPOINT CALLED - DATA RECEIVED 🔥🔥🔥');
-    console.log('📊 REQUEST DATA:', JSON.stringify(data, null, 2));
-    console.log('👤 USER INFO:', JSON.stringify(req.user, null, 2));
-    
     this.logger.log('=== SCRAPING ADD PRODUCTS ENDPOINT CALLED ===');
     this.logger.log('Request data received:', JSON.stringify(data, null, 2));
     this.logger.log('User making request:', JSON.stringify(req.user, null, 2));
@@ -204,9 +293,8 @@ export class StoreProductsController {
     this.logger.log('Data is array:', Array.isArray(data));
     
     try {
-      // Procesar los datos recibidos
+      // Process received data
       if (Array.isArray(data)) {
-        console.log(`🔄 Processing ${data.length} products`);
         this.logger.log(`Processing ${data.length} products`);
         
         const results: Array<{
@@ -219,18 +307,18 @@ export class StoreProductsController {
         
         for (let i = 0; i < data.length; i++) {
           const product = data[i];
-          console.log(`📦 Processing product ${i + 1}:`, JSON.stringify(product, null, 2));
           this.logger.log(`Processing product ${i + 1}:`, JSON.stringify(product, null, 2));
           
           try {
-            // Mapear los datos del scraping al formato esperado
+            // Map scraping data to expected format
             const createStoreProductDto = {
-              name: product.name || 'Producto sin nombre',
+              name: product.name || 'Unnamed Product',
               description: product.description || null,
               url: product.url || null,
               sku: product.sku || null,
-              storeProductId: product.id || null, // ID del producto en la tienda externa
+              storeProductId: product.id || null, // External store product ID
               image: product.imageUrl || product.image || null,
+              price: product.price ? Math.round(parseFloat(product.price.toString().replace(/[^0-9.-]/g, ''))) : undefined,
               metadata: {
                 brand: product.brand || null,
                 rating: product.rating || null,
@@ -238,23 +326,21 @@ export class StoreProductsController {
                 ppum: product.ppum || null,
                 highResImageUrl: product.highResImageUrl || null,
                 categories: product.categories || [],
-                originalPrice: product.price || null, // Guardar el precio original del scraping
+                originalPrice: product.price || null, // Save original scraping price
                 originalData: product
               },
-              notes: `Producto agregado desde scraping - ${new Date().toISOString()}`
+              notes: `Product added from scraping - ${new Date().toISOString()}`
             };
             
-            console.log(`✅ Mapped DTO for product ${i + 1}:`, JSON.stringify(createStoreProductDto, null, 2));
             this.logger.log(`Mapped DTO for product ${i + 1}:`, JSON.stringify(createStoreProductDto, null, 2));
             
-            // Verificar si ya existe un producto con el mismo storeProductId o url
+            // Check if product already exists with same storeProductId or url
             const existingProduct = await this.storeProductsService.checkDuplicateStoreProduct(
               createStoreProductDto.storeProductId,
               createStoreProductDto.url
             );
             
             if (existingProduct) {
-              console.log(`⚠️ Product ${i + 1} already exists - skipping. Existing ID: ${existingProduct.id}, storeProductId: ${existingProduct.storeProductId}, url: ${existingProduct.url}`);
               this.logger.log(`Product ${i + 1} already exists - skipping. Existing ID: ${existingProduct.id}`);
               
               results.push({
@@ -268,16 +354,24 @@ export class StoreProductsController {
                   duplicateValue: existingProduct.storeProductId === createStoreProductDto.storeProductId ? createStoreProductDto.storeProductId : createStoreProductDto.url
                 }
               });
-              continue; // Pasar al siguiente producto
+              continue; // Skip to next product
             }
             
-            // Extraer categorías del metadata original
+            // Extract categories from original metadata
             const categoryNames = product.categories || [];
+            
+            // Extract store information
+            const storeName = product.storeName || product.store || product.source || 'Unknown Store';
+            const storeWebsite = product.storeWebsite || product.storeUrl || null;
+            
+            this.logger.log(`Store info for product ${i + 1}:`, { storeName, storeWebsite });
             
             const createdProduct = await this.storeProductsService.createStoreProduct(
               createStoreProductDto,
               req.user,
-              categoryNames
+              categoryNames,
+              storeName,
+              storeWebsite
             );
             
             results.push({
@@ -286,14 +380,9 @@ export class StoreProductsController {
               createdProduct: createdProduct
             });
             
-            console.log(`🎉 Successfully created product ${i + 1} with ID: ${createdProduct.id}`);
             this.logger.log(`Successfully created product ${i + 1} with ID: ${createdProduct.id}`);
             
           } catch (productError) {
-            console.error(`❌ Error processing product ${i + 1}:`, productError);
-            console.error(`❌ Error message:`, productError.message);
-            console.error(`❌ Error stack:`, productError.stack);
-            
             this.logger.error(`Error processing product ${i + 1}:`, productError);
             this.logger.error(`Error message: ${productError.message}`);
             this.logger.error(`Error stack: ${productError.stack}`);
@@ -311,7 +400,6 @@ export class StoreProductsController {
           }
         }
         
-        console.log('📋 Final results:', JSON.stringify(results, null, 2));
         this.logger.log('Final results:', JSON.stringify(results, null, 2));
         
         const successful = results.filter(r => r.success).length;
@@ -334,12 +422,10 @@ export class StoreProductsController {
           }
         };
         
-        console.log('📤 Sending response:', JSON.stringify(response, null, 2));
         return response;
         
       } else {
         const errorMsg = `Data is not an array: ${typeof data}`;
-        console.error('❌', errorMsg);
         this.logger.error('Data is not an array:', typeof data);
         
         return {
@@ -355,10 +441,6 @@ export class StoreProductsController {
       }
       
     } catch (error) {
-      console.error('💥 CRITICAL ERROR in addScrapedProducts:', error);
-      console.error('💥 Error message:', error.message);
-      console.error('💥 Error stack:', error.stack);
-      
       this.logger.error('Error in addScrapedProducts:', error);
       this.logger.error('Error stack:', error.stack);
       
@@ -377,4 +459,6 @@ export class StoreProductsController {
       };
     }
   }
+
 }
+

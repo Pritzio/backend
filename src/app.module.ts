@@ -34,8 +34,12 @@ const isStaging = process.env.NODE_ENV === 'staging';
       password: 'pritzio_password',
       database: 'pritzio',
       autoLoadEntities: true,
-      synchronize: false, // Deshabilitado para evitar conflictos
+      synchronize: true, // Habilitado para desarrollo - actualización automática de esquema
       logging: process.env.TYPEORM_LOGGING === 'true' ? true : false,
+      extra: {
+        timezone: process.env.TIMEZONE || 'America/Santiago',
+        application_name: 'pritzio-backend',
+      },
       ...(process.env.TYPEORM_LOGGING === 'true' && {
         logger: 'advanced-console',
         maxQueryExecutionTime: 1000,

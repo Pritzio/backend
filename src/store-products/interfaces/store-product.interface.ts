@@ -3,16 +3,33 @@ import {
 } from '../entities/store-product.entity';
 import { ICategoryResponse } from './category.interface';
 
+export interface IStoreResponse {
+  id: string;
+  name: string;
+  website?: string;
+  type: string;
+  status: string;
+  category: string;
+  isVerified: boolean;
+  displayName: string;
+}
+
 export interface IStoreProductResponse
   extends Omit<
     StoreProduct,
-    'creator' | 'verifier' | 'categories'
+    'creator' | 'verifier' | 'categories' | 'store' | 'storeId' | 'price' | 'createdAt' | 'updatedAt' | 'lastScraped'
   > {
   creatorId: string;
   creatorName: string;
   displayName: string;
   createdBy: string;
+  storeId?: string;
+  store?: IStoreResponse;
+  price?: number;
   categories: ICategoryResponse[];
+  createdAt: string;
+  updatedAt: string;
+  lastScraped?: string;
 }
 
 export interface IStoreProductSummary {
@@ -23,8 +40,9 @@ export interface IStoreProductSummary {
   sku?: string;
   storeProductId?: string;
   image?: string;
-  lastScraped?: Date;
-  createdAt: Date;
+  price?: number;
+  lastScraped?: string;
+  createdAt: string;
   creatorName: string;
   categories: ICategoryResponse[];
 }

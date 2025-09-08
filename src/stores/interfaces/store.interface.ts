@@ -4,8 +4,8 @@ import {
   StoreStatus,
   StoreCategory,
 } from '../entities/store.entity';
-import { PhysicalLocation } from '../entities/physical-location.entity';
-import { StoreProduct } from '../entities/store-product.entity';
+import { PhysicalLocation } from '../../physical-locations/entities/physical-location.entity';
+import { StoreProduct } from '../../store-products/entities/store-product.entity';
 
 export interface IStoreResponse
   extends Omit<

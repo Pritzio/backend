@@ -4,8 +4,10 @@ import {
   IsOptional,
   IsUrl,
   IsObject,
+  IsNumber,
   MaxLength,
   MinLength,
+  Min,
 } from 'class-validator';
 
 export class CreateStoreProductDto {
@@ -76,6 +78,17 @@ export class CreateStoreProductDto {
   @IsUrl()
   @MaxLength(500)
   image?: string;
+
+  @ApiProperty({
+    description: 'Product price in integer format',
+    example: 1299,
+    required: false,
+    minimum: 0,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  price?: number;
 
   @ApiProperty({
     description: 'Additional metadata',

@@ -10,8 +10,8 @@ import {
   Index,
 } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
-import { StoreProduct } from './store-product.entity';
-import { PhysicalLocation } from './physical-location.entity';
+import { StoreProduct } from '../../store-products/entities/store-product.entity';
+import { PhysicalLocation } from '../../physical-locations/entities/physical-location.entity';
 
 export enum StoreType {
   ONLINE = 'online',
@@ -42,7 +42,7 @@ export enum StoreCategory {
 
 @Entity('stores')
 @Index(['name'], { unique: true })
-@Index(['website'], { unique: true })
+@Index(['website'], { unique: true, where: 'website IS NOT NULL' })
 @Index(['status'])
 @Index(['type'])
 @Index(['category'])
@@ -56,7 +56,7 @@ export class Store {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'varchar', length: 500, unique: true })
+  @Column({ type: 'varchar', length: 500, nullable: true })
   website: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
@@ -107,7 +107,7 @@ export class Store {
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, any>;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', nullable: true })
   createdBy: string;
 
   @CreateDateColumn()
@@ -117,7 +117,7 @@ export class Store {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, { nullable: false })
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'createdBy' })
   creator: User;
 

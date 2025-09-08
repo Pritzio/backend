@@ -17,8 +17,8 @@ export class ScrapingService {
   private readonly logger = new Logger(ScrapingService.name);
 
   private readonly defaultOptions: IScrapingOptions = {
-    timeout: 30000,
-    waitForSelector: '[data-cnstrc-item-id]',
+    timeout: 10000, // Reduced timeout for faster response
+    waitForSelector: undefined, // No waiting for specific selectors
     userAgent:
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
     viewport: {
@@ -49,6 +49,69 @@ export class ScrapingService {
     'main', // Main content
     'body', // Fallback to body
   ];
+
+  /**
+   * Fast method to capture HTML content from a URL
+   * Optimized for speed - blocks external resources and uses minimal waiting
+   */
+  async getHtmlFast(scrapeDto: ScrapeUrlDto): Promise<IScrapingResponse> {
+    const startTime = Date.now();
+    let browser: Browser | null = null;
+
+    try {
+      // this.logger.log(`Starting fast HTML capture for URL: ${scrapeDto.url}`);
+
+      // Validate URL format and accessibility
+      this.validateUrl(scrapeDto.url);
+
+      // Merge options with fast defaults
+      const options = this.mergeFastOptions(scrapeDto);
+
+      // Launch browser
+      browser = await this.launchBrowser(options);
+
+      // Create new page and navigate
+      const page = await this.createPage(browser, options);
+      await this.navigateToUrl(page, scrapeDto.url);
+
+      // Minimal wait for content
+      await this.waitForContent(page, options);
+
+      // Get page content
+      const result = await this.extractContent(page);
+
+      const executionTime = Date.now() - startTime;
+      // this.logger.log(`Fast HTML capture completed successfully in ${executionTime}ms`);
+
+      return {
+        success: true,
+        html: result.html,
+        url: scrapeDto.url,
+        timestamp: new Date(),
+        executionTime,
+      };
+    } catch (error) {
+      const executionTime = Date.now() - startTime;
+      this.logger.error(
+        `Fast HTML capture failed for ${scrapeDto.url}: ${error.message}`,
+        error.stack,
+      );
+
+      return {
+        success: false,
+        url: scrapeDto.url,
+        timestamp: new Date(),
+        executionTime,
+        error: error.message,
+      };
+    } finally {
+      // Always close browser
+      if (browser) {
+        await browser.close();
+        // this.logger.log('Browser closed');
+      }
+    }
+  }
 
   /**
    * Main method to capture HTML content from a URL
@@ -129,64 +192,33 @@ export class ScrapingService {
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
           '--disable-gpu',
-          '--disable-blink-features=AutomationControlled',
           '--disable-extensions',
           '--disable-plugins',
-          '--disable-images',
-          '--disable-javascript',
-          '--disable-web-security',
-          '--allow-running-insecure-content',
-          '--disable-features=VizDisplayCompositor',
-          '--disable-ipc-flooding-protection',
-          '--disable-renderer-backgrounding',
+          '--disable-images', // Block images for speed
           '--disable-background-timer-throttling',
           '--disable-backgrounding-occluded-windows',
-          '--disable-client-side-phishing-detection',
-          '--disable-component-update',
-          '--disable-default-apps',
-          '--disable-domain-reliability',
+          '--disable-renderer-backgrounding',
           '--disable-features=TranslateUI',
+          '--disable-ipc-flooding-protection',
           '--disable-hang-monitor',
           '--disable-prompt-on-repost',
           '--disable-sync',
-          '--force-color-profile=srgb',
-          '--metrics-recording-only',
-          '--no-default-browser-check',
-          '--safebrowsing-disable-auto-update',
-          '--disable-safebrowsing',
           '--disable-translate',
           '--hide-scrollbars',
           '--mute-audio',
           '--no-first-run',
-          '--safebrowsing-disable-auto-update',
-          '--disable-blink-features',
-          '--disable-blink-features=AutomationControlled',
           '--disable-web-security',
           '--disable-features=VizDisplayCompositor',
-          '--disable-ipc-flooding-protection',
-          '--disable-renderer-backgrounding',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
           '--disable-client-side-phishing-detection',
           '--disable-component-update',
           '--disable-default-apps',
           '--disable-domain-reliability',
-          '--disable-features=TranslateUI',
-          '--disable-hang-monitor',
-          '--disable-prompt-on-repost',
-          '--disable-sync',
           '--force-color-profile=srgb',
           '--metrics-recording-only',
           '--no-default-browser-check',
-          '--safebrowsing-disable-auto-update',
           '--disable-safebrowsing',
-          '--disable-translate',
-          '--hide-scrollbars',
-          '--mute-audio',
+          '--disable-blink-features=AutomationControlled',
         ],
       });
     } catch (error) {
@@ -218,6 +250,29 @@ export class ScrapingService {
     if (options.viewport) {
       await page.setViewportSize(options.viewport);
     }
+
+    // Block only heavy resources but allow essential ones for dynamic content
+    await page.route('**/*', (route) => {
+      const resourceType = route.request().resourceType();
+      const url = route.request().url();
+      
+      // Allow document, script, and XHR/fetch requests
+      if (['document', 'script', 'xhr', 'fetch'].includes(resourceType)) {
+        route.continue();
+      } 
+      // Block only images and media (heavy resources)
+      else if (['image', 'media'].includes(resourceType)) {
+        route.abort();
+      }
+      // Allow stylesheets and fonts (needed for proper layout)
+      else if (['stylesheet', 'font'].includes(resourceType)) {
+        route.continue();
+      }
+      // Allow other resources
+      else {
+        route.continue();
+      }
+    });
 
     // Set additional headers to avoid detection
     await page.setExtraHTTPHeaders({
@@ -285,31 +340,17 @@ export class ScrapingService {
   }
 
   /**
-   * Navigate to the target URL with human-like behavior
+   * Navigate to the target URL - balanced for JavaScript and speed
    */
   private async navigateToUrl(page: Page, url: string): Promise<void> {
     try {
       // this.logger.log(`Navigating to: ${url}`);
 
-      // Try networkidle first, fallback to domcontentloaded if timeout
-      try {
-        await page.goto(url, {
-          waitUntil: 'networkidle',
-          timeout: 30000, // Reduced timeout for networkidle
-        });
-      } catch (networkIdleError) {
-        // Fallback to domcontentloaded if networkidle times out
-        this.logger.warn(
-          `Network idle timeout, falling back to DOM content loaded: ${networkIdleError.message}`,
-        );
-        await page.goto(url, {
-          waitUntil: 'domcontentloaded',
-          timeout: 30000,
-        });
-      }
-
-      // Simulate human behavior - random delays and mouse movements
-      await this.simulateHumanBehavior(page);
+      // Use domcontentloaded for faster response, then wait for specific content
+      await page.goto(url, {
+        waitUntil: 'domcontentloaded',
+        timeout: 8000, // Faster initial load
+      });
 
       // this.logger.log('Navigation completed');
     } catch (error) {
@@ -352,35 +393,52 @@ export class ScrapingService {
   }
 
   /**
-   * Wait for page to load and capture HTML
-   * Flexible approach: try networkidle, fallback to load state
+   * Wait for page to load - optimized for speed
    */
   private async waitForContent(
     page: Page,
     options: IScrapingOptions,
   ): Promise<void> {
     try {
-      const { timeout } = options;
+      const { timeout, waitForSelector } = options;
 
       // this.logger.log(`Waiting for page to load with timeout: ${timeout}ms`);
 
-      // Try networkidle first, fallback to load if it times out
+      // If a specific selector is provided, wait for it (this is the key for dynamic content)
+      if (waitForSelector) {
+        try {
+          // Use a fixed timeout for selectors - no need for user timeout here
+          await page.waitForSelector(waitForSelector, {
+            timeout: 5000, // Fixed 5 second timeout for selectors
+          });
+          // If selector found, we're done - no need to wait more
+          return;
+        } catch (selectorError) {
+          this.logger.warn(
+            `Selector ${waitForSelector} not found, continuing anyway: ${selectorError.message}`,
+          );
+        }
+      }
+
+      // If no selector, wait for network idle but with shorter timeout
       try {
         await page.waitForLoadState('networkidle', {
-          timeout: Math.min(timeout || 30000, 15000),
+          timeout: Math.min(timeout || 10000, 5000), // Much shorter timeout
         });
       } catch (networkIdleError) {
-        // Fallback to load state if networkidle times out
+        // Fallback to domcontentloaded if networkidle times out
         this.logger.warn(
-          `Network idle timeout, falling back to load state: ${networkIdleError.message}`,
+          `Network idle timeout, falling back to DOM content loaded: ${networkIdleError.message}`,
         );
-        await page.waitForLoadState('load', {
-          timeout: Math.min(timeout || 30000, 10000),
+        await page.waitForLoadState('domcontentloaded', {
+          timeout: Math.min(timeout || 10000, 3000),
         });
       }
 
-      // Additional wait to ensure JavaScript execution
-      await page.waitForTimeout(2000); // Reduced from 3000ms
+      // Minimal additional wait only if no selector was provided
+      if (!waitForSelector) {
+        await page.waitForTimeout(1000); // Reduced from 3000ms
+      }
 
       // this.logger.log('Page loaded successfully, ready to capture HTML');
     } catch (error) {
@@ -477,6 +535,18 @@ export class ScrapingService {
   }
 
   /**
+   * Merge user options with fast defaults
+   */
+  private mergeFastOptions(scrapeDto: ScrapeUrlDto): IScrapingOptions {
+    return {
+      ...this.defaultOptions,
+      timeout: Math.min(scrapeDto.timeout || 8000, 15000), // Cap at 15 seconds for faster response
+      waitForSelector: scrapeDto.waitForSelector, // Allow waiting for specific selectors
+      userAgent: scrapeDto.userAgent || this.defaultOptions.userAgent,
+    };
+  }
+
+  /**
    * Merge user options with defaults
    */
   private mergeOptions(scrapeDto: ScrapeUrlDto): IScrapingOptions {
@@ -488,6 +558,7 @@ export class ScrapingService {
       userAgent: scrapeDto.userAgent || this.defaultOptions.userAgent,
     };
   }
+
 
   /**
    * Health check method for the scraping service

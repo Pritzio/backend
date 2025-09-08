@@ -5,6 +5,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 
+// Set timezone to Chile
+process.env.TZ = process.env.TIMEZONE || 'America/Santiago';
+
 async function bootstrap() {
   const logger = new Logger('Main');
 

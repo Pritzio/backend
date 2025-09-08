@@ -10,7 +10,7 @@ import {
 import {
   PhysicalLocation,
   LocationStatus,
-} from '../entities/physical-location.entity';
+} from '../../physical-locations/entities/physical-location.entity';
 
 @Injectable()
 export class StoresSeeder {

@@ -41,7 +41,7 @@ import {
   StoreStatus,
   StoreCategory,
 } from '../entities/store.entity';
-import { PhysicalLocation } from '../entities/physical-location.entity';
+import { PhysicalLocation } from '../../physical-locations/entities/physical-location.entity';
 import {
   IStoreResponse,
   IStoreListResponse,

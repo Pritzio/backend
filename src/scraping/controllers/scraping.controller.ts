@@ -28,14 +28,103 @@ export class ScrapingController {
 
   constructor(private readonly scrapingService: ScrapingService) {}
 
+  @Get('scrape-fast')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
+  @ApiOperation({
+    summary: 'Fast HTML capture - optimized for dynamic content',
+    description:
+      'Captures HTML content with JavaScript enabled for dynamic content loading. Blocks only images and media for speed while allowing CSS, fonts, and API calls. Perfect for pages that load products via API.',
+  })
+  @ApiQuery({
+    name: 'url',
+    description: 'URL to capture (any valid HTTP/HTTPS URL)',
+    example: 'https://www.example.com/page',
+    required: true,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'timeout',
+    description: 'Timeout in milliseconds (5000-15000). Only used when waitForSelector is not provided.',
+    example: 8000,
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'waitForSelector',
+    description: 'CSS selector to wait for before scraping. If provided, timeout is ignored and uses 5s fixed timeout.',
+    example: '[data-cnstrc-item-id]',
+    required: false,
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'HTML content scraped successfully (fast mode)',
+    type: ScrapingResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - Invalid URL format or parameters',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error - Scraping failed',
+  })
+  async scrapeUrlFast(@Query() query: ScrapeUrlDto): Promise<ScrapingResponseDto> {
+    try {
+      if (!query.url) {
+        throw new HttpException(
+          'URL parameter is required',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      // Perform fast scraping
+      const result = await this.scrapingService.getHtmlFast(query);
+
+      if (!result.success) {
+        throw new HttpException(
+          result.error || 'Scraping failed',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      return result;
+    } catch (error) {
+      this.logger.error(
+        `Fast scraping error for ${query.url}: ${error.message}`,
+        error.stack,
+      );
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      // Handle unexpected errors
+      throw new HttpException(
+        'An unexpected error occurred during scraping',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Get('scrape')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
   @ApiOperation({
-    summary: 'Capture HTML content from any web page',
+    summary: 'Capture HTML content from any web page (full mode)',
     description:
-      'Simulates a browser visit to any URL and returns the raw HTML content for external processing.',
+      'Simulates a browser visit to any URL and returns the raw HTML content for external processing. Waits for all resources to load.',
   })
   @ApiQuery({
     name: 'url',

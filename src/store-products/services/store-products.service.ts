@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -15,20 +15,34 @@ import {
 import { ICategoryResponse } from '../interfaces/category.interface';
 import { User } from '../../auth/entities/user.entity';
 import { CategoriesService } from './categories.service';
+import { StoresService } from '../../stores/services/stores.service';
+import { Store } from '../../stores/entities/store.entity';
+import { DateFormatterUtil } from '../../common/utils/date-formatter.util';
 
 @Injectable()
 export class StoreProductsService {
+  private readonly logger = new Logger(StoreProductsService.name);
+
   constructor(
     @InjectRepository(StoreProduct)
     private readonly storeProductRepository: Repository<StoreProduct>,
     private readonly categoriesService: CategoriesService,
+    private readonly storesService: StoresService,
   ) {}
 
   async createStoreProduct(
     createStoreProductDto: CreateStoreProductDto,
     user: User,
     categoryNames?: string[],
+    storeName?: string,
+    storeWebsite?: string,
   ): Promise<IStoreProductResponse> {
+    // Handle store creation if store name is provided
+    let store: Store | undefined = undefined;
+    if (storeName) {
+      store = await this.storesService.findOrCreateStore(storeName, storeWebsite);
+    }
+
     // Create new store product with minimal data and defaults
     const storeProduct = this.storeProductRepository.create({
       ...createStoreProductDto,
@@ -36,6 +50,7 @@ export class StoreProductsService {
       lastScraped: new Date(),
       notes: 'Created from scraping data',
       createdBy: user.id,
+      storeId: store?.id || undefined,
     });
 
     const savedStoreProduct =
@@ -84,6 +99,7 @@ export class StoreProductsService {
     const queryBuilder = this.storeProductRepository
       .createQueryBuilder('storeProduct')
       .leftJoinAndSelect('storeProduct.creator', 'creator')
+      .leftJoinAndSelect('storeProduct.store', 'store')
       .leftJoinAndSelect('storeProduct.categories', 'categories')
       .orderBy('storeProduct.createdAt', 'DESC');
 
@@ -107,7 +123,7 @@ export class StoreProductsService {
   async getStoreProductById(id: string, user: User): Promise<IStoreProductResponse> {
     const storeProduct = await this.storeProductRepository.findOne({
       where: { id },
-      relations: ['creator', 'categories'],
+      relations: ['creator', 'store', 'categories'],
     });
 
     if (!storeProduct) {
@@ -124,7 +140,7 @@ export class StoreProductsService {
   ): Promise<IStoreProductResponse> {
     const storeProduct = await this.storeProductRepository.findOne({
       where: { id },
-      relations: ['creator', 'categories'],
+      relations: ['creator', 'store', 'categories'],
     });
 
     if (!storeProduct) {
@@ -187,16 +203,59 @@ export class StoreProductsService {
       storeProductId: storeProduct.storeProductId,
       image: storeProduct.image,
       metadata: storeProduct.metadata,
-      lastScraped: storeProduct.lastScraped,
+      lastScraped: storeProduct.lastScraped ? DateFormatterUtil.formatToChileanDateTime(storeProduct.lastScraped) : undefined,
       notes: storeProduct.notes,
-      createdAt: storeProduct.createdAt,
-      updatedAt: storeProduct.updatedAt,
+      createdAt: DateFormatterUtil.formatToChileanDateTime(storeProduct.createdAt),
+      updatedAt: DateFormatterUtil.formatToChileanDateTime(storeProduct.updatedAt),
       creatorId: storeProduct.createdBy,
       creatorName: storeProduct.creator
         ? `${storeProduct.creator.firstName} ${storeProduct.creator.lastName}`
         : 'Unknown',
       displayName: storeProduct.displayName,
       createdBy: storeProduct.createdBy,
+      storeId: storeProduct.storeId,
+      price: storeProduct.price,
+      store: storeProduct.store ? {
+        id: storeProduct.store.id,
+        name: storeProduct.store.name,
+        website: storeProduct.store.website,
+        type: storeProduct.store.type,
+        status: storeProduct.store.status,
+        category: storeProduct.store.category,
+        isVerified: storeProduct.store.isVerified,
+        displayName: storeProduct.store.displayName,
+      } : undefined,
+      categories: storeProduct.categories?.map(category => ({
+        id: category.id,
+        name: category.name,
+        description: category.description,
+        color: category.color,
+        icon: category.icon,
+        isActive: category.isActive,
+        productCount: category.productCount,
+        createdAt: category.createdAt,
+        updatedAt: category.updatedAt,
+        displayName: category.displayName,
+      })) || [],
+      physicalLocations: storeProduct.physicalLocations || [],
+    };
+  }
+
+  private mapToStoreProductSummary(storeProduct: StoreProduct): IStoreProductSummary {
+    return {
+      id: storeProduct.id,
+      name: storeProduct.name,
+      description: storeProduct.description,
+      url: storeProduct.url,
+      sku: storeProduct.sku,
+      storeProductId: storeProduct.storeProductId,
+      image: storeProduct.image,
+      price: storeProduct.price,
+      lastScraped: storeProduct.lastScraped ? DateFormatterUtil.formatToChileanDateTime(storeProduct.lastScraped) : undefined,
+      createdAt: DateFormatterUtil.formatToChileanDateTime(storeProduct.createdAt),
+      creatorName: storeProduct.creator
+        ? `${storeProduct.creator.firstName} ${storeProduct.creator.lastName}`
+        : 'Unknown',
       categories: storeProduct.categories?.map(category => ({
         id: category.id,
         name: category.name,
@@ -212,32 +271,19 @@ export class StoreProductsService {
     };
   }
 
-  private mapToStoreProductSummary(storeProduct: StoreProduct): IStoreProductSummary {
-    return {
-      id: storeProduct.id,
-      name: storeProduct.name,
-      description: storeProduct.description,
-      url: storeProduct.url,
-      sku: storeProduct.sku,
-      storeProductId: storeProduct.storeProductId,
-      image: storeProduct.image,
-      lastScraped: storeProduct.lastScraped,
-      createdAt: storeProduct.createdAt,
-      creatorName: storeProduct.creator
-        ? `${storeProduct.creator.firstName} ${storeProduct.creator.lastName}`
-        : 'Unknown',
-      categories: storeProduct.categories?.map(category => ({
-        id: category.id,
-        name: category.name,
-        description: category.description,
-        color: category.color,
-        icon: category.icon,
-        isActive: category.isActive,
-        productCount: category.productCount,
-        createdAt: category.createdAt,
-        updatedAt: category.updatedAt,
-        displayName: category.displayName,
-      })) || [],
-    };
+  /**
+   * Check if URL exists in database
+   */
+  async checkUrlExists(url: string): Promise<boolean> {
+    try {
+      const existingProduct = await this.storeProductRepository.findOne({
+        where: { url: url },
+      });
+
+      return !!existingProduct;
+    } catch (error) {
+      this.logger.error(`Error checking URL existence for ${url}: ${error.message}`);
+      return false;
+    }
   }
 }

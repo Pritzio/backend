@@ -15,11 +15,10 @@ import {
 import {
   PhysicalLocation,
   LocationStatus,
-} from '../entities/physical-location.entity';
+} from '../../physical-locations/entities/physical-location.entity';
 import {
   StoreProduct,
-  StoreProductStatus,
-} from '../entities/store-product.entity';
+} from '../../store-products/entities/store-product.entity';
 import { CreateStoreDto } from '../dto/create-store.dto';
 import { UpdateStoreDto } from '../dto/update-store.dto';
 import { CreateStoreLocationDto } from '../dto/create-store-location.dto';
@@ -44,6 +43,37 @@ export class StoresService {
   ) {}
 
   // ===== STORE MANAGEMENT =====
+
+  async findOrCreateStore(storeName: string, website?: string): Promise<Store> {
+    // First, try to find existing store by name
+    let store = await this.storeRepository.findOne({
+      where: { name: storeName },
+    });
+
+    if (store) {
+      return store;
+    }
+
+    // If not found, create new store with minimal data
+    const newStore = this.storeRepository.create({
+      name: storeName,
+      website: website || null,
+      description: `Tienda creada automáticamente desde scraping: ${storeName}`,
+      type: StoreType.ONLINE, // Default to online
+      status: StoreStatus.ACTIVE, // Default to active
+      category: StoreCategory.OTHER, // Default category
+      isVerified: false, // Will need manual verification
+      createdBy: undefined, // No specific creator for auto-created stores
+      metadata: {
+        autoCreated: true,
+        createdFrom: 'scraping',
+        originalName: storeName,
+        createdAt: new Date().toISOString(),
+      },
+    } as Partial<Store>);
+
+    return this.storeRepository.save(newStore);
+  }
 
   async createStore(
     createStoreDto: CreateStoreDto,
@@ -410,7 +440,7 @@ export class StoresService {
       await Promise.all([
         this.storeProductRepository.count({ where: { storeId } }),
         this.storeProductRepository.count({
-          where: { storeId, status: StoreProductStatus.ACTIVE },
+          where: { storeId },
         }),
         this.locationRepository.count({ where: { storeId } }),
         this.locationRepository.count({
