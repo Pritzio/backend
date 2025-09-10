@@ -1,9 +1,9 @@
 # 🏪 Store Products API - Endpoints Documentation
 
-*This document provides comprehensive documentation for the Store Products API endpoints. Store Products manage the main product catalog with a simplified structure for various integrations and implementations.*
+*This document provides comprehensive API documentation for the Store Products module, including all endpoints, request/response formats, and practical examples for store product management and price comparison.*
 
 *Last updated: 2025-01-27*
-*API Version: 2.2*
+*API Version: 2.1*
 
 ## 📋 Table of Contents
 
@@ -11,9 +11,6 @@
 - [Authentication](#authentication)
 - [Base URL](#base-url)
 - [Endpoints](#endpoints)
-  - [Store Product Management](#store-product-management)
-  - [Scraping Integration](#scraping-integration)
-  - [Categories Management](#categories-management)
 - [Data Models](#data-models)
 - [Error Handling](#error-handling)
 - [Rate Limiting](#rate-limiting)
@@ -21,15 +18,14 @@
 
 ## 🎯 Overview
 
-The Store Products API manages the main product catalog with a simplified structure designed for various integrations:
+The Store Products API manages the relationship between products and stores, enabling price comparison and inventory tracking across multiple retail locations. Key features:
 
-- **Simplified Structure**: Clean, minimal data model without complex relationships
-- **Integration Ready**: Optimized for frontend applications, automation tools, and third-party integrations
-- **Essential Fields Only**: Only necessary fields for product management and display
-- **Automatic Defaults**: System sets default values for required fields
-- **Flexible Metadata**: Support for custom data through metadata field
-- **Auto Store Creation**: Automatically creates stores from scraping data (similar to categories)
-- **Store Association**: Products are automatically associated with their respective stores
+- **Store-Product Relationships**: Link products to specific stores with pricing
+- **Price Comparison**: Compare prices across different stores
+- **Inventory Tracking**: Monitor product availability and stock levels
+- **Scraping Integration**: Automated price updates from web scraping
+- **Bulk Operations**: Efficient management of multiple store products
+- **Analytics**: Track store performance and product trends
 
 ## 🔐 Authentication
 
@@ -41,8 +37,9 @@ Authorization: Bearer <your-jwt-token>
 
 ### Required Roles
 
-- **Public Endpoints**: `SUPER_ADMIN`, `ADMIN`, `STORE_ADMIN`
-- **Admin Endpoints**: `SUPER_ADMIN`, `ADMIN`
+- **Read Endpoints**: `SUPER_ADMIN`, `ADMIN`, `STORE_ADMIN`
+- **Write Endpoints**: `SUPER_ADMIN`, `ADMIN`
+- **Scraping Endpoints**: `SUPER_ADMIN`, `ADMIN`, `STORE_ADMIN`
 
 ## 🌐 Base URL
 
@@ -52,133 +49,31 @@ http://localhost:3000/api/v1/store-products
 
 ## 🚀 Endpoints
 
-### Store Product Management
-
-#### Create Store Product
-
-**POST** `/api/v1/store-products`
-
-Creates a new store product with simplified structure.
-
-**Permissions**: `SUPER_ADMIN`, `ADMIN`, `STORE_ADMIN`
-
-**Request Body**:
-```json
-{
-  "name": "Habas Congeladas 500 g",
-  "description": "Habas congeladas de alta calidad",
-  "url": "https://jumbo.cl/habas-congeladas-500-g-cuisine-and-co-1763679/p",
-  "sku": "HABAS-500G-001",
-  "storeProductId": "75413",
-  "image": "https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg",
-  "price": 1390,
-  "metadata": {
-    "brand": "Cuisine & Co",
-    "rating": 5,
-    "ratingText": "5.0",
-    "ppum": "$2.786 x kg$4.180 x kg$5.100 x kg$4.375 x kg$6.725 x kg$12.225 x kg$3.380 x kg$1.290 x kg$283 x un",
-    "highResImageUrl": "https://jumbocl.vtexassets.com/arquivos/ids/363133-91-91/Habas-congeladas-500-g.jpg",
-    "categories": ["Otras Verduras"],
-    "scrapedAt": "2025-09-03T10:30:00.000Z",
-    "source": "scraping"
-  },
-  "notes": "Scraped from Jumbo"
-}
-```
-
-**Optional Store Information** (for manual creation):
-```json
-{
-  "name": "Habas Congeladas 500 g",
-  "description": "Habas congeladas de alta calidad",
-  "url": "https://jumbo.cl/habas-congeladas-500-g-cuisine-and-co-1763679/p",
-  "sku": "HABAS-500G-001",
-  "storeProductId": "75413",
-  "image": "https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg",
-  "price": 1390,
-  "storeName": "Jumbo",
-  "storeWebsite": "https://jumbo.cl",
-  "metadata": {
-    "brand": "Cuisine & Co",
-    "rating": 5,
-    "categories": ["Otras Verduras"]
-  },
-  "notes": "Product with store association"
-}
-```
-
-**Response** (201 Created):
-```json
-{
-  "id": "uuid-store-product-id",
-  "name": "Habas Congeladas 500 g",
-  "description": "Habas congeladas de alta calidad",
-  "url": "https://jumbo.cl/habas-congeladas-500-g-cuisine-and-co-1763679/p",
-  "sku": "HABAS-500G-001",
-  "storeProductId": "75413",
-  "image": "https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg",
-  "price": 1390,
-  "metadata": {
-    "brand": "Cuisine & Co",
-    "rating": 5,
-    "ratingText": "5.0",
-    "ppum": "$2.786 x kg$4.180 x kg$5.100 x kg$4.375 x kg$6.725 x kg$12.225 x kg$3.380 x kg$1.290 x kg$283 x un",
-    "highResImageUrl": "https://jumbocl.vtexassets.com/arquivos/ids/363133-91-91/Habas-congeladas-500-g.jpg",
-    "categories": ["Otras Verduras"],
-    "scrapedAt": "2025-09-03T10:30:00.000Z",
-    "source": "scraping"
-  },
-  "lastScraped": "2025-09-03T10:30:00.000Z",
-  "notes": "Scraped from Jumbo",
-  "displayName": "Habas Congeladas 500 g",
-  "createdBy": "uuid-user-id",
-  "creatorId": "uuid-user-id",
-  "creatorName": "John Doe",
-  "storeId": "uuid-store-id",
-  "store": {
-    "id": "uuid-store-id",
-    "name": "Jumbo",
-    "website": "https://jumbo.cl",
-    "type": "ONLINE",
-    "status": "ACTIVE",
-    "category": "OTHER",
-    "isVerified": false,
-    "displayName": "Jumbo"
-  },
-  "categories": [
-    {
-      "id": "uuid-category-id",
-      "name": "Otras Verduras",
-      "description": "Verduras diversas",
-      "color": "#22C55E",
-      "icon": "leaf",
-      "isActive": true,
-      "productCount": 25,
-      "createdAt": "2025-01-27T10:30:00.000Z",
-      "updatedAt": "2025-01-27T10:30:00.000Z",
-      "displayName": "Otras Verduras"
-    }
-  ],
-  "createdAt": "2025-09-03T10:30:00.000Z",
-  "updatedAt": "2025-09-03T10:30:00.000Z"
-}
-```
-
-#### Get All Store Products
+### Get All Store Products
 
 **GET** `/api/v1/store-products`
 
-Retrieves store products with filtering and pagination.
+Retrieves all store products with filtering and pagination.
 
 **Permissions**: `SUPER_ADMIN`, `ADMIN`, `STORE_ADMIN`
 
 **Query Parameters**:
-- `page` (number, default: 1) - Page number
-- `limit` (number, default: 20) - Items per page
-- `search` (string) - Search term for name or description
-- `createdBy` (string) - Filter by creator ID
-- `dateFrom` (date) - Filter by creation date (ISO string)
-- `dateTo` (date) - Filter by creation date (ISO string)
+- `page` (number, default: 1): Page number
+- `limit` (number, default: 20): Items per page
+- `search` (string): Search term for product name or description
+- `storeId` (string): Filter by store ID
+- `category` (string): Filter by product category
+- `minPrice` (number): Minimum price filter
+- `maxPrice` (number): Maximum price filter
+- `isActive` (boolean): Filter by active status
+- `lastScrapedAfter` (ISO string): Filter by last scraped date
+- `sortBy` (string): Sort field (name, price, lastScraped, createdAt)
+- `sortOrder` (string): Sort order (asc, desc)
+
+**Example Request**:
+```bash
+GET /api/v1/store-products?page=1&limit=20&search=nova%20papel&minPrice=1000&maxPrice=3000
+```
 
 **Response** (200 OK):
 ```json
@@ -186,60 +81,87 @@ Retrieves store products with filtering and pagination.
   "data": [
     {
       "id": "uuid-store-product-id",
-      "name": "Habas Congeladas 500 g",
-      "description": "Habas congeladas de alta calidad",
-      "url": "https://jumbo.cl/habas-congeladas-500-g-cuisine-and-co-1763679/p",
-      "sku": "HABAS-500G-001",
-      "storeProductId": "75413",
-      "image": "https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg",
-      "price": 1390,
+      "name": "Nova Papel 70m",
+      "description": "Papel higiénico Nova 70 metros",
+      "url": "https://jumbo.cl/nova-papel-70m",
+      "sku": "NOVA-70M-001",
+      "storeProductId": "jumbo-12345",
+      "image": "https://jumbo.cl/images/nova-papel-70m.jpg",
+      "price": 1500,
       "metadata": {
-        "brand": "Cuisine & Co",
-        "rating": 5,
-        "categories": ["Otras Verduras"]
+        "brand": "Nova",
+        "rating": 4.5,
+        "ratingText": "Excelente",
+        "ppum": 21.43,
+        "highResImageUrl": "https://jumbo.cl/images/nova-papel-70m-hd.jpg",
+        "categories": ["Hogar y Jardín", "Higiene Personal"],
+        "originalPrice": 1500,
+        "originalData": {}
       },
-      "lastScraped": "2025-09-03T10:30:00.000Z",
-      "notes": "Scraped from Jumbo",
-      "displayName": "Habas Congeladas 500 g",
-      "createdBy": "uuid-user-id",
+      "lastScraped": "2025-01-27T10:30:00.000Z",
+      "notes": "Product added from scraping - 2025-01-27T10:30:00.000Z",
+      "createdAt": "2025-01-27T10:30:00.000Z",
+      "updatedAt": "2025-01-27T10:30:00.000Z",
       "creatorId": "uuid-user-id",
-      "creatorName": "John Doe",
+      "creatorName": "Admin User",
+      "displayName": "Nova Papel 70m",
+      "createdBy": "uuid-user-id",
       "storeId": "uuid-store-id",
+      "baseProductId": "uuid-base-product-id",
+      "baseProduct": {
+        "id": "uuid-base-product-id",
+        "name": "nova papel 70m",
+        "brand": "nova",
+        "model": "70m",
+        "fullName": "nova nova papel 70m 70m"
+      },
       "store": {
         "id": "uuid-store-id",
         "name": "Jumbo",
         "website": "https://jumbo.cl",
-        "type": "ONLINE",
-        "status": "ACTIVE",
-        "category": "OTHER",
-        "isVerified": false,
+        "type": "online",
+        "status": "active",
+        "category": "supermarket",
+        "isVerified": true,
         "displayName": "Jumbo"
       },
       "categories": [
         {
           "id": "uuid-category-id",
-          "name": "Otras Verduras",
-          "description": "Verduras diversas",
-          "color": "#22C55E",
-          "icon": "leaf",
+          "name": "Hogar y Jardín",
+          "description": "Productos para el hogar y jardín",
+          "color": "#10B981",
+          "icon": "home",
           "isActive": true,
-          "productCount": 25,
+          "productCount": 150,
           "createdAt": "2025-01-27T10:30:00.000Z",
           "updatedAt": "2025-01-27T10:30:00.000Z",
-          "displayName": "Otras Verduras"
+          "displayName": "Hogar y Jardín"
         }
       ],
-      "createdAt": "2025-09-03T10:30:00.000Z",
-      "updatedAt": "2025-09-03T10:30:00.000Z"
+      "physicalLocations": []
     }
   ],
-  "total": 1,
+  "pagination": {
   "page": 1,
-  "limit": 20
+    "limit": 20,
+    "total": 150,
+    "totalPages": 8,
+    "hasNext": true,
+    "hasPrev": false
+  },
+  "filters": {
+    "search": "nova papel",
+    "minPrice": 1000,
+    "maxPrice": 3000,
+    "storeId": null,
+    "category": null,
+    "isActive": null
+  }
 }
 ```
 
-#### Get Store Product by ID
+### Get Store Product by ID
 
 **GET** `/api/v1/store-products/{id}`
 
@@ -248,81 +170,71 @@ Retrieves a specific store product by ID.
 **Permissions**: `SUPER_ADMIN`, `ADMIN`, `STORE_ADMIN`
 
 **Path Parameters**:
-- `id` (string) - Store product ID
+- `id` (string): Store product ID
 
-**Response** (200 OK):
+**Response** (200 OK): Same as single item in "Get All Store Products"
+
+**Error Response** (404 Not Found):
 ```json
 {
-  "id": "uuid-store-product-id",
-  "name": "Habas Congeladas 500 g",
-  "description": "Habas congeladas de alta calidad",
-  "url": "https://jumbo.cl/habas-congeladas-500-g-cuisine-and-co-1763679/p",
-  "sku": "HABAS-500G-001",
-  "storeProductId": "75413",
-  "image": "https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg",
-  "price": 1390,
-  "metadata": {
-    "brand": "Cuisine & Co",
-    "rating": 5,
-    "ratingText": "5.0",
-    "ppum": "$2.786 x kg$4.180 x kg$5.100 x kg$4.375 x kg$6.725 x kg$12.225 x kg$3.380 x kg$1.290 x kg$283 x un",
-    "highResImageUrl": "https://jumbocl.vtexassets.com/arquivos/ids/363133-91-91/Habas-congeladas-500-g.jpg",
-    "categories": ["Otras Verduras"],
-    "scrapedAt": "2025-09-03T10:30:00.000Z",
-    "source": "scraping"
-  },
-  "lastScraped": "2025-09-03T10:30:00.000Z",
-  "notes": "Scraped from Jumbo",
-  "displayName": "Habas Congeladas 500 g",
-  "createdBy": "uuid-user-id",
-  "creatorId": "uuid-user-id",
-  "creatorName": "John Doe",
-  "storeId": "uuid-store-id",
-  "store": {
-    "id": "uuid-store-id",
-    "name": "Jumbo",
-    "website": "https://jumbo.cl",
-    "type": "ONLINE",
-    "status": "ACTIVE",
-    "category": "OTHER",
-    "isVerified": false,
-    "displayName": "Jumbo"
-  },
-  "categories": [
-    {
-      "id": "uuid-category-id",
-      "name": "Otras Verduras",
-      "description": "Verduras diversas",
-      "color": "#22C55E",
-      "icon": "leaf",
-      "isActive": true,
-      "productCount": 25,
-      "createdAt": "2025-01-27T10:30:00.000Z",
-      "updatedAt": "2025-01-27T10:30:00.000Z",
-      "displayName": "Otras Verduras"
-    }
-  ],
-  "createdAt": "2025-09-03T10:30:00.000Z",
-  "updatedAt": "2025-09-03T10:30:00.000Z"
+  "statusCode": 404,
+  "message": "Store product with ID 'uuid' not found",
+  "error": "Not Found"
 }
 ```
 
-#### Update Store Product
+### Create Store Product
+
+**POST** `/api/v1/store-products`
+
+Creates a new store product.
+
+**Permissions**: `SUPER_ADMIN`, `ADMIN`
+
+**Request Body**:
+```json
+{
+  "name": "Nova Papel 70m",
+  "description": "Papel higiénico Nova 70 metros",
+  "url": "https://jumbo.cl/nova-papel-70m",
+  "sku": "NOVA-70M-001",
+  "storeProductId": "jumbo-12345",
+  "image": "https://jumbo.cl/images/nova-papel-70m.jpg",
+  "price": 1500,
+  "metadata": {
+    "brand": "Nova",
+    "rating": 4.5,
+    "ratingText": "Excelente",
+    "ppum": 21.43,
+    "highResImageUrl": "https://jumbo.cl/images/nova-papel-70m-hd.jpg",
+    "categories": ["Hogar y Jardín", "Higiene Personal"],
+    "originalPrice": 1500
+  },
+  "notes": "Product added manually",
+  "storeId": "uuid-store-id",
+  "baseProductId": "uuid-base-product-id",
+  "categoryNames": ["Hogar y Jardín", "Higiene Personal"]
+}
+```
+
+**Response** (201 Created): Same as single item in "Get All Store Products"
+
+### Update Store Product
 
 **PUT** `/api/v1/store-products/{id}`
 
 Updates an existing store product.
 
-**Permissions**: `SUPER_ADMIN`, `ADMIN`, `STORE_ADMIN`
+**Permissions**: `SUPER_ADMIN`, `ADMIN`
 
 **Path Parameters**:
-- `id` (string) - Store product ID
+- `id` (string): Store product ID
 
 **Request Body**: Same as create, but all fields optional
 
 **Response** (200 OK): Updated store product object
 
-#### Delete Store Product
+### Delete Store Product
 
 **DELETE** `/api/v1/store-products/{id}`
 
@@ -331,7 +243,7 @@ Deletes a store product.
 **Permissions**: `SUPER_ADMIN`, `ADMIN`
 
 **Path Parameters**:
-- `id` (string) - Store product ID
+- `id` (string): Store product ID
 
 **Response** (200 OK):
 ```json
@@ -340,61 +252,46 @@ Deletes a store product.
 }
 ```
 
-#### Get Admin Store Products
-
-**GET** `/api/v1/store-products/admin`
-
-Gets store products with admin-level information.
-
-**Permissions**: `SUPER_ADMIN`, `ADMIN`
-
-**Response** (200 OK): Same as "Get All Store Products" but with admin access
-
-### Scraping Integration
-
-#### Add Scraped Products (Bulk)
+### Add Scraped Products ⭐ NEW
 
 **POST** `/api/v1/store-products/scraping/add-products`
 
-Adds multiple products from scraping data with automatic duplicate detection.
+Adds multiple products from scraping with automatic matching.
 
 **Permissions**: `SUPER_ADMIN`, `ADMIN`, `STORE_ADMIN`
 
-**Request Body**: Array of scraped product objects
+**Request Body**:
 ```json
 [
   {
-    "id": "75413",
-    "name": "Habas Congeladas 500 g",
-    "description": "Habas congeladas de alta calidad",
-    "url": "https://jumbo.cl/habas-congeladas-500-g-cuisine-and-co-1763679/p",
-    "sku": "HABAS-500G-001",
-    "imageUrl": "https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg",
-    "brand": "Cuisine & Co",
-    "rating": 5,
-    "ratingText": "5.0",
-    "ppum": "$2.786 x kg",
-    "highResImageUrl": "https://jumbocl.vtexassets.com/arquivos/ids/363133-91-91/Habas-congeladas-500-g.jpg",
-    "categories": ["Otras Verduras"],
-    "price": 1390,
+    "name": "Nova Papel 70m",
+    "brand": "Nova",
     "store": "Jumbo",
-    "storeWebsite": "https://jumbo.cl"
+    "storeWebsite": "https://jumbo.cl",
+    "price": 1500,
+    "url": "https://jumbo.cl/nova-papel-70m",
+    "imageUrl": "https://jumbo.cl/images/nova-papel-70m.jpg",
+    "description": "Papel higiénico Nova 70 metros",
+    "categories": ["Hogar y Jardín", "Higiene Personal"],
+    "rating": 4.5,
+    "ratingText": "Excelente",
+    "ppum": 21.43,
+    "id": "jumbo-12345"
   },
   {
-    "id": "75414",
-    "name": "Arroz Integral 1 kg",
-    "description": "Arroz integral de grano largo",
-    "url": "https://lider.cl/arroz-integral-1-kg-marca-propia-123456/p",
-    "sku": "ARROZ-INT-1KG",
-    "imageUrl": "https://lider.cl/arquivos/ids/363134-250-250/Arroz-integral-1-kg.jpg",
-    "brand": "Marca Propia",
-    "rating": 4,
-    "ratingText": "4.2",
-    "ppum": "$1,200 x kg",
-    "categories": ["Granos y Cereales"],
-    "price": 1200,
-    "store": "Líder",
-    "storeWebsite": "https://lider.cl"
+    "name": "NOVA PAPEL 70 METROS",
+    "brand": "NOVA",
+    "store": "Lider",
+    "storeWebsite": "https://lider.cl",
+    "price": 1800,
+    "url": "https://lider.cl/nova-papel-70-metros",
+    "imageUrl": "https://lider.cl/images/nova-papel-70-metros.jpg",
+    "description": "Papel higiénico Nova 70 metros",
+    "categories": ["Hogar y Jardín", "Higiene Personal"],
+    "rating": 4.2,
+    "ratingText": "Muy bueno",
+    "ppum": 25.71,
+    "id": "lider-67890"
   }
 ]
 ```
@@ -402,245 +299,295 @@ Adds multiple products from scraping data with automatic duplicate detection.
 **Response** (201 Created):
 ```json
 {
-  "message": "Scraped products processed",
+  "message": "Scraped products processed with automatic matching",
   "total": 2,
-  "successful": 1,
-  "failed": 1,
-  "duplicates": 1,
-  "errors": 0,
+  "successful": 2,
+  "failed": 0,
+  "matched": 2,
+  "newBaseProducts": 1,
   "results": [
     {
       "success": true,
-      "originalId": "75413",
+      "originalId": "jumbo-12345",
       "createdProduct": {
-        "id": "uuid-store-product-id",
-        "name": "Habas Congeladas 500 g",
-        "description": "Habas congeladas de alta calidad",
-        "url": "https://jumbo.cl/habas-congeladas-500-g-cuisine-and-co-1763679/p",
-        "sku": "HABAS-500G-001",
-        "storeProductId": "75413",
-        "image": "https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg",
-        "price": 1390,
-        "metadata": {
-          "brand": "Cuisine & Co",
-          "rating": 5,
-          "ratingText": "5.0",
-          "ppum": "$2.786 x kg",
-          "highResImageUrl": "https://jumbocl.vtexassets.com/arquivos/ids/363133-91-91/Habas-congeladas-500-g.jpg",
-          "categories": ["Otras Verduras"],
-          "originalPrice": 1390,
-          "originalData": { /* original scraped data */ }
-        },
-        "lastScraped": "2025-01-27T10:30:00.000Z",
-        "notes": "Producto agregado desde scraping - 2025-01-27T10:30:00.000Z",
-        "displayName": "Habas Congeladas 500 g",
-        "createdBy": "uuid-user-id",
-        "creatorId": "uuid-user-id",
-        "creatorName": "John Doe",
-        "createdAt": "2025-01-27T10:30:00.000Z",
-        "updatedAt": "2025-01-27T10:30:00.000Z"
+        "id": "uuid-store-product-id-1",
+        "name": "Nova Papel 70m",
+        "price": 1500,
+        "storeId": "uuid-store-id-1"
+      },
+      "matchedBaseProduct": {
+        "id": "uuid-base-product-id",
+        "name": "nova papel 70m",
+        "brand": "nova"
       }
     },
     {
-      "success": false,
-      "originalId": "75414",
-      "error": "Product already exists",
-      "errorDetails": {
-        "reason": "duplicate",
-        "existingProductId": "uuid-existing-product-id",
-        "duplicateBy": "storeProductId",
-        "duplicateValue": "75414"
+      "success": true,
+      "originalId": "lider-67890",
+      "createdProduct": {
+        "id": "uuid-store-product-id-2",
+        "name": "NOVA PAPEL 70 METROS",
+        "price": 1800,
+        "storeId": "uuid-store-id-2"
+      },
+      "matchedBaseProduct": {
+        "id": "uuid-base-product-id",
+        "name": "nova papel 70m",
+        "brand": "nova"
       }
     }
   ],
   "logs": {
     "endpoint": "store-products/scraping/add-products",
     "timestamp": "2025-01-27T10:30:00.000Z",
-    "user": "john.doe"
+    "user": "admin",
+    "matchingStrategy": "automatic-similarity-based"
   }
 }
 ```
 
-**Duplicate Detection Logic**:
-- Products are considered duplicates if they have the same `storeProductId` OR the same `url`
-- Duplicate products are skipped and reported in the results
-- The system provides detailed information about why a product was considered a duplicate
+### Get Price Comparison
 
-**Automatic Category Creation**:
-- Categories are automatically created from the `categories` field in scraped data
-- If a category doesn't exist, it's created with the name from the scraping data
-- Products are automatically associated with their categories
-- Original category data is preserved in `metadata.originalData.categories`
+**GET** `/api/v1/store-products/price-comparison/{baseProductId}`
 
-**Automatic Store Creation**:
-- Stores are automatically created from the `store`, `storeName`, or `source` field in scraped data
-- The system checks for existing stores by name before creating new ones
-- If a store doesn't exist, it's created with minimal data (name, website if provided)
-- Products are automatically associated with their respective stores
-- Auto-created stores have `isVerified: false` and need manual verification
-- Store information is preserved in the product's `store` relationship
-
-**Store Field Priority**:
-1. `storeName` - Primary field for store name
-2. `store` - Alternative field for store name (used when `storeName` is not available)
-3. `source` - Fallback field for store name
-4. `'Unknown Store'` - Default value if none of the above are provided
-
-**Error Response** (400 Bad Request):
-```json
-{
-  "error": "Data must be an array of products",
-  "received": "object",
-  "message": "Data is not an array: object",
-  "logs": {
-    "endpoint": "store-products/scraping/add-products",
-    "timestamp": "2025-01-27T10:30:00.000Z",
-    "user": "john.doe"
-  }
-}
-```
-
-### Categories Management
-
-#### Get All Categories
-
-**GET** `/api/v1/categories`
-
-Retrieves all active categories.
-
-**Permissions**: `SUPER_ADMIN`, `ADMIN`, `STORE_ADMIN`
-
-**Response** (200 OK):
-```json
-[
-  {
-    "id": "uuid-category-id",
-    "name": "Electrónicos",
-    "description": "Productos electrónicos y tecnología",
-    "color": "#3B82F6",
-    "icon": "laptop",
-    "isActive": true,
-    "productCount": 15,
-    "createdAt": "2025-01-27T10:30:00.000Z",
-    "updatedAt": "2025-01-27T10:30:00.000Z",
-    "displayName": "Electrónicos"
-  }
-]
-```
-
-#### Get Categories with Product Counts
-
-**GET** `/api/v1/categories/with-counts`
-
-Retrieves all active categories with their product counts.
-
-**Permissions**: `SUPER_ADMIN`, `ADMIN`, `STORE_ADMIN`
-
-**Response** (200 OK): Same as "Get All Categories" but with accurate product counts
-
-#### Get Category by ID
-
-**GET** `/api/v1/categories/{id}`
-
-Retrieves a specific category by ID.
+Gets price comparison for a specific base product across all stores.
 
 **Permissions**: `SUPER_ADMIN`, `ADMIN`, `STORE_ADMIN`
 
 **Path Parameters**:
-- `id` (string) - Category ID
+- `baseProductId` (string): Base product ID
+
+**Query Parameters**:
+- `currency` (string, optional): Currency code (default: CLP)
+- `sortBy` (string, optional): Sort by (price, store, lastScraped)
+- `sortOrder` (string, optional): Sort order (asc, desc)
 
 **Response** (200 OK):
 ```json
 {
-  "id": "uuid-category-id",
-  "name": "Electrónicos",
-  "description": "Productos electrónicos y tecnología",
-  "color": "#3B82F6",
-  "icon": "laptop",
-  "isActive": true,
-  "productCount": 15,
-  "createdAt": "2025-01-27T10:30:00.000Z",
-  "updatedAt": "2025-01-27T10:30:00.000Z",
-  "displayName": "Electrónicos"
+  "baseProduct": {
+    "id": "uuid-base-product-id",
+    "name": "nova papel 70m",
+    "brand": "nova",
+    "model": "70m",
+    "fullName": "nova nova papel 70m 70m",
+    "description": "Papel higiénico Nova 70 metros",
+    "image": "https://example.com/nova-papel-70m.jpg",
+    "specifications": {
+      "material": "papel",
+      "longitud": "70 metros",
+      "hojas": 280
+    },
+    "storeCount": 3,
+    "totalVariants": 5
+  },
+  "priceRange": {
+    "min": 1500,
+    "max": 2200,
+    "avg": 1850,
+    "currency": "CLP"
+  },
+  "stores": [
+    {
+      "store": {
+        "id": "uuid-store-id-1",
+        "name": "Jumbo",
+        "website": "https://jumbo.cl",
+        "type": "online",
+        "isVerified": true
+      },
+      "product": {
+        "id": "uuid-store-product-id-1",
+        "name": "Nova Papel 70m",
+        "price": 1500,
+        "url": "https://jumbo.cl/nova-papel-70m",
+        "image": "https://jumbo.cl/images/nova-papel-70m.jpg",
+        "lastScraped": "2025-01-27T10:30:00.000Z"
+      },
+      "price": 1500,
+      "savings": 700,
+      "savingsPercent": 31.8
+    },
+    {
+      "store": {
+        "id": "uuid-store-id-2",
+        "name": "Lider",
+        "website": "https://lider.cl",
+        "type": "online",
+        "isVerified": true
+      },
+      "product": {
+        "id": "uuid-store-product-id-2",
+        "name": "NOVA PAPEL 70 METROS",
+        "price": 1800,
+        "url": "https://lider.cl/nova-papel-70-metros",
+        "image": "https://lider.cl/images/nova-papel-70-metros.jpg",
+        "lastScraped": "2025-01-27T09:15:00.000Z"
+      },
+      "price": 1800,
+      "savings": 400,
+      "savingsPercent": 18.2
+    },
+    {
+      "store": {
+        "id": "uuid-store-id-3",
+        "name": "Santa Isabel",
+        "website": "https://santaisabel.cl",
+        "type": "online",
+        "isVerified": false
+      },
+      "product": {
+        "id": "uuid-store-product-id-3",
+        "name": "Nova Papel 70m",
+        "price": 2200,
+        "url": "https://santaisabel.cl/nova-papel-70m",
+        "image": "https://santaisabel.cl/images/nova-papel-70m.jpg",
+        "lastScraped": "2025-01-27T08:45:00.000Z"
+      },
+      "price": 2200,
+      "savings": 0,
+      "savingsPercent": 0
+    }
+  ],
+  "totalStores": 3,
+  "lastUpdated": "2025-01-27T10:30:00.000Z"
 }
 ```
 
-#### Create Category
+### Get Store Products Analytics
 
-**POST** `/api/v1/categories`
+**GET** `/api/v1/store-products/analytics`
 
-Creates a new category.
+Gets analytics and statistics for store products.
 
-**Permissions**: `SUPER_ADMIN`, `ADMIN`
+**Permissions**: `SUPER_ADMIN`, `ADMIN`, `STORE_ADMIN`
+
+**Query Parameters**:
+- `storeId` (string, optional): Filter by store ID
+- `category` (string, optional): Filter by category
+- `dateFrom` (ISO string, optional): Start date for analytics
+- `dateTo` (ISO string, optional): End date for analytics
+
+**Response** (200 OK):
+```json
+{
+  "overview": {
+    "totalProducts": 1250,
+    "activeProducts": 1100,
+    "inactiveProducts": 100,
+    "totalStores": 15,
+    "totalCategories": 25,
+    "averagePrice": 2500,
+    "lastUpdated": "2025-01-27T10:30:00.000Z"
+  },
+  "priceDistribution": {
+    "under1000": 150,
+    "1000to2000": 400,
+    "2000to3000": 350,
+    "3000to5000": 200,
+    "over5000": 150
+  },
+  "storePerformance": [
+    {
+      "storeId": "uuid-store-id-1",
+      "storeName": "Jumbo",
+      "productCount": 800,
+      "averagePrice": 2200,
+      "bestPrices": 120,
+      "lastScraped": "2025-01-27T10:30:00.000Z"
+    }
+  ],
+  "categoryBreakdown": [
+    {
+      "category": "Hogar y Jardín",
+      "productCount": 300,
+      "averagePrice": 1800,
+      "storeCount": 12
+    }
+  ],
+  "recentActivity": {
+    "productsAddedToday": 25,
+    "productsUpdatedToday": 150,
+    "priceChangesToday": 80,
+    "newStoresToday": 2
+  }
+}
+```
+
+### Bulk Operations
+
+#### **Bulk Activate Store Products**
+**POST** `/api/v1/store-products/bulk/activate`
 
 **Request Body**:
 ```json
 {
-  "name": "Nueva Categoría",
-  "description": "Descripción de la nueva categoría",
-  "color": "#3B82F6",
-  "icon": "laptop"
+  "storeProductIds": ["uuid-1", "uuid-2", "uuid-3"]
 }
 ```
 
-**Response** (201 Created): Created category object
+#### **Bulk Deactivate Store Products**
+**POST** `/api/v1/store-products/bulk/deactivate`
 
-#### Update Category
-
-**PUT** `/api/v1/categories/{id}`
-
-Updates an existing category.
-
-**Permissions**: `SUPER_ADMIN`, `ADMIN`
-
-**Path Parameters**:
-- `id` (string) - Category ID
-
-**Request Body**: Same as create, but all fields optional
-
-**Response** (200 OK): Updated category object
-
-#### Delete Category
-
-**DELETE** `/api/v1/categories/{id}`
-
-Deletes a category (soft delete).
-
-**Permissions**: `SUPER_ADMIN`, `ADMIN`
-
-**Path Parameters**:
-- `id` (string) - Category ID
-
-**Response** (200 OK):
+**Request Body**:
 ```json
 {
-  "message": "Category deleted successfully"
+  "storeProductIds": ["uuid-1", "uuid-2", "uuid-3"]
+}
+```
+
+#### **Bulk Update Store Products**
+**POST** `/api/v1/store-products/bulk/update`
+
+**Request Body**:
+```json
+{
+  "storeProductIds": ["uuid-1", "uuid-2", "uuid-3"],
+  "data": {
+  "isActive": true,
+    "notes": "Bulk updated"
+  }
+}
+```
+
+#### **Bulk Delete Store Products**
+**POST** `/api/v1/store-products/bulk/delete`
+
+**Request Body**:
+```json
+{
+  "storeProductIds": ["uuid-1", "uuid-2", "uuid-3"]
+}
+```
+
+**Response for Bulk Operations**:
+```json
+{
+  "message": "Bulk operation completed successfully",
+  "updated": 3,
+  "failed": 0,
+  "total": 3,
+  "results": [
+    {
+      "id": "uuid-1",
+      "success": true,
+      "error": null
+    },
+    {
+      "id": "uuid-2",
+      "success": true,
+      "error": null
+    },
+    {
+      "id": "uuid-3",
+      "success": true,
+      "error": null
+    }
+  ]
 }
 ```
 
 ## 📊 Data Models
-
-### CreateStoreProductDto
-```typescript
-interface CreateStoreProductDto {
-  // Required fields
-  name: string;                    // Product name (2-500 characters)
-  
-  // Optional fields
-  description?: string;            // Product description (max 2000 characters)
-  url?: string;                    // Product URL (max 500 characters, must be valid URL)
-  sku?: string;                    // Store-specific SKU (max 100 characters)
-  storeProductId?: string;         // Store-specific product ID (max 100 characters)
-  image?: string;                  // Product image URL (max 500 characters, must be valid URL)
-  price?: number;                  // Product price as integer (no decimals)
-  metadata?: Record<string, any>;  // Additional metadata (JSON object)
-  notes?: string;                  // Notes about the product (max 500 characters)
-  
-  // Store association (optional)
-  storeName?: string;              // Store name for auto-creation
-  storeWebsite?: string;           // Store website for auto-creation
-}
-```
 
 ### IStoreProductResponse
 ```typescript
@@ -649,109 +596,104 @@ interface IStoreProductResponse {
   name: string;                    // Product name
   description?: string;            // Product description
   url?: string;                    // Product URL
-  sku?: string;                    // Store-specific SKU
-  storeProductId?: string;         // Store-specific product ID
+  sku?: string;                    // SKU
+  storeProductId?: string;         // External store product ID
   image?: string;                  // Product image URL
-  price?: number;                  // Product price as integer (no decimals)
-  metadata?: Record<string, any>;  // Additional metadata
-  lastScraped?: Date;              // Last scraping timestamp
-  notes?: string;                  // Notes about the product
-  displayName: string;             // Display name (virtual property)
-  createdBy: string;               // Creator user ID
-  creatorId: string;               // Creator user ID (alias)
-  creatorName: string;             // Creator full name
-  storeId?: string;                // Associated store ID
-  store?: IStoreResponse;          // Associated store information
-  createdAt: Date;                 // Creation timestamp
-  updatedAt: Date;                 // Last update timestamp
-  categories: ICategoryResponse[]; // Associated categories
+  price?: number;                  // Product price
+  metadata: Record<string, any>;   // Additional metadata
+  lastScraped?: string;            // Last scraped timestamp
+  notes?: string;                  // Notes
+  createdAt: string;               // Creation timestamp
+  updatedAt: string;               // Last update timestamp
+  creatorId: string;               // Creator user ID
+  creatorName: string;             // Creator name
+  displayName: string;             // Display name
+  createdBy: string;               // Created by user ID
+  storeId?: string;                // Store ID
+  baseProductId?: string;          // Base product ID
+  baseProduct?: {                  // Base product info
+    id: string;
+    name: string;
+    brand?: string;
+    model?: string;
+    fullName: string;
+  };
+  store?: {                        // Store info
+    id: string;
+    name: string;
+    website?: string;
+    type: string;
+    status: string;
+    category?: string;
+    isVerified: boolean;
+    displayName: string;
+  };
+  categories: ICategoryResponse[]; // Product categories
+  physicalLocations: PhysicalLocation[]; // Physical locations
 }
 ```
 
-### IStoreProductSummary
+### ICreateStoreProductDto
 ```typescript
-interface IStoreProductSummary {
-  id: string;                      // UUID
-  name: string;                    // Product name
+interface ICreateStoreProductDto {
+  name: string;                    // Product name (required)
   description?: string;            // Product description
   url?: string;                    // Product URL
-  sku?: string;                    // Store-specific SKU
-  storeProductId?: string;         // Store-specific product ID
+  sku?: string;                    // SKU
+  storeProductId?: string;         // External store product ID
   image?: string;                  // Product image URL
-  price?: number;                  // Product price as integer (no decimals)
-  lastScraped?: Date;              // Last scraping timestamp
-  createdAt: Date;                 // Creation timestamp
-  creatorName: string;             // Creator full name
-  storeId?: string;                // Associated store ID
-  store?: IStoreResponse;          // Associated store information
-  categories: ICategoryResponse[]; // Associated categories
+  price?: number;                  // Product price
+  metadata?: Record<string, any>;  // Additional metadata
+  notes?: string;                  // Notes
+  storeId?: string;                // Store ID
+  baseProductId?: string;          // Base product ID
+  categoryNames?: string[];        // Category names
 }
 ```
 
-### IStoreProductFilter
+### IPriceComparison
 ```typescript
-interface IStoreProductFilter {
-  search?: string;                 // Search term for name or description
-  createdBy?: string;              // Filter by creator ID
-  storeId?: string;                // Filter by store ID
-  storeName?: string;              // Filter by store name
-  dateFrom?: Date;                 // Filter by creation date (from)
-  dateTo?: Date;                   // Filter by creation date (to)
-}
-```
-
-### Store Interfaces
-
-### IStoreResponse
-```typescript
-interface IStoreResponse {
-  id: string;                      // UUID
-  name: string;                    // Store name
-  website?: string;                // Store website
-  type: string;                    // Store type (ONLINE, PHYSICAL, HYBRID)
-  status: string;                  // Store status (ACTIVE, INACTIVE, SUSPENDED)
-  category: string;                // Store category
-  isVerified: boolean;             // Verification status
-  displayName: string;             // Display name (virtual property)
-}
-```
-
-### Category Interfaces
-
-### ICategoryResponse
-```typescript
-interface ICategoryResponse {
-  id: string;                      // UUID
-  name: string;                    // Category name
-  description?: string;            // Category description
-  color?: string;                  // Color for UI (hexadecimal)
-  icon?: string;                   // Icon name for UI
-  isActive: boolean;               // Active status
-  productCount: number;            // Number of associated products
-  createdAt: Date;                 // Creation timestamp
-  updatedAt: Date;                 // Last update timestamp
-  displayName: string;             // Display name (virtual property)
-}
-```
-
-### ICreateCategoryDto
-```typescript
-interface ICreateCategoryDto {
-  name: string;                    // Category name (required)
-  description?: string;            // Category description
-  color?: string;                  // Color for UI (hexadecimal)
-  icon?: string;                   // Icon name for UI
-}
-```
-
-### IUpdateCategoryDto
-```typescript
-interface IUpdateCategoryDto {
-  name?: string;                   // Category name
-  description?: string;            // Category description
-  color?: string;                  // Color for UI (hexadecimal)
-  icon?: string;                   // Icon name for UI
-  isActive?: boolean;              // Active status
+interface IPriceComparison {
+  baseProduct: {
+    id: string;
+    name: string;
+    brand?: string;
+    model?: string;
+    fullName: string;
+    description?: string;
+    image?: string;
+    specifications?: Record<string, any>;
+    storeCount: number;
+    totalVariants: number;
+  };
+  priceRange: {
+    min: number;
+    max: number;
+    avg: number;
+    currency: string;
+  };
+  stores: Array<{
+    store: {
+      id: string;
+      name: string;
+      website: string;
+      type: string;
+      isVerified: boolean;
+    };
+    product: {
+      id: string;
+      name: string;
+      price: number;
+      url?: string;
+      image?: string;
+      lastScraped?: string;
+    };
+    price: number;
+    savings: number;
+    savingsPercent: number;
+  }>;
+  totalStores: number;
+  lastUpdated: string;
 }
 ```
 
@@ -795,6 +737,15 @@ interface IUpdateCategoryDto {
 }
 ```
 
+#### 409 Conflict
+```json
+{
+  "statusCode": 409,
+  "message": "Store product with storeProductId 'jumbo-12345' already exists",
+  "error": "Conflict"
+}
+```
+
 #### 500 Internal Server Error
 ```json
 {
@@ -807,59 +758,345 @@ interface IUpdateCategoryDto {
 ## 🚦 Rate Limiting
 
 - **Standard endpoints**: 100 requests per 15 minutes per IP
-- **Admin endpoints**: 50 requests per 15 minutes per IP
+- **Scraping endpoints**: 50 requests per 15 minutes per IP
+- **Bulk operations**: 20 requests per 15 minutes per IP
 
 ## 🔗 Integration Examples
 
 ### Frontend Integration (React/Next.js)
 
 ```typescript
-// Fetch products for display
-const fetchProducts = async (page = 1, limit = 20) => {
-  const response = await fetch(`/api/v1/store-products?page=${page}&limit=${limit}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  });
-  return response.json();
-};
+// Store products API service
+class StoreProductsAPI {
+  constructor(baseUrl: string, token: string) {
+    this.baseUrl = baseUrl;
+    this.token = token;
+  }
 
-// Create new product
-const createProduct = async (productData) => {
-  const response = await fetch('/api/v1/store-products', {
-    method: 'POST',
+  async request(endpoint: string, options: RequestInit = {}) {
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+        'Authorization': `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+        ...options.headers
     },
-    body: JSON.stringify(productData)
+      ...options
   });
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.statusText}`);
+    }
+
   return response.json();
+  }
+
+  // Get store products with filters
+  async getStoreProducts(filters: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    storeId?: string;
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    isActive?: boolean;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  } = {}) {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, value.toString());
+      }
+    });
+
+    return this.request(`?${params.toString()}`);
+  }
+
+  // Get store product by ID
+  async getStoreProduct(id: string) {
+    return this.request(`/${id}`);
+  }
+
+  // Create store product
+  async createStoreProduct(data: ICreateStoreProductDto) {
+    return this.request('', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
+  // Update store product
+  async updateStoreProduct(id: string, data: Partial<ICreateStoreProductDto>) {
+    return this.request(`/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  }
+
+  // Delete store product
+  async deleteStoreProduct(id: string) {
+    return this.request(`/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
+  // Add scraped products
+  async addScrapedProducts(products: any[]) {
+    return this.request('/scraping/add-products', {
+      method: 'POST',
+      body: JSON.stringify(products)
+    });
+  }
+
+  // Get price comparison
+  async getPriceComparison(baseProductId: string, options: {
+    currency?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  } = {}) {
+    const params = new URLSearchParams();
+    Object.entries(options).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, value);
+      }
+    });
+
+    return this.request(`/price-comparison/${baseProductId}?${params.toString()}`);
+  }
+
+  // Get analytics
+  async getAnalytics(filters: {
+    storeId?: string;
+    category?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  } = {}) {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, value);
+      }
+    });
+
+    return this.request(`/analytics?${params.toString()}`);
+  }
+
+  // Bulk operations
+  async bulkActivate(storeProductIds: string[]) {
+    return this.request('/bulk/activate', {
+      method: 'POST',
+      body: JSON.stringify({ storeProductIds })
+    });
+  }
+
+  async bulkDeactivate(storeProductIds: string[]) {
+    return this.request('/bulk/deactivate', {
+      method: 'POST',
+      body: JSON.stringify({ storeProductIds })
+    });
+  }
+
+  async bulkUpdate(storeProductIds: string[], data: any) {
+    return this.request('/bulk/update', {
+      method: 'POST',
+      body: JSON.stringify({ storeProductIds, data })
+    });
+  }
+
+  async bulkDelete(storeProductIds: string[]) {
+    return this.request('/bulk/delete', {
+      method: 'POST',
+      body: JSON.stringify({ storeProductIds })
+    });
+  }
+}
+
+// Usage
+const api = new StoreProductsAPI('http://localhost:3000/api/v1/store-products', token);
+
+// Get store products
+const products = await api.getStoreProducts({
+  page: 1,
+  limit: 20,
+  search: 'nova papel',
+  minPrice: 1000,
+  maxPrice: 3000
+});
+
+// Get price comparison
+const comparison = await api.getPriceComparison('uuid-base-product-id', {
+  currency: 'CLP',
+  sortBy: 'price',
+  sortOrder: 'asc'
+});
+
+// Add scraped products
+const scrapedProducts = [
+  {
+    name: 'Nova Papel 70m',
+    brand: 'Nova',
+    store: 'Jumbo',
+    price: 1500,
+    url: 'https://jumbo.cl/nova-papel-70m',
+    categories: ['Hogar y Jardín']
+  }
+];
+
+const result = await api.addScrapedProducts(scrapedProducts);
+```
+
+### React Hook Example
+```typescript
+import { useState, useEffect, useCallback } from 'react';
+
+const useStoreProducts = (api: StoreProductsAPI) => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState(null);
+
+  const fetchProducts = useCallback(async (filters = {}) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await api.getStoreProducts(filters);
+      setProducts(response.data);
+      setPagination(response.pagination);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [api]);
+
+  const createProduct = useCallback(async (data) => {
+    try {
+      const product = await api.createStoreProduct(data);
+      setProducts(prev => [product, ...prev]);
+      return product;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, [api]);
+
+  const updateProduct = useCallback(async (id, data) => {
+    try {
+      const product = await api.updateStoreProduct(id, data);
+      setProducts(prev => prev.map(p => p.id === id ? product : p));
+      return product;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, [api]);
+
+  const deleteProduct = useCallback(async (id) => {
+    try {
+      await api.deleteStoreProduct(id);
+      setProducts(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, [api]);
+
+  return {
+    products,
+    loading,
+    error,
+    pagination,
+    fetchProducts,
+    createProduct,
+    updateProduct,
+    deleteProduct
+  };
 };
 ```
 
-### Automation Tools (n8n, Zapier, etc.)
+### Vue.js Example
+```javascript
+// Vue 3 Composition API
+import { ref, computed } from 'vue';
 
-```json
-{
-  "method": "POST",
-  "url": "http://localhost:3000/api/v1/store-products",
-  "headers": {
-    "Authorization": "Bearer {{$json.accessToken}}",
-    "Content-Type": "application/json"
-  },
-  "body": {
-    "name": "{{$json.productName}}",
-    "description": "{{$json.description}}",
-    "url": "{{$json.productUrl}}",
-    "image": "{{$json.imageUrl}}",
-    "metadata": {
-      "brand": "{{$json.brand}}",
-      "rating": "{{$json.rating}}",
-      "categories": "{{$json.categories}}"
+export function useStoreProducts(api) {
+  const products = ref([]);
+  const loading = ref(false);
+  const error = ref(null);
+  const pagination = ref(null);
+
+  const fetchProducts = async (filters = {}) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await api.getStoreProducts(filters);
+      products.value = response.data;
+      pagination.value = response.pagination;
+    } catch (err) {
+      error.value = err.message;
+    } finally {
+      loading.value = false;
     }
-  }
+  };
+
+  const createProduct = async (data) => {
+    try {
+      const product = await api.createStoreProduct(data);
+      products.value.unshift(product);
+      return product;
+    } catch (err) {
+      error.value = err.message;
+      throw err;
+    }
+  };
+
+  const updateProduct = async (id, data) => {
+    try {
+      const product = await api.updateStoreProduct(id, data);
+      const index = products.value.findIndex(p => p.id === id);
+      if (index !== -1) {
+        products.value[index] = product;
+      }
+      return product;
+    } catch (err) {
+      error.value = err.message;
+      throw err;
+    }
+  };
+
+  const deleteProduct = async (id) => {
+    try {
+      await api.deleteStoreProduct(id);
+      products.value = products.value.filter(p => p.id !== id);
+    } catch (err) {
+      error.value = err.message;
+      throw err;
+    }
+  };
+
+  const sortedProducts = computed(() => {
+    return [...products.value].sort((a, b) => {
+      if (a.price && b.price) {
+        return a.price - b.price;
+      }
+      return a.name.localeCompare(b.name);
+    });
+  });
+
+  return {
+    products,
+    loading,
+    error,
+    pagination,
+    sortedProducts,
+    fetchProducts,
+    createProduct,
+    updateProduct,
+    deleteProduct
+  };
 }
 ```
 
@@ -867,12 +1104,39 @@ const createProduct = async (productData) => {
 
 ```dart
 // Flutter/Dart example
-class StoreProductService {
+class StoreProductsService {
   static const String baseUrl = 'http://localhost:3000/api/v1/store-products';
   
-  Future<List<StoreProduct>> getProducts({int page = 1, int limit = 20}) async {
+  Future<List<StoreProduct>> getStoreProducts({
+    int page = 1,
+    int limit = 20,
+    String? search,
+    String? storeId,
+    String? category,
+    double? minPrice,
+    double? maxPrice,
+    bool? isActive,
+    String? sortBy,
+    String? sortOrder,
+  }) async {
+    final params = <String, String>{
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+    
+    if (search != null) params['search'] = search;
+    if (storeId != null) params['storeId'] = storeId;
+    if (category != null) params['category'] = category;
+    if (minPrice != null) params['minPrice'] = minPrice.toString();
+    if (maxPrice != null) params['maxPrice'] = maxPrice.toString();
+    if (isActive != null) params['isActive'] = isActive.toString();
+    if (sortBy != null) params['sortBy'] = sortBy;
+    if (sortOrder != null) params['sortOrder'] = sortOrder;
+    
+    final uri = Uri.parse(baseUrl).replace(queryParameters: params);
+    
     final response = await http.get(
-      Uri.parse('$baseUrl?page=$page&limit=$limit'),
+      uri,
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -885,149 +1149,72 @@ class StoreProductService {
           .map((json) => StoreProduct.fromJson(json))
           .toList();
     }
-    throw Exception('Failed to load products');
+    throw Exception('Failed to load store products');
+  }
+  
+  Future<StoreProduct> getStoreProduct(String id) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return StoreProduct.fromJson(data);
+    }
+    throw Exception('Failed to load store product');
+  }
+  
+  Future<PriceComparison> getPriceComparison(String baseProductId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/price-comparison/$baseProductId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return PriceComparison.fromJson(data);
+    }
+    throw Exception('Failed to load price comparison');
   }
 }
-```
-
-### Third-party API Integration
-
-```python
-# Python example
-import requests
-
-class StoreProductAPI:
-    def __init__(self, base_url, token):
-        self.base_url = base_url
-        self.headers = {
-            'Authorization': f'Bearer {token}',
-            'Content-Type': 'application/json'
-        }
-    
-    def create_product(self, product_data):
-        response = requests.post(
-            f'{self.base_url}/store-products',
-            json=product_data,
-            headers=self.headers
-        )
-        return response.json()
-    
-    def get_products(self, page=1, limit=20):
-        response = requests.get(
-            f'{self.base_url}/store-products',
-            params={'page': page, 'limit': limit},
-            headers=self.headers
-        )
-        return response.json()
-    
-    def add_scraped_products(self, products_array):
-        """Add multiple products from scraping with duplicate detection"""
-        response = requests.post(
-            f'{self.base_url}/store-products/scraping/add-products',
-            json=products_array,
-            headers=self.headers
-        )
-        return response.json()
-```
-
-### Scraping Integration Example
-
-```python
-# Example of scraping integration with duplicate detection
-def process_scraped_products(scraped_data, api_client):
-    """
-    Process scraped products with automatic duplicate detection
-    """
-    result = api_client.add_scraped_products(scraped_data)
-    
-    print(f"Total products processed: {result['total']}")
-    print(f"Successfully created: {result['successful']}")
-    print(f"Duplicates skipped: {result['duplicates']}")
-    print(f"Errors: {result['errors']}")
-    
-    # Process individual results
-    for item in result['results']:
-        if item['success']:
-            print(f"✅ Created product: {item['createdProduct']['name']}")
-        elif item['errorDetails']['reason'] == 'duplicate':
-            print(f"⚠️ Duplicate skipped: {item['originalId']} (duplicate by {item['errorDetails']['duplicateBy']})")
-        else:
-            print(f"❌ Error: {item['error']}")
-    
-    return result
 ```
 
 ## 📝 Notes
 
 - All timestamps are in ISO 8601 format (UTC)
 - All IDs are UUIDs
-- Pagination starts from page 1
-- Maximum limit per page is 100 items
-- **New in v2.0**: Simplified structure without complex relationships
-- **New in v2.0**: Essential fields only for product management
-- **New in v2.0**: Automatic default values for system fields
-- **New in v2.0**: Flexible metadata field for custom data
-- **New in v2.0**: Optimized for various integration scenarios
-- **New in v2.1**: Duplicate validation for storeProductId and url
-- **New in v2.1**: Bulk scraping endpoint with duplicate detection
-- **New in v2.1**: Enhanced error reporting and statistics
-- **New in v2.1**: Automatic category creation from scraping data
-- **New in v2.1**: Product-category relationships with many-to-many mapping
-- **New in v2.2**: Automatic store creation from scraping data
-- **New in v2.2**: Product-store relationships with auto-association
-- **New in v2.2**: Store information in product responses
-- **New in v2.2**: Store filtering capabilities
-- **New in v2.2**: Price field as integer (no decimals, no currency)
+- Price comparisons are sorted by price (ascending) by default
+- Store verification status affects display priority
+- Scraping endpoints automatically create stores if they don't exist
+- Base product matching uses similarity algorithms for automatic grouping
 
-### Duplicate Detection
+### Automatic Product Matching
 
-The system automatically prevents duplicate products based on:
-- **storeProductId**: Store-specific product identifier
-- **url**: Product URL in the store
+The scraping endpoint automatically:
+1. **Normalizes product names** for consistent matching
+2. **Uses similarity algorithms** (Jaro-Winkler) to find existing base products
+3. **Creates new base products** if no sufficient match is found
+4. **Associates store products** with their base products
+5. **Updates counters** automatically via database triggers
 
-**Important Notes**:
-- Duplicate detection is performed during bulk scraping operations
-- Products with the same `storeProductId` OR `url` are considered duplicates
-- Duplicate products are skipped and reported in the response
-- The system provides detailed information about why a product was considered a duplicate
-- Both `storeProductId` and `url` can be `null` - multiple products can have `null` values
-- Unique indexes are enforced at the database level for non-null values
+### Price Update Frequency
 
-### Category Management
-
-The system automatically manages categories from scraping data:
-
-- **Automatic Creation**: Categories are created automatically from `product.categories` array
-- **Many-to-Many Relationships**: Products can belong to multiple categories
-- **Original Data Preservation**: Scraping category data is preserved in `metadata.originalData.categories`
-- **UI Support**: Categories include color and icon fields for frontend display
-- **Product Counting**: Automatic tracking of products per category
-
-### Store Management
-
-The system automatically manages stores from scraping data:
-
-- **Automatic Creation**: Stores are created automatically from `product.storeName` field
-- **Minimal Data**: Auto-created stores use only essential fields (name, website if provided)
-- **Default Values**: Auto-created stores have sensible defaults (ONLINE type, ACTIVE status, OTHER category)
-- **Verification Required**: Auto-created stores need manual verification (`isVerified: false`)
-- **Product Association**: Products are automatically associated with their respective stores
-- **Metadata Preservation**: Store creation information is preserved in store metadata
-
-### Price Management
-
-The system manages product prices with the following characteristics:
-
-- **Integer Format**: Prices are stored as integers without decimals (e.g., 1390 for $13.90)
-- **No Currency**: No currency field is used - prices are stored as raw numbers
-- **Scraping Integration**: Prices are automatically extracted and converted from scraping data
-- **Original Preservation**: Original price data is preserved in `metadata.originalPrice`
+- **Real-time**: Prices updated during scraping operations
+- **Scheduled**: Regular price updates via automated scraping
+- **Manual**: Admin-triggered price updates
 
 ## 🔗 Related Documentation
 
-- [Categories API](./CATEGORIES_API_ENDPOINTS.md) - Category management endpoints
+- [Product Comparison API](./PRODUCT_COMPARISON_API_ENDPOINTS.md) - Price comparison functionality
+- [Scraping API](./SCRAPING_API_ENDPOINTS.md) - Automated price updates
+- [Categories API](./CATEGORIES_API_ENDPOINTS.md) - Product categorization
 - [Authentication Guide](./AUTHENTICATION_GUIDE.md) - JWT authentication setup
 - [Frontend Integration Guide](./FRONTEND_INTEGRATION_GUIDE.md) - React/Next.js examples
 - [Mobile Integration Guide](./MOBILE_INTEGRATION_GUIDE.md) - Flutter/React Native examples
-- [API Integration Guide](./API_INTEGRATION_GUIDE.md) - Third-party integration examples
-

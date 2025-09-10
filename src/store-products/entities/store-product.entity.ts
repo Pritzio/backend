@@ -16,6 +16,7 @@ import { User } from '../../auth/entities/user.entity';
 import { Category } from './category.entity';
 import { Store } from '../../stores/entities/store.entity';
 import { PhysicalLocation } from '../../physical-locations/entities/physical-location.entity';
+import { BaseProduct } from './base-product.entity';
 
 @Entity('store_products')
 @Index(['lastScraped'])
@@ -23,6 +24,7 @@ import { PhysicalLocation } from '../../physical-locations/entities/physical-loc
 @Index(['storeId'])
 @Index(['storeProductId'], { unique: true, where: '"storeProductId" IS NOT NULL' })
 @Index(['url'], { unique: true, where: 'url IS NOT NULL' })
+@Index(['baseProductId'])
 export class StoreProduct {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -63,6 +65,9 @@ export class StoreProduct {
   @Column({ type: 'uuid' })
   createdBy: string;
 
+  @Column({ type: 'uuid', nullable: true })
+  baseProductId: string | null;
+
   @CreateDateColumn({
     type: 'timestamp with time zone',
     default: () => 'CURRENT_TIMESTAMP',
@@ -97,6 +102,10 @@ export class StoreProduct {
     cascade: true,
   })
   physicalLocations: PhysicalLocation[];
+
+  @ManyToOne(() => BaseProduct, (baseProduct) => baseProduct.storeProducts, { nullable: true })
+  @JoinColumn({ name: 'baseProductId' })
+  baseProduct: BaseProduct;
 
   // Virtual properties
   get displayName(): string {

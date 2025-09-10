@@ -17,7 +17,7 @@ export interface IStoreResponse {
 export interface IStoreProductResponse
   extends Omit<
     StoreProduct,
-    'creator' | 'verifier' | 'categories' | 'store' | 'storeId' | 'price' | 'createdAt' | 'updatedAt' | 'lastScraped'
+    'creator' | 'verifier' | 'categories' | 'store' | 'storeId' | 'price' | 'createdAt' | 'updatedAt' | 'lastScraped' | 'baseProduct' | 'baseProductId'
   > {
   creatorId: string;
   creatorName: string;
@@ -27,6 +27,14 @@ export interface IStoreProductResponse
   store?: IStoreResponse;
   price?: number;
   categories: ICategoryResponse[];
+  baseProductId?: string | null;
+  baseProduct?: {
+    id: string;
+    name: string;
+    brand?: string;
+    model?: string;
+    fullName: string;
+  };
   createdAt: string;
   updatedAt: string;
   lastScraped?: string;

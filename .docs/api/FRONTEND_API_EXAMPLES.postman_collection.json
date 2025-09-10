@@ -1,0 +1,443 @@
+{
+  "info": {
+    "name": "Pritzio Product Comparison API - Frontend Examples",
+    "description": "Colección de ejemplos de API para el equipo de frontend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"testuser\",\n  \"password\": \"testpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": [
+            {
+              "name": "Successful Login",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"identifier\": \"testuser\",\n  \"password\": \"testpassword123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "login"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"user\": {\n    \"id\": \"user-id\",\n    \"username\": \"testuser\",\n    \"email\": \"test@example.com\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Product Search",
+      "item": [
+        {
+          "name": "Search Products - Basic",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-comparison/search?q=toalla papel",
+              "host": ["{{baseUrl}}"],
+              "path": ["product-comparison", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "toalla papel",
+                  "description": "Search query (minimum 2 characters)"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Search Results",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/product-comparison/search?q=toalla papel",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["product-comparison", "search"],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "toalla papel"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"3383e40e-b89c-4dec-af6e-aa03e43353da\",\n      \"name\": \"toalla papel abolengo doble hoja 10 m 3 un.\",\n      \"brand\": \"abolengo\",\n      \"model\": null,\n      \"fullName\": \"abolengo toalla papel abolengo doble hoja 10 m 3 un.\",\n      \"storeCount\": 2,\n      \"totalVariants\": 2,\n      \"image\": null,\n      \"createdAt\": \"2024-01-15T10:30:00.000Z\"\n    }\n  ],\n  \"total\": 43,\n  \"query\": \"toalla papel\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Search Products - By Brand",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-comparison/search?q=nova",
+              "host": ["{{baseUrl}}"],
+              "path": ["product-comparison", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "nova",
+                  "description": "Search by brand name"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Products - Abolengo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-comparison/search?q=abolengo",
+              "host": ["{{baseUrl}}"],
+              "path": ["product-comparison", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "abolengo",
+                  "description": "Search for Abolengo products"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Products - Scott",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-comparison/search?q=scott",
+              "host": ["{{baseUrl}}"],
+              "path": ["product-comparison", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "scott",
+                  "description": "Search for Scott products"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Product Comparison",
+      "item": [
+        {
+          "name": "Get Product Comparison - Abolengo 10m",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-comparison/3383e40e-b89c-4dec-af6e-aa03e43353da",
+              "host": ["{{baseUrl}}"],
+              "path": ["product-comparison", "3383e40e-b89c-4dec-af6e-aa03e43353da"]
+            }
+          },
+          "response": [
+            {
+              "name": "Product Comparison Details",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/product-comparison/3383e40e-b89c-4dec-af6e-aa03e43353da",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["product-comparison", "3383e40e-b89c-4dec-af6e-aa03e43353da"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"baseProduct\": {\n    \"id\": \"3383e40e-b89c-4dec-af6e-aa03e43353da\",\n    \"name\": \"toalla papel abolengo doble hoja 10 m 3 un.\",\n    \"brand\": \"abolengo\",\n    \"model\": null,\n    \"fullName\": \"abolengo toalla papel abolengo doble hoja 10 m 3 un.\",\n    \"isActive\": true,\n    \"createdAt\": \"2024-01-15T10:30:00.000Z\"\n  },\n  \"storeProducts\": [\n    {\n      \"id\": \"store-product-id-1\",\n      \"name\": \"Toalla de Papel Abolengo Doble Hoja 10 m 3 un.\",\n      \"price\": 1490,\n      \"url\": \"https://jumbo.cl/abolengo-10m-3un\",\n      \"image\": \"https://jumbo.cl/images/abolengo-10m-3un.jpg\",\n      \"store\": {\n        \"id\": \"jumbo-store-id\",\n        \"name\": \"Jumbo\",\n        \"logo\": \"https://jumbo.cl/logo.png\"\n      }\n    },\n    {\n      \"id\": \"store-product-id-2\",\n      \"name\": \"Toalla de papel abolengo 3 un de 10 m\",\n      \"price\": 1450,\n      \"url\": \"https://unimarc.cl/abolengo-10m-3un\",\n      \"image\": \"https://unimarc.cl/images/abolengo-10m-3un.jpg\",\n      \"store\": {\n        \"id\": \"unimarc-store-id\",\n        \"name\": \"Unimarc\",\n        \"logo\": \"https://unimarc.cl/logo.png\"\n      }\n    }\n  ],\n  \"priceRange\": {\n    \"min\": 1450,\n    \"max\": 1490,\n    \"avg\": 1470\n  },\n  \"stores\": [\n    {\n      \"store\": {\n        \"id\": \"jumbo-store-id\",\n        \"name\": \"Jumbo\",\n        \"logo\": \"https://jumbo.cl/logo.png\"\n      },\n      \"product\": {\n        \"id\": \"store-product-id-1\",\n        \"name\": \"Toalla de Papel Abolengo Doble Hoja 10 m 3 un.\",\n        \"price\": 1490,\n        \"url\": \"https://jumbo.cl/abolengo-10m-3un\"\n      },\n      \"price\": 1490\n    },\n    {\n      \"store\": {\n        \"id\": \"unimarc-store-id\",\n        \"name\": \"Unimarc\",\n        \"logo\": \"https://unimarc.cl/logo.png\"\n      },\n      \"product\": {\n        \"id\": \"store-product-id-2\",\n        \"name\": \"Toalla de papel abolengo 3 un de 10 m\",\n        \"price\": 1450,\n        \"url\": \"https://unimarc.cl/abolengo-10m-3un\"\n      },\n      \"price\": 1450\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Product Comparison - Abolengo XL 100m",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-comparison/9ff23342-99e3-4ff7-8e76-01b524202307",
+              "host": ["{{baseUrl}}"],
+              "path": ["product-comparison", "9ff23342-99e3-4ff7-8e76-01b524202307"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Examples",
+      "item": [
+        {
+          "name": "Search with Short Query",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-comparison/search?q=a",
+              "host": ["{{baseUrl}}"],
+              "path": ["product-comparison", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "a",
+                  "description": "Query too short (should fail)"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Query Too Short Error",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/product-comparison/search?q=a",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["product-comparison", "search"],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "a"
+                    }
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"message\": \"Query must be at least 2 characters\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Unauthorized Request",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/product-comparison/search?q=toalla papel",
+              "host": ["{{baseUrl}}"],
+              "path": ["product-comparison", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "toalla papel"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Unauthorized Error",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/product-comparison/search?q=toalla papel",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["product-comparison", "search"],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "toalla papel"
+                    }
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Unauthorized\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-login if no token is set",
+          "if (!pm.environment.get('accessToken')) {",
+          "    pm.sendRequest({",
+          "        url: pm.environment.get('baseUrl') + '/auth/login',",
+          "        method: 'POST',",
+          "        header: {",
+          "            'Content-Type': 'application/json'",
+          "        },",
+          "        body: {",
+          "            mode: 'raw',",
+          "            raw: JSON.stringify({",
+          "                identifier: 'testuser',",
+          "                password: 'testpassword123'",
+          "            })",
+          "        }",
+          "    }, function (err, response) {",
+          "        if (response.json().accessToken) {",
+          "            pm.environment.set('accessToken', response.json().accessToken);",
+          "        }",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ]
+}
+

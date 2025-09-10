@@ -1,0 +1,478 @@
+{
+  "info": {
+    "name": "Base Products Admin API",
+    "description": "Colección completa de endpoints para administración de productos base",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@pritzio.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Base Products CRUD",
+      "item": [
+        {
+          "name": "Get All Base Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/products/base-products?page=1&limit=20&search=&isActive=true",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "products", "base-products"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "isActive",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Base Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/products/base-product/{{base_product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "products", "base-product", "{{base_product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Base Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Toalla de Papel Nova Evolution Megarollo 2 un de 26 m\",\n  \"brand\": \"Nova\",\n  \"model\": \"Evolution\",\n  \"sku\": \"NOVA-EVO-2-26\",\n  \"specifications\": {\n    \"material\": \"Papel\",\n    \"tipo\": \"Megarollo\",\n    \"cantidad\": \"2 un\",\n    \"longitud\": \"26 m\"\n  },\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/products/base-product",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "products", "base-product"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Base Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Toalla de Papel Nova Evolution Megarollo 2 un de 26 m - Updated\",\n  \"brand\": \"Nova\",\n  \"model\": \"Evolution\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/products/base-product/{{base_product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "products", "base-product", "{{base_product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Base Product (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/products/base-product/{{base_product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "products", "base-product", "{{base_product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Hard Delete Base Product",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/products/base-product/{{base_product_id}}/hard",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "products", "base-product", "{{base_product_id}}", "hard"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Store Products Management",
+      "item": [
+        {
+          "name": "Get Unassociated Store Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/products/store-products/unassociated?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "products", "store-products", "unassociated"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Associate Store Product to Base Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"storeProductId\": \"{{store_product_id}}\",\n  \"baseProductId\": \"{{base_product_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/products/associate-store-product",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "products", "associate-store-product"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Disassociate Store Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"storeProductId\": \"{{store_product_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/products/disassociate-store-product",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "products", "disassociate-store-product"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product Matching & Suggestions",
+      "item": [
+        {
+          "name": "Get Product Duplicates",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/products/duplicates?threshold=0.8&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "products", "duplicates"],
+              "query": [
+                {
+                  "key": "threshold",
+                  "value": "0.8"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Merge Duplicate Products",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetProductId\": \"{{target_product_id}}\",\n  \"duplicateProductIds\": [\"{{duplicate_product_id_1}}\", \"{{duplicate_product_id_2}}\"],\n  \"mergeData\": {\n    \"name\": \"Toalla de Papel Nova Evolution Megarollo 2 un de 26 m\",\n    \"brand\": \"Nova\",\n    \"model\": \"Evolution\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/products/merge",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "products", "merge"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Association Suggestions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/products/suggest-associations?storeProductId={{store_product_id}}&limit=10&threshold=0.7",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "products", "suggest-associations"],
+              "query": [
+                {
+                  "key": "storeProductId",
+                  "value": "{{store_product_id}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "threshold",
+                  "value": "0.7"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unassociated Store Products with Suggestions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/products/store-products/unassociated-with-suggestions?page=1&limit=20&includeSuggestions=true",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "products", "store-products", "unassociated-with-suggestions"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "includeSuggestions",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product Comparison & Search",
+      "item": [
+        {
+          "name": "Search Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/product-comparison/search?q=nova&brand=&category=&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["product-comparison", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "nova"
+                },
+                {
+                  "key": "brand",
+                  "value": ""
+                },
+                {
+                  "key": "category",
+                  "value": ""
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product Comparison Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/product-comparison/{{base_product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["product-comparison", "{{base_product_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set JWT token from login response",
+          "if (pm.response && pm.response.json && pm.response.json.access_token) {",
+          "    pm.collectionVariables.set('jwt_token', pm.response.json.access_token);",
+          "}"
+        ]
+      }
+    }
+  ]
+}
+

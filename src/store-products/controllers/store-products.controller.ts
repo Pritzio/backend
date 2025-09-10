@@ -26,6 +26,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { StoreProductsService } from '../services/store-products.service';
+import { ProductMatchingService } from '../services/product-matching.service';
 import {
   CreateStoreProductDto,
 } from '../dto';
@@ -48,6 +49,7 @@ export class StoreProductsController {
 
   constructor(
     private readonly storeProductsService: StoreProductsService,
+    private readonly productMatchingService: ProductMatchingService,
   ) {}
 
   @Get('test-dates')
@@ -272,7 +274,7 @@ export class StoreProductsController {
 
   @Post('scraping/add-products')
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
-  @ApiOperation({ summary: 'Add scraped products' })
+  @ApiOperation({ summary: 'Add scraped products with automatic matching' })
   @ApiResponse({
     status: 201,
     description: 'Scraped products added successfully',
@@ -282,41 +284,57 @@ export class StoreProductsController {
     status: 403,
     description: 'Forbidden - Insufficient permissions',
   })
-    async addScrapedProducts(
+  async addScrapedProducts(
     @Body() data: any,
     @Request() req: any,
   ): Promise<any> {
     this.logger.log('=== SCRAPING ADD PRODUCTS ENDPOINT CALLED ===');
-    this.logger.log('Request data received:', JSON.stringify(data, null, 2));
-    this.logger.log('User making request:', JSON.stringify(req.user, null, 2));
-    this.logger.log('Data type:', typeof data);
-    this.logger.log('Data is array:', Array.isArray(data));
+    this.logger.log(`Processing ${Array.isArray(data) ? data.length : 0} products with automatic matching`);
     
     try {
-      // Process received data
       if (Array.isArray(data)) {
-        this.logger.log(`Processing ${data.length} products`);
+        // Prepare data for batch matching
+        const productsForMatching = data.map(product => ({
+          name: product.name || 'Unnamed Product',
+          brand: product.brand || product.metadata?.brand,
+          specifications: {
+            categories: product.categories || [],
+            rating: product.rating,
+            originalData: product
+          },
+          storeId: product.storeId || product.store?.id || null
+        }));
+
+        // Process batch matching
+        const matchingResults = await this.productMatchingService.processBatchProducts(productsForMatching);
         
         const results: Array<{
           success: boolean;
           originalId: any;
           createdProduct?: any;
           error?: string;
-          errorDetails?: any;
+          matchedBaseProduct?: any;
         }> = [];
         
         for (let i = 0; i < data.length; i++) {
           const product = data[i];
-          this.logger.log(`Processing product ${i + 1}:`, JSON.stringify(product, null, 2));
           
           try {
-            // Map scraping data to expected format
+            // Get corresponding base product
+            const productKey = product.name || 'Unnamed Product';
+            const baseProduct = matchingResults.get(productKey);
+            
+            if (!baseProduct) {
+              throw new Error('Failed to match or create base product');
+            }
+
+            // Create DTO with base product association
             const createStoreProductDto = {
               name: product.name || 'Unnamed Product',
               description: product.description || null,
               url: product.url || null,
               sku: product.sku || null,
-              storeProductId: product.id || null, // External store product ID
+              storeProductId: product.id && typeof product.id === 'string' && product.id.length >= 3 ? product.id : `scraped-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
               image: product.imageUrl || product.image || null,
               price: product.price ? Math.round(parseFloat(product.price.toString().replace(/[^0-9.-]/g, ''))) : undefined,
               metadata: {
@@ -326,112 +344,88 @@ export class StoreProductsController {
                 ppum: product.ppum || null,
                 highResImageUrl: product.highResImageUrl || null,
                 categories: product.categories || [],
-                originalPrice: product.price || null, // Save original scraping price
-                originalData: product
+                originalPrice: product.price || null,
+                originalData: product,
+                matchedBaseProduct: {
+                  id: baseProduct.id,
+                  name: baseProduct.name,
+                  brand: baseProduct.brand,
+                  similarity: 'auto-matched'
+                }
               },
-              notes: `Product added from scraping - ${new Date().toISOString()}`
+              notes: `Product added from scraping with auto-matching - ${new Date().toISOString()}`
             };
             
-            this.logger.log(`Mapped DTO for product ${i + 1}:`, JSON.stringify(createStoreProductDto, null, 2));
-            
-            // Check if product already exists with same storeProductId or url
+            // Check for duplicates
             const existingProduct = await this.storeProductsService.checkDuplicateStoreProduct(
               createStoreProductDto.storeProductId,
               createStoreProductDto.url
             );
             
             if (existingProduct) {
-              this.logger.log(`Product ${i + 1} already exists - skipping. Existing ID: ${existingProduct.id}`);
-              
               results.push({
                 success: false,
                 originalId: product.id,
                 error: 'Product already exists',
-                errorDetails: {
-                  reason: 'duplicate',
-                  existingProductId: existingProduct.id,
-                  duplicateBy: existingProduct.storeProductId === createStoreProductDto.storeProductId ? 'storeProductId' : 'url',
-                  duplicateValue: existingProduct.storeProductId === createStoreProductDto.storeProductId ? createStoreProductDto.storeProductId : createStoreProductDto.url
-                }
+                matchedBaseProduct: baseProduct
               });
-              continue; // Skip to next product
+              continue;
             }
             
-            // Extract categories from original metadata
-            const categoryNames = product.categories || [];
-            
-            // Extract store information
-            const storeName = product.storeName || product.store || product.source || 'Unknown Store';
-            const storeWebsite = product.storeWebsite || product.storeUrl || null;
-            
-            this.logger.log(`Store info for product ${i + 1}:`, { storeName, storeWebsite });
-            
-            const createdProduct = await this.storeProductsService.createStoreProduct(
+            // Create product with automatic association
+            const createdProduct = await this.storeProductsService.createStoreProductWithBase(
               createStoreProductDto,
               req.user,
-              categoryNames,
-              storeName,
-              storeWebsite
+              baseProduct.id,
+              product.categories || [],
+              product.storeName || product.store || product.source || 'Unknown Store',
+              product.storeWebsite || product.storeUrl || null
             );
             
             results.push({
               success: true,
               originalId: product.id,
-              createdProduct: createdProduct
+              createdProduct: createdProduct,
+              matchedBaseProduct: baseProduct
             });
-            
-            this.logger.log(`Successfully created product ${i + 1} with ID: ${createdProduct.id}`);
             
           } catch (productError) {
             this.logger.error(`Error processing product ${i + 1}:`, productError);
-            this.logger.error(`Error message: ${productError.message}`);
-            this.logger.error(`Error stack: ${productError.stack}`);
             
             results.push({
               success: false,
               originalId: product.id,
               error: productError.message,
-              errorDetails: {
-                message: productError.message,
-                stack: productError.stack,
-                name: productError.name
-              }
             });
           }
         }
         
-        this.logger.log('Final results:', JSON.stringify(results, null, 2));
-        
+        // Final statistics
         const successful = results.filter(r => r.success).length;
         const failed = results.filter(r => !r.success).length;
-        const duplicates = results.filter(r => !r.success && r.errorDetails?.reason === 'duplicate').length;
-        const errors = results.filter(r => !r.success && r.errorDetails?.reason !== 'duplicate').length;
+        const matched = results.filter(r => r.matchedBaseProduct).length;
+        const newBaseProducts = new Set(results.map(r => r.matchedBaseProduct?.id).filter(Boolean)).size;
 
-        const response = {
-          message: 'Scraped products processed',
+        return {
+          message: 'Scraped products processed with automatic matching',
           total: data.length,
           successful: successful,
           failed: failed,
-          duplicates: duplicates,
-          errors: errors,
+          matched: matched,
+          newBaseProducts: newBaseProducts,
           results: results,
           logs: {
             endpoint: 'store-products/scraping/add-products',
             timestamp: new Date().toISOString(),
-            user: req.user?.username || 'unknown'
+            user: req.user?.username || 'unknown',
+            matchingStrategy: 'automatic-similarity-based'
           }
         };
         
-        return response;
-        
       } else {
-        const errorMsg = `Data is not an array: ${typeof data}`;
-        this.logger.error('Data is not an array:', typeof data);
-        
         return {
           error: 'Data must be an array of products',
           received: typeof data,
-          message: errorMsg,
           logs: {
             endpoint: 'store-products/scraping/add-products',
             timestamp: new Date().toISOString(),
@@ -442,15 +436,10 @@ export class StoreProductsController {
       
     } catch (error) {
       this.logger.error('Error in addScrapedProducts:', error);
-      this.logger.error('Error stack:', error.stack);
       
       return {
         error: 'Critical error processing request',
         message: error.message,
-        details: {
-          name: error.name,
-          stack: error.stack
-        },
         logs: {
           endpoint: 'store-products/scraping/add-products',
           timestamp: new Date().toISOString(),

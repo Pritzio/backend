@@ -1,0 +1,559 @@
+{
+  "info": {
+    "name": "Product Comparison API - Pritzio Backend",
+    "description": "Complete collection of Product Comparison API endpoints for testing and development",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api/v1/product-comparison",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "your-jwt-token-here",
+      "type": "string"
+    },
+    {
+      "key": "base_product_id",
+      "value": "uuid-base-product-id-here",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Product Search",
+      "item": [
+        {
+          "name": "Search Products - Basic",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?q=nova%20papel",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "nova papel"
+                }
+              ]
+            },
+            "description": "Basic product search with simple query"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Products - Electronics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?q=iphone%2015",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "iphone 15"
+                }
+              ]
+            },
+            "description": "Search for electronics products"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Products - Groceries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?q=leche%20entera",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "leche entera"
+                }
+              ]
+            },
+            "description": "Search for grocery products"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Products - Long Query",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?q=nova%20papel%20higienico%2070%20metros%20ultra%20suave",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "nova papel higienico 70 metros ultra suave"
+                }
+              ]
+            },
+            "description": "Search with detailed product description"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Products - Brand Only",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?q=samsung",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "samsung"
+                }
+              ]
+            },
+            "description": "Search by brand name only"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product Comparison",
+      "item": [
+        {
+          "name": "Get Product Comparison - Basic",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/{{base_product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{base_product_id}}"]
+            },
+            "description": "Get price comparison for a specific base product"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product Comparison - Electronics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/uuid-electronics-product-id",
+              "host": ["{{base_url}}"],
+              "path": ["uuid-electronics-product-id"]
+            },
+            "description": "Get price comparison for electronics product"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product Comparison - Groceries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/uuid-groceries-product-id",
+              "host": ["{{base_url}}"],
+              "path": ["uuid-groceries-product-id"]
+            },
+            "description": "Get price comparison for grocery product"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error Testing",
+      "item": [
+        {
+          "name": "Search with Short Query",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?q=n",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "n"
+                }
+              ]
+            },
+            "description": "Test error handling with query too short"
+          },
+          "response": []
+        },
+        {
+          "name": "Search with Empty Query",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search",
+              "host": ["{{base_url}}"],
+              "path": ["search"]
+            },
+            "description": "Test error handling with missing query parameter"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Comparison - Invalid ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invalid-uuid-id",
+              "host": ["{{base_url}}"],
+              "path": ["invalid-uuid-id"]
+            },
+            "description": "Test error handling with invalid base product ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Comparison - Non-existent ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/00000000-0000-0000-0000-000000000000",
+              "host": ["{{base_url}}"],
+              "path": ["00000000-0000-0000-0000-000000000000"]
+            },
+            "description": "Test error handling with non-existent base product ID"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Performance Testing",
+      "item": [
+        {
+          "name": "Search - Common Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?q=pan",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "pan"
+                }
+              ]
+            },
+            "description": "Test search performance with common product name"
+          },
+          "response": []
+        },
+        {
+          "name": "Search - Specific Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?q=iphone%2015%20pro%20max%20256gb%20space%20black",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "iphone 15 pro max 256gb space black"
+                }
+              ]
+            },
+            "description": "Test search performance with very specific product query"
+          },
+          "response": []
+        },
+        {
+          "name": "Search - Special Characters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?q=producto%20con%20%C3%A1%20%C3%A9%20%C3%AD%20%C3%B3%20%C3%BA",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "producto con á é í ó ú"
+                }
+              ]
+            },
+            "description": "Test search with special characters and accents"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Real-world Scenarios",
+      "item": [
+        {
+          "name": "Search - Grocery Shopping",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?q=arroz%20grado%201",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "arroz grado 1"
+                }
+              ]
+            },
+            "description": "Search for rice products for grocery shopping"
+          },
+          "response": []
+        },
+        {
+          "name": "Search - Electronics Shopping",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?q=auriculares%20bluetooth",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "auriculares bluetooth"
+                }
+              ]
+            },
+            "description": "Search for Bluetooth headphones"
+          },
+          "response": []
+        },
+        {
+          "name": "Search - Home & Garden",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?q=detergente%20liquido",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "detergente liquido"
+                }
+              ]
+            },
+            "description": "Search for liquid detergent"
+          },
+          "response": []
+        },
+        {
+          "name": "Search - Health & Beauty",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?q=shampoo%20anticaida",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "shampoo anticaida"
+                }
+              ]
+            },
+            "description": "Search for anti-hair loss shampoo"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set default base product ID if not provided",
+          "if (pm.request.url.path.includes('{{base_product_id}}') && pm.variables.get('base_product_id') === 'uuid-base-product-id-here') {",
+          "    // You can set a real base product ID here for testing",
+          "    pm.variables.set('base_product_id', 'your-actual-base-product-id-here');",
+          "}",
+          "",
+          "// Log request details",
+          "console.log('Request URL:', pm.request.url.toString());",
+          "console.log('Request Method:', pm.request.method);",
+          "if (pm.request.url.query.has('q')) {",
+          "    console.log('Search Query:', pm.request.url.query.get('q'));",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Common test scripts for product comparison endpoints",
+          "pm.test('Response status code is successful', function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 500]);",
+          "});",
+          "",
+          "pm.test('Response has required structure', function () {",
+          "    const jsonData = pm.response.json();",
+          "    ",
+          "    if (pm.request.url.path.includes('/search')) {",
+          "        pm.expect(jsonData).to.have.property('data');",
+          "        pm.expect(jsonData).to.have.property('total');",
+          "        pm.expect(jsonData).to.have.property('query');",
+          "        pm.expect(jsonData.data).to.be.an('array');",
+          "    }",
+          "    ",
+          "    if (pm.request.url.path.includes('/search') && jsonData.data.length > 0) {",
+          "        pm.test('Search results have required fields', function () {",
+          "            const product = jsonData.data[0];",
+          "            pm.expect(product).to.have.property('id');",
+          "            pm.expect(product).to.have.property('name');",
+          "            pm.expect(product).to.have.property('fullName');",
+          "            pm.expect(product).to.have.property('storeCount');",
+          "            pm.expect(product).to.have.property('totalVariants');",
+          "        });",
+          "    }",
+          "    ",
+          "    if (!pm.request.url.path.includes('/search')) {",
+          "        pm.expect(jsonData).to.have.property('product');",
+          "        pm.expect(jsonData).to.have.property('stores');",
+          "        pm.expect(jsonData).to.have.property('priceRange');",
+          "        pm.expect(jsonData).to.have.property('totalStores');",
+          "    }",
+          "});",
+          "",
+          "// Test search functionality",
+          "if (pm.request.url.path.includes('/search')) {",
+          "    pm.test('Search query validation', function () {",
+          "        const jsonData = pm.response.json();",
+          "        ",
+          "        if (pm.response.code === 200) {",
+          "            pm.expect(jsonData.query).to.be.a('string');",
+          "            pm.expect(jsonData.query.length).to.be.at.least(2);",
+          "        }",
+          "    });",
+          "    ",
+          "    pm.test('Search results are relevant', function () {",
+          "        const jsonData = pm.response.json();",
+          "        ",
+          "        if (jsonData.data.length > 0) {",
+          "            const query = jsonData.query.toLowerCase();",
+          "            const firstProduct = jsonData.data[0];",
+          "            ",
+          "            // Check if product name contains query terms",
+          "            const productName = firstProduct.name.toLowerCase();",
+          "            const fullName = firstProduct.fullName.toLowerCase();",
+          "            ",
+          "            pm.expect(productName.includes(query) || fullName.includes(query)).to.be.true;",
+          "        }",
+          "    });",
+          "}",
+          "",
+          "// Test comparison functionality",
+          "if (!pm.request.url.path.includes('/search')) {",
+          "    pm.test('Product comparison has valid structure', function () {",
+          "        const jsonData = pm.response.json();",
+          "        ",
+          "        if (pm.response.code === 200) {",
+          "            pm.expect(jsonData.product).to.have.property('id');",
+          "            pm.expect(jsonData.product).to.have.property('name');",
+          "            pm.expect(jsonData.product).to.have.property('storeCount');",
+          "            ",
+          "            pm.expect(jsonData.priceRange).to.have.property('min');",
+          "            pm.expect(jsonData.priceRange).to.have.property('max');",
+          "            pm.expect(jsonData.priceRange).to.have.property('avg');",
+          "            ",
+          "            pm.expect(jsonData.stores).to.be.an('array');",
+          "            pm.expect(jsonData.totalStores).to.be.a('number');",
+          "        }",
+          "    });",
+          "    ",
+          "    pm.test('Price range is valid', function () {",
+          "        const jsonData = pm.response.json();",
+          "        ",
+          "        if (pm.response.code === 200 && jsonData.priceRange) {",
+          "            pm.expect(jsonData.priceRange.min).to.be.at.most(jsonData.priceRange.max);",
+          "            pm.expect(jsonData.priceRange.avg).to.be.at.least(jsonData.priceRange.min);",
+          "            pm.expect(jsonData.priceRange.avg).to.be.at.most(jsonData.priceRange.max);",
+          "        }",
+          "    });",
+          "    ",
+          "    pm.test('Store data is valid', function () {",
+          "        const jsonData = pm.response.json();",
+          "        ",
+          "        if (pm.response.code === 200 && jsonData.stores.length > 0) {",
+          "            const store = jsonData.stores[0];",
+          "            pm.expect(store).to.have.property('store');",
+          "            pm.expect(store).to.have.property('product');",
+          "            pm.expect(store).to.have.property('price');",
+          "            ",
+          "            pm.expect(store.store).to.have.property('id');",
+          "            pm.expect(store.store).to.have.property('name');",
+          "            ",
+          "            pm.expect(store.product).to.have.property('id');",
+          "            pm.expect(store.product).to.have.property('name');",
+          "            pm.expect(store.product).to.have.property('price');",
+          "        }",
+          "    });",
+          "}",
+          "",
+          "// Log response summary",
+          "const jsonData = pm.response.json();",
+          "console.log('Response Status:', pm.response.code);",
+          "",
+          "if (pm.request.url.path.includes('/search')) {",
+          "    console.log('Search Results:', jsonData.total || 0);",
+          "    console.log('Query:', jsonData.query || 'N/A');",
+          "} else {",
+          "    console.log('Comparison Stores:', jsonData.totalStores || 0);",
+          "    if (jsonData.priceRange) {",
+          "        console.log('Price Range: $' + jsonData.priceRange.min + ' - $' + jsonData.priceRange.max);",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ]
+}
+
