@@ -37,7 +37,7 @@ export class AdminProductsController {
     summary: 'Get duplicate product groups with advanced filtering',
     description: 'Find products that are likely duplicates based on similarity analysis'
   })
-  @ApiQuery({ name: 'threshold', required: false, type: Number, description: 'Similarity threshold (0-1), default: 0.8' })
+  @ApiQuery({ name: 'threshold', required: false, type: Number, description: 'Similarity threshold (0-1), default: 0.9' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum number of groups to return, default: 50' })
   @ApiQuery({ name: 'brand', required: false, type: String, description: 'Filter by brand name' })
   @ApiResponse({
@@ -69,7 +69,7 @@ export class AdminProductsController {
     @Query('brand') brand?: string,
   ) {
     return await this._productMatchingService.findDuplicateGroups({
-      threshold: threshold || 0.8,
+      threshold: threshold || 0.9,
       limit: limit || 50,
       brand: brand
     });

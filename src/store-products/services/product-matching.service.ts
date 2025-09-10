@@ -663,7 +663,7 @@ export class ProductMatchingService {
     threshold?: number;
     limit?: number;
   }): Promise<any[]> {
-    const { name, brand, specifications, threshold = 0.8, limit = 10 } = options;
+    const { name, brand, specifications, threshold = 0.5, limit = 10 } = options;
 
     this._logger.log(`Finding similar products for: "${name}" (brand: "${brand}", threshold: ${threshold})`);
 
@@ -676,9 +676,8 @@ export class ProductMatchingService {
         .leftJoinAndSelect('storeProduct.creator', 'creator')
         .where('baseProduct.isActive = :isActive', { isActive: true });
 
-      if (brand) {
-        queryBuilder.andWhere('LOWER(baseProduct.brand) = LOWER(:brand)', { brand });
-      }
+      // Don't filter by brand for suggestions - we want to find similar products regardless of brand
+      // The brand similarity will be calculated in the similarity algorithm
 
       const baseProducts = await queryBuilder.getMany();
 
@@ -691,7 +690,8 @@ export class ProductMatchingService {
       for (const product of baseProducts) {
         const similarity = this._calculateProductSimilarity(
           { name, brand, specifications },
-          { name: product.name, brand: product.brand, specifications: product.specifications }
+          { name: product.name, brand: product.brand, specifications: product.specifications },
+          true // isForSuggestions = true
         );
 
         if (similarity >= threshold) {
@@ -765,7 +765,7 @@ export class ProductMatchingService {
     includeSimilar?: boolean;
     brand?: string;
   } = {}): Promise<any[]> {
-    const { threshold = 0.8, limit = 50, includeSimilar = true, brand } = options;
+    const { threshold = 0.9, limit = 50, includeSimilar = true, brand } = options;
     
     this._logger.log(`🔍 Finding duplicate groups with threshold: ${threshold}, limit: ${limit}`);
 
@@ -806,7 +806,7 @@ export class ProductMatchingService {
 
         if (processed.has(candidateId)) continue;
 
-        const similarity = this._calculateProductSimilarity(product, candidate);
+        const similarity = this._calculateProductSimilarity(product, candidate, false); // isForSuggestions = false
         
         if (similarity >= threshold) {
           similarProducts.push(candidate);
@@ -839,69 +839,142 @@ export class ProductMatchingService {
     return limitedGroups;
   }
 
-  private _calculateProductSimilarity(product1: any, product2: any): number {
+  private _calculateProductSimilarity(product1: any, product2: any, isForSuggestions: boolean = false): number {
     const name1 = this._normalizeProductName(product1.name);
     const name2 = this._normalizeProductName(product2.name);
     
-    // First check: if brands are different, similarity should be very low
+    // Check if names are exactly the same (after normalization)
+    if (name1 === name2) {
+      return 1.0; // 100% similarity for identical names
+    }
+    
+    // Check if products have the same words in different order (very high similarity)
+    const words1 = name1.split(/\s+/).filter(word => word.length > 2).sort();
+    const words2 = name2.split(/\s+/).filter(word => word.length > 2).sort();
+    
+    if (words1.length === words2.length && words1.length > 0) {
+      const sameWords = words1.every((word, index) => word === words2[index]);
+      if (sameWords) {
+        return 0.98; // 98% similarity for same words in different order
+      }
+    }
+    
+    // Calculate brand similarity
     const brandSimilarity = this._calculateBrandSimilarity(product1.brand, product2.brand);
-    if (brandSimilarity < 0.8) {
-      // If brands are different, maximum similarity should be 0.3
-      const nameSimilarity = this._calculateStringSimilarity(name1, name2);
-      return Math.min(0.3, nameSimilarity * 0.5);
+    
+    // For suggestions, be more flexible with brands
+    if (!isForSuggestions) {
+      // STRICT CHECK 1: Brands must be very similar (for duplicates)
+      if (brandSimilarity < 0.8) {
+        return Math.min(0.1, this._calculateStringSimilarity(name1, name2) * 0.2);
+      }
+    } else {
+      // For suggestions, apply brand penalty but don't eliminate completely
+      if (brandSimilarity < 0.5) {
+        // Apply penalty but still allow some similarity
+        const baseSimilarity = this._calculateStringSimilarity(name1, name2);
+        return Math.min(0.6, baseSimilarity * 0.7);
+      }
     }
     
-    // If brands are similar, check product type similarity
-    const productTypeSimilarity = this._calculateProductTypeSimilarity(name1, name2);
-    if (productTypeSimilarity < 0.7) {
-      // If product types are different, maximum similarity should be 0.4
-      const nameSimilarity = this._calculateStringSimilarity(name1, name2);
-      return Math.min(0.4, nameSimilarity * 0.6);
+    // STRICT CHECK 2: Check for key product variations that should NOT match
+    const variationPenalty = this._calculateKeyVariationPenalty(name1, name2);
+    if (variationPenalty > 0) {
+      return Math.min(0.2, this._calculateStringSimilarity(name1, name2) * 0.3);
     }
     
-    // Calculate name similarity - this is the most important factor
-    const nameSimilarity = this._calculateStringSimilarity(name1, name2);
+    // Calculate word-based similarity (order independent)
+    const wordSimilarity = this._calculateWordSimilarity(name1, name2);
     
-    // STRICT CHECK: If names have different numbers, cap similarity at 0.5
+    // For suggestions, be more flexible with word similarity
+    const wordThreshold = isForSuggestions ? 0.5 : 0.7;
+    if (wordSimilarity < wordThreshold) {
+      return Math.min(0.3, wordSimilarity * 0.4);
+    }
+    
+    // STRICT CHECK 4: Check if numbers are different
     const numbers1 = this._extractNumbers(name1);
     const numbers2 = this._extractNumbers(name2);
     
     if (numbers1.length > 0 && numbers2.length > 0) {
       const numbersMatch = this._compareNumberArrays(numbers1, numbers2);
       if (!numbersMatch) {
-        // If numbers are different, maximum similarity should be 0.5
-        return Math.min(0.5, nameSimilarity * 0.6);
+        return Math.min(0.4, wordSimilarity * 0.5);
       }
     }
     
-    // ULTRA STRICT CHECK: For 100% similarity, names must be almost identical
-    if (nameSimilarity >= 0.95) {
-      // Only allow 100% if names are extremely similar (95%+)
-      const measurementsSimilarity = this._calculateMeasurementsSimilarity(name1, name2);
-      const fullSimilarity = (nameSimilarity * 0.6) + (brandSimilarity * 0.2) + (productTypeSimilarity * 0.15) + (measurementsSimilarity * 0.05);
-      
-      // Cap at 99% unless names are truly identical
-      if (nameSimilarity >= 0.98) {
-        return Math.min(0.99, fullSimilarity);
-      } else {
-        return Math.min(0.95, fullSimilarity);
+    // STRICT CHECK 5: Check if measurements are different
+    const measurements1 = this._extractMeasurements(name1);
+    const measurements2 = this._extractMeasurements(name2);
+    
+    if (measurements1.length > 0 && measurements2.length > 0) {
+      const measurementsMatch = measurements1.some(m1 => 
+        measurements2.some(m2 => this._areMeasurementsSimilar(m1, m2))
+      );
+      if (!measurementsMatch) {
+        return Math.min(0.5, wordSimilarity * 0.6);
       }
     }
     
-    // If name similarity is too low, cap the overall similarity
-    if (nameSimilarity < 0.85) {
-      // If names are not very similar, maximum similarity should be 0.6
-      const measurementsSimilarity = this._calculateMeasurementsSimilarity(name1, name2);
-      return Math.min(0.6, (nameSimilarity * 0.7) + (measurementsSimilarity * 0.3));
+    // Calculate final similarity with weighted components
+    const nameSimilarity = this._calculateStringSimilarity(name1, name2);
+    
+    // Different weights for suggestions vs duplicates
+    if (isForSuggestions) {
+      // For suggestions: 50% word similarity, 30% name similarity, 20% brand similarity
+      const finalSimilarity = (wordSimilarity * 0.5) + (nameSimilarity * 0.3) + (brandSimilarity * 0.2);
+      return Math.min(0.95, finalSimilarity);
+    } else {
+      // For duplicates: 60% word similarity, 30% name similarity, 10% brand similarity
+      const finalSimilarity = (wordSimilarity * 0.6) + (nameSimilarity * 0.3) + (brandSimilarity * 0.1);
+      return Math.min(0.95, finalSimilarity);
+    }
+  }
+
+  private _calculateWordSimilarity(name1: string, name2: string): number {
+    // Split names into words and normalize
+    const words1 = name1.split(/\s+/).filter(word => word.length > 2);
+    const words2 = name2.split(/\s+/).filter(word => word.length > 2);
+    
+    if (words1.length === 0 && words2.length === 0) return 1;
+    if (words1.length === 0 || words2.length === 0) return 0;
+    
+    // Calculate word overlap (order independent) - more generous matching
+    const commonWords = words1.filter(word1 => 
+      words2.some(word2 => this._calculateStringSimilarity(word1, word2) > 0.7)
+    );
+    
+    const totalWords = Math.max(words1.length, words2.length);
+    const wordOverlap = commonWords.length / totalWords;
+    
+    // If all words match (regardless of order), return very high similarity
+    if (wordOverlap === 1.0) {
+      return 0.95; // 95% for perfect word match
     }
     
-    // For names with 85-95% similarity, calculate normal similarity
-    const measurementsSimilarity = this._calculateMeasurementsSimilarity(name1, name2);
+    // Calculate word order similarity
+    const orderSimilarity = this._calculateWordOrderSimilarity(words1, words2);
     
-    // Weighted similarity: 60% name, 20% brand, 15% product type, 5% measurements
-    const similarity = (nameSimilarity * 0.6) + (brandSimilarity * 0.2) + (productTypeSimilarity * 0.15) + (measurementsSimilarity * 0.05);
+    // If most words match, boost the similarity significantly
+    if (wordOverlap >= 0.8) {
+      return Math.min(0.9, wordOverlap + 0.1); // Boost high word overlap
+    }
     
-    return Math.max(0, Math.min(0.94, similarity)); // Cap at 94% for normal cases
+    // Weighted combination: 80% word overlap, 20% order similarity
+    return (wordOverlap * 0.8) + (orderSimilarity * 0.2);
+  }
+
+  private _calculateWordOrderSimilarity(words1: string[], words2: string[]): number {
+    if (words1.length !== words2.length) return 0;
+    
+    let matches = 0;
+    for (let i = 0; i < words1.length; i++) {
+      if (this._calculateStringSimilarity(words1[i], words2[i]) > 0.8) {
+        matches++;
+      }
+    }
+    
+    return matches / words1.length;
   }
 
   private _calculateBrandSimilarity(brand1: string | null, brand2: string | null): number {
@@ -956,6 +1029,582 @@ export class ProductMatchingService {
     if (lowerName.includes('crema') || lowerName.includes('loción')) {
       return 'cream';
     }
+    if (lowerName.includes('arroz')) {
+      return 'rice';
+    }
+    if (lowerName.includes('lentejas')) {
+      return 'lentils';
+    }
+    if (lowerName.includes('pasta')) {
+      return 'pasta';
+    }
+    if (lowerName.includes('fideos')) {
+      return 'noodles';
+    }
+    if (lowerName.includes('harina')) {
+      return 'flour';
+    }
+    if (lowerName.includes('azúcar')) {
+      return 'sugar';
+    }
+    if (lowerName.includes('aceite')) {
+      return 'oil';
+    }
+    if (lowerName.includes('leche')) {
+      return 'milk';
+    }
+    if (lowerName.includes('pan')) {
+      return 'bread';
+    }
+    if (lowerName.includes('queso')) {
+      return 'cheese';
+    }
+    if (lowerName.includes('carne')) {
+      return 'meat';
+    }
+    if (lowerName.includes('pollo')) {
+      return 'chicken';
+    }
+    if (lowerName.includes('pescado')) {
+      return 'fish';
+    }
+    if (lowerName.includes('fruta')) {
+      return 'fruit';
+    }
+    if (lowerName.includes('verdura')) {
+      return 'vegetable';
+    }
+    if (lowerName.includes('cereal')) {
+      return 'cereal';
+    }
+    if (lowerName.includes('galleta')) {
+      return 'cookie';
+    }
+    if (lowerName.includes('chocolate')) {
+      return 'chocolate';
+    }
+    if (lowerName.includes('bebida')) {
+      return 'beverage';
+    }
+    if (lowerName.includes('agua')) {
+      return 'water';
+    }
+    if (lowerName.includes('jugo')) {
+      return 'juice';
+    }
+    if (lowerName.includes('café')) {
+      return 'coffee';
+    }
+    if (lowerName.includes('té')) {
+      return 'tea';
+    }
+    if (lowerName.includes('yogurt')) {
+      return 'yogurt';
+    }
+    if (lowerName.includes('huevo')) {
+      return 'egg';
+    }
+    if (lowerName.includes('mantequilla')) {
+      return 'butter';
+    }
+    if (lowerName.includes('margarina')) {
+      return 'margarine';
+    }
+    if (lowerName.includes('sal')) {
+      return 'salt';
+    }
+    if (lowerName.includes('pimienta')) {
+      return 'pepper';
+    }
+    if (lowerName.includes('especia')) {
+      return 'spice';
+    }
+    if (lowerName.includes('condimento')) {
+      return 'condiment';
+    }
+    if (lowerName.includes('salsa')) {
+      return 'sauce';
+    }
+    if (lowerName.includes('vinagre')) {
+      return 'vinegar';
+    }
+    if (lowerName.includes('mostaza')) {
+      return 'mustard';
+    }
+    if (lowerName.includes('mayonesa')) {
+      return 'mayonnaise';
+    }
+    if (lowerName.includes('ketchup')) {
+      return 'ketchup';
+    }
+    if (lowerName.includes('mermelada')) {
+      return 'jam';
+    }
+    if (lowerName.includes('miel')) {
+      return 'honey';
+    }
+    if (lowerName.includes('dulce')) {
+      return 'sweet';
+    }
+    if (lowerName.includes('goma')) {
+      return 'gum';
+    }
+    if (lowerName.includes('caramelo')) {
+      return 'candy';
+    }
+    if (lowerName.includes('helado')) {
+      return 'ice_cream';
+    }
+    if (lowerName.includes('congelado')) {
+      return 'frozen';
+    }
+    if (lowerName.includes('conserva')) {
+      return 'canned';
+    }
+    if (lowerName.includes('enlatado')) {
+      return 'canned';
+    }
+    if (lowerName.includes('deshidratado')) {
+      return 'dehydrated';
+    }
+    if (lowerName.includes('instantáneo')) {
+      return 'instant';
+    }
+    if (lowerName.includes('preparado')) {
+      return 'prepared';
+    }
+    if (lowerName.includes('cocido')) {
+      return 'cooked';
+    }
+    if (lowerName.includes('crudo')) {
+      return 'raw';
+    }
+    if (lowerName.includes('fresco')) {
+      return 'fresh';
+    }
+    if (lowerName.includes('seco')) {
+      return 'dry';
+    }
+    if (lowerName.includes('húmedo')) {
+      return 'wet';
+    }
+    if (lowerName.includes('líquido')) {
+      return 'liquid';
+    }
+    if (lowerName.includes('sólido')) {
+      return 'solid';
+    }
+    if (lowerName.includes('polvo')) {
+      return 'powder';
+    }
+    if (lowerName.includes('granulado')) {
+      return 'granulated';
+    }
+    if (lowerName.includes('molido')) {
+      return 'ground';
+    }
+    if (lowerName.includes('entero')) {
+      return 'whole';
+    }
+    if (lowerName.includes('partido')) {
+      return 'broken';
+    }
+    if (lowerName.includes('triturado')) {
+      return 'crushed';
+    }
+    if (lowerName.includes('picado')) {
+      return 'chopped';
+    }
+    if (lowerName.includes('cortado')) {
+      return 'cut';
+    }
+    if (lowerName.includes('rebanado')) {
+      return 'sliced';
+    }
+    if (lowerName.includes('rallado')) {
+      return 'grated';
+    }
+    if (lowerName.includes('pelado')) {
+      return 'peeled';
+    }
+    if (lowerName.includes('sin pelar')) {
+      return 'unpeeled';
+    }
+    if (lowerName.includes('con cáscara')) {
+      return 'with_skin';
+    }
+    if (lowerName.includes('sin cáscara')) {
+      return 'without_skin';
+    }
+    if (lowerName.includes('con semilla')) {
+      return 'with_seed';
+    }
+    if (lowerName.includes('sin semilla')) {
+      return 'without_seed';
+    }
+    if (lowerName.includes('con hueso')) {
+      return 'with_bone';
+    }
+    if (lowerName.includes('sin hueso')) {
+      return 'without_bone';
+    }
+    if (lowerName.includes('con grasa')) {
+      return 'with_fat';
+    }
+    if (lowerName.includes('sin grasa')) {
+      return 'without_fat';
+    }
+    if (lowerName.includes('con azúcar')) {
+      return 'with_sugar';
+    }
+    if (lowerName.includes('sin azúcar')) {
+      return 'without_sugar';
+    }
+    if (lowerName.includes('con sal')) {
+      return 'with_salt';
+    }
+    if (lowerName.includes('sin sal')) {
+      return 'without_salt';
+    }
+    if (lowerName.includes('con conservantes')) {
+      return 'with_preservatives';
+    }
+    if (lowerName.includes('sin conservantes')) {
+      return 'without_preservatives';
+    }
+    if (lowerName.includes('orgánico')) {
+      return 'organic';
+    }
+    if (lowerName.includes('natural')) {
+      return 'natural';
+    }
+    if (lowerName.includes('artificial')) {
+      return 'artificial';
+    }
+    if (lowerName.includes('sintético')) {
+      return 'synthetic';
+    }
+    if (lowerName.includes('biológico')) {
+      return 'biological';
+    }
+    if (lowerName.includes('ecológico')) {
+      return 'ecological';
+    }
+    if (lowerName.includes('sostenible')) {
+      return 'sustainable';
+    }
+    if (lowerName.includes('local')) {
+      return 'local';
+    }
+    if (lowerName.includes('importado')) {
+      return 'imported';
+    }
+    if (lowerName.includes('nacional')) {
+      return 'national';
+    }
+    if (lowerName.includes('internacional')) {
+      return 'international';
+    }
+    if (lowerName.includes('tradicional')) {
+      return 'traditional';
+    }
+    if (lowerName.includes('moderno')) {
+      return 'modern';
+    }
+    if (lowerName.includes('clásico')) {
+      return 'classic';
+    }
+    if (lowerName.includes('nuevo')) {
+      return 'new';
+    }
+    if (lowerName.includes('viejo')) {
+      return 'old';
+    }
+    if (lowerName.includes('joven')) {
+      return 'young';
+    }
+    if (lowerName.includes('maduro')) {
+      return 'mature';
+    }
+    if (lowerName.includes('verde')) {
+      return 'green';
+    }
+    if (lowerName.includes('rojo')) {
+      return 'red';
+    }
+    if (lowerName.includes('azul')) {
+      return 'blue';
+    }
+    if (lowerName.includes('amarillo')) {
+      return 'yellow';
+    }
+    if (lowerName.includes('blanco')) {
+      return 'white';
+    }
+    if (lowerName.includes('negro')) {
+      return 'black';
+    }
+    if (lowerName.includes('marrón')) {
+      return 'brown';
+    }
+    if (lowerName.includes('gris')) {
+      return 'grey';
+    }
+    if (lowerName.includes('rosa')) {
+      return 'pink';
+    }
+    if (lowerName.includes('naranja')) {
+      return 'orange';
+    }
+    if (lowerName.includes('morado')) {
+      return 'purple';
+    }
+    if (lowerName.includes('dorado')) {
+      return 'golden';
+    }
+    if (lowerName.includes('plateado')) {
+      return 'silver';
+    }
+    if (lowerName.includes('transparente')) {
+      return 'transparent';
+    }
+    if (lowerName.includes('opaco')) {
+      return 'opaque';
+    }
+    if (lowerName.includes('brillante')) {
+      return 'shiny';
+    }
+    if (lowerName.includes('mate')) {
+      return 'matte';
+    }
+    if (lowerName.includes('suave')) {
+      return 'soft';
+    }
+    if (lowerName.includes('duro')) {
+      return 'hard';
+    }
+    if (lowerName.includes('blando')) {
+      return 'soft';
+    }
+    if (lowerName.includes('firme')) {
+      return 'firm';
+    }
+    if (lowerName.includes('flexible')) {
+      return 'flexible';
+    }
+    if (lowerName.includes('rígido')) {
+      return 'rigid';
+    }
+    if (lowerName.includes('elástico')) {
+      return 'elastic';
+    }
+    if (lowerName.includes('plástico')) {
+      return 'plastic';
+    }
+    if (lowerName.includes('metal')) {
+      return 'metal';
+    }
+    if (lowerName.includes('madera')) {
+      return 'wood';
+    }
+    if (lowerName.includes('vidrio')) {
+      return 'glass';
+    }
+    if (lowerName.includes('cerámica')) {
+      return 'ceramic';
+    }
+    if (lowerName.includes('porcelana')) {
+      return 'porcelain';
+    }
+    if (lowerName.includes('cristal')) {
+      return 'crystal';
+    }
+    if (lowerName.includes('piedra')) {
+      return 'stone';
+    }
+    if (lowerName.includes('mármol')) {
+      return 'marble';
+    }
+    if (lowerName.includes('granito')) {
+      return 'granite';
+    }
+    if (lowerName.includes('cuarzo')) {
+      return 'quartz';
+    }
+    if (lowerName.includes('diamante')) {
+      return 'diamond';
+    }
+    if (lowerName.includes('oro')) {
+      return 'gold';
+    }
+    if (lowerName.includes('plata')) {
+      return 'silver';
+    }
+    if (lowerName.includes('cobre')) {
+      return 'copper';
+    }
+    if (lowerName.includes('hierro')) {
+      return 'iron';
+    }
+    if (lowerName.includes('acero')) {
+      return 'steel';
+    }
+    if (lowerName.includes('aluminio')) {
+      return 'aluminum';
+    }
+    if (lowerName.includes('zinc')) {
+      return 'zinc';
+    }
+    if (lowerName.includes('estaño')) {
+      return 'tin';
+    }
+    if (lowerName.includes('plomo')) {
+      return 'lead';
+    }
+    if (lowerName.includes('mercurio')) {
+      return 'mercury';
+    }
+    if (lowerName.includes('cromo')) {
+      return 'chrome';
+    }
+    if (lowerName.includes('níquel')) {
+      return 'nickel';
+    }
+    if (lowerName.includes('titanio')) {
+      return 'titanium';
+    }
+    if (lowerName.includes('tungsteno')) {
+      return 'tungsten';
+    }
+    if (lowerName.includes('uranio')) {
+      return 'uranium';
+    }
+    if (lowerName.includes('plutonio')) {
+      return 'plutonium';
+    }
+    if (lowerName.includes('radio')) {
+      return 'radium';
+    }
+    if (lowerName.includes('cesio')) {
+      return 'cesium';
+    }
+    if (lowerName.includes('rubidio')) {
+      return 'rubidium';
+    }
+    if (lowerName.includes('potasio')) {
+      return 'potassium';
+    }
+    if (lowerName.includes('sodio')) {
+      return 'sodium';
+    }
+    if (lowerName.includes('litio')) {
+      return 'lithium';
+    }
+    if (lowerName.includes('berilio')) {
+      return 'beryllium';
+    }
+    if (lowerName.includes('magnesio')) {
+      return 'magnesium';
+    }
+    if (lowerName.includes('calcio')) {
+      return 'calcium';
+    }
+    if (lowerName.includes('estroncio')) {
+      return 'strontium';
+    }
+    if (lowerName.includes('bario')) {
+      return 'barium';
+    }
+    if (lowerName.includes('radio')) {
+      return 'radium';
+    }
+    if (lowerName.includes('francio')) {
+      return 'francium';
+    }
+    if (lowerName.includes('actinio')) {
+      return 'actinium';
+    }
+    if (lowerName.includes('torio')) {
+      return 'thorium';
+    }
+    if (lowerName.includes('protactinio')) {
+      return 'protactinium';
+    }
+    if (lowerName.includes('neptunio')) {
+      return 'neptunium';
+    }
+    if (lowerName.includes('americio')) {
+      return 'americium';
+    }
+    if (lowerName.includes('curio')) {
+      return 'curium';
+    }
+    if (lowerName.includes('berkelio')) {
+      return 'berkelium';
+    }
+    if (lowerName.includes('californio')) {
+      return 'californium';
+    }
+    if (lowerName.includes('einsteinio')) {
+      return 'einsteinium';
+    }
+    if (lowerName.includes('fermio')) {
+      return 'fermium';
+    }
+    if (lowerName.includes('mendelevio')) {
+      return 'mendelevium';
+    }
+    if (lowerName.includes('nobelio')) {
+      return 'nobelium';
+    }
+    if (lowerName.includes('laurencio')) {
+      return 'lawrencium';
+    }
+    if (lowerName.includes('rutherfordio')) {
+      return 'rutherfordium';
+    }
+    if (lowerName.includes('dubnio')) {
+      return 'dubnium';
+    }
+    if (lowerName.includes('seaborgio')) {
+      return 'seaborgium';
+    }
+    if (lowerName.includes('bohrio')) {
+      return 'bohrium';
+    }
+    if (lowerName.includes('hasio')) {
+      return 'hassium';
+    }
+    if (lowerName.includes('meitnerio')) {
+      return 'meitnerium';
+    }
+    if (lowerName.includes('darmstadtio')) {
+      return 'darmstadtium';
+    }
+    if (lowerName.includes('roentgenio')) {
+      return 'roentgenium';
+    }
+    if (lowerName.includes('copernicio')) {
+      return 'copernicium';
+    }
+    if (lowerName.includes('nihonio')) {
+      return 'nihonium';
+    }
+    if (lowerName.includes('flerovio')) {
+      return 'flerovium';
+    }
+    if (lowerName.includes('moscovio')) {
+      return 'moscovium';
+    }
+    if (lowerName.includes('livermorio')) {
+      return 'livermorium';
+    }
+    if (lowerName.includes('tennessino')) {
+      return 'tennessine';
+    }
+    if (lowerName.includes('oganessón')) {
+      return 'oganesson';
+    }
     
     return 'other';
   }
@@ -1006,11 +1655,11 @@ export class ProductMatchingService {
     
     // Calculate average similarity
     const avgSimilarity = products.slice(1).reduce((sum, p) => 
-      sum + this._calculateProductSimilarity(primaryProduct, p), 0
+      sum + this._calculateProductSimilarity(primaryProduct, p, false), 0
     ) / (products.length - 1);
     
-    // Only include groups with high similarity (really similar products)
-    if (avgSimilarity < 0.85) {
+    // Only include groups with high similarity (configurable threshold)
+    if (avgSimilarity < 0.8) {
       return null; // Skip groups that are not similar enough
     }
     
@@ -1458,3 +2107,4 @@ export class ProductMatchingService {
     return 'Similar product name';
   }
 }
+

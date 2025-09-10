@@ -38,7 +38,51 @@ export class ProductComparisonController {
   @ApiQuery({ name: 'q', description: 'Search query', example: 'nova papel 70m' })
   @ApiResponse({
     status: 200,
-    description: 'Products found successfully',
+    description: 'Products found successfully with price information',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+              brand: { type: 'string' },
+              model: { type: 'string' },
+              fullName: { type: 'string' },
+              storeCount: { type: 'number' },
+              totalVariants: { type: 'number' },
+              image: { type: 'string' },
+              specifications: { type: 'object' },
+              priceRange: {
+                type: 'object',
+                properties: {
+                  min: { type: 'number' },
+                  max: { type: 'number' },
+                  avg: { type: 'number' }
+                }
+              },
+              stores: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    store: { type: 'object' },
+                    product: { type: 'object' },
+                    price: { type: 'number' }
+                  }
+                }
+              },
+              createdAt: { type: 'string' }
+            }
+          }
+        },
+        total: { type: 'number' },
+        query: { type: 'string' }
+      }
+    }
   })
   async searchProducts(@Query('q') query: string) {
     if (!query || query.trim().length < 2) {
@@ -52,11 +96,13 @@ export class ProductComparisonController {
     
     this._logger.log(`Search returned ${products.length} products, ${activeProducts.length} active`);
     
-    // Get detailed info for each product
+    // Get detailed info for each product including price data
     const productsWithDetails = await Promise.all(
       activeProducts.map(async (product) => {
         try {
           const details = await this._productMatchingService.getProductWithImagesAndSpecs(product.id);
+          const comparison = await this._productMatchingService.getProductComparison(product.id);
+          
           return {
             id: product.id,
             name: product.name,
@@ -67,9 +113,29 @@ export class ProductComparisonController {
             totalVariants: product.totalVariants,
             image: details.image,
             specifications: details.specifications,
+            priceRange: comparison.priceRange,
+            stores: comparison.stores.map(store => ({
+              store: {
+                id: store.store.id,
+                name: store.store.name,
+                website: store.store.website,
+                type: store.store.type,
+                isVerified: store.store.isVerified,
+              },
+              product: {
+                id: store.product.id,
+                name: store.product.name,
+                price: store.product.price,
+                url: store.product.url,
+                image: store.product.image,
+                lastScraped: store.product.lastScraped,
+              },
+              price: store.price,
+            })),
             createdAt: product.createdAt,
           };
         } catch (error) {
+          this._logger.warn(`Failed to get detailed info for product ${product.id}:`, error.message);
           // Fallback to basic product info if detailed fetch fails
           return {
             id: product.id,
@@ -89,6 +155,12 @@ export class ProductComparisonController {
                 highResImageUrl: product.image
               }
             },
+            priceRange: {
+              min: 0,
+              max: 0,
+              avg: 0
+            },
+            stores: [],
             createdAt: product.createdAt,
           };
         }
