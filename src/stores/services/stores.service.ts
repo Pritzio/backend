@@ -223,8 +223,13 @@ export class StoresService {
 
   async getStoreById(
     storeId: string,
-    currentUser: any,
+    userId: string,
+    userRoles: string[],
   ): Promise<IStoreResponse> {
+    console.log('🔍 Getting store by ID:', storeId);
+    console.log('👤 User ID:', userId);
+    console.log('🔐 User roles:', userRoles);
+
     const store = await this.storeRepository.findOne({
       where: { id: storeId },
       relations: [
@@ -236,22 +241,42 @@ export class StoresService {
     });
 
     if (!store) {
+      console.log('❌ Store not found:', storeId);
       throw new NotFoundException('Store not found');
     }
 
+    console.log('✅ Store found:', {
+      id: store.id,
+      name: store.name,
+      hasCreator: !!store.creator,
+      creatorId: store.creator?.id,
+      creatorRoles: store.creator?.roles?.length || 0
+    });
+
     // Check if user has permission to view this store
-    const canView = this.validateStoreViewPermissions(store, currentUser);
+    const canView = this.validateStoreViewPermissions(store, { id: userId, roles: userRoles });
     if (!canView.allowed) {
+      console.log('❌ Permission denied:', canView.reason);
       throw new ForbiddenException(canView.reason);
     }
 
-    return this.mapStoreToResponse(store);
+    console.log('✅ Permission granted, mapping store to response...');
+    
+    try {
+      const response = this.mapStoreToResponse(store);
+      console.log('✅ Store mapped successfully');
+      return response;
+    } catch (error) {
+      console.log('❌ Error mapping store:', error.message);
+      throw error;
+    }
   }
 
   async updateStore(
     storeId: string,
     updateStoreDto: UpdateStoreDto,
-    currentUser: any,
+    userId: string,
+    userRoles: string[],
   ): Promise<Store> {
     const store = await this.storeRepository.findOne({
       where: { id: storeId },
@@ -263,7 +288,7 @@ export class StoresService {
     }
 
     // Check if user has permission to update this store
-    const canUpdate = this.validateStoreUpdatePermissions(store, currentUser);
+    const canUpdate = this.validateStoreUpdatePermissions(store, { id: userId, roles: userRoles });
     if (!canUpdate.allowed) {
       throw new ForbiddenException(canUpdate.reason);
     }
@@ -278,7 +303,8 @@ export class StoresService {
       }
     }
 
-    if (updateStoreDto.website && updateStoreDto.website !== store.website) {
+    // Only check website uniqueness if it's not empty
+    if (updateStoreDto.website && updateStoreDto.website.trim() !== '' && updateStoreDto.website !== store.website) {
       const existingStore = await this.storeRepository.findOne({
         where: { website: updateStoreDto.website },
       });
@@ -287,7 +313,109 @@ export class StoresService {
       }
     }
 
-    Object.assign(store, updateStoreDto);
+    // Clean empty strings to undefined to avoid unique constraint violations
+    const cleanedDto = { ...updateStoreDto };
+    if (cleanedDto.website === '') cleanedDto.website = undefined;
+    if (cleanedDto.email === '') cleanedDto.email = undefined;
+    if (cleanedDto.phone === '') cleanedDto.phone = undefined;
+    if (cleanedDto.logo === '') cleanedDto.logo = undefined;
+    if (cleanedDto.country === '') cleanedDto.country = undefined;
+    if (cleanedDto.timezone === '') cleanedDto.timezone = undefined;
+    if (cleanedDto.description === '') cleanedDto.description = undefined;
+
+    Object.assign(store, cleanedDto);
+    return this.storeRepository.save(store);
+  }
+
+  async verifyStore(
+    storeId: string,
+    userId: string,
+    userRoles: string[],
+  ): Promise<Store> {
+    const store = await this.storeRepository.findOne({
+      where: { id: storeId },
+      relations: ['creator'],
+    });
+
+    if (!store) {
+      throw new NotFoundException('Store not found');
+    }
+
+    // Check if user has permission to verify stores (only SUPER_ADMIN and ADMIN)
+    // Check for both uppercase and lowercase versions
+    const hasSuperAdmin = userRoles.includes('SUPER_ADMIN') || userRoles.includes('super_admin');
+    const hasAdmin = userRoles.includes('ADMIN') || userRoles.includes('admin');
+    
+    if (!hasSuperAdmin && !hasAdmin) {
+      throw new ForbiddenException('Only SUPER_ADMIN and ADMIN can verify stores');
+    }
+
+    // Update store verification status
+    store.status = StoreStatus.ACTIVE;
+    store.isVerified = true;
+    store.verifiedAt = new Date();
+    store.verifiedBy = userId;
+
+    return this.storeRepository.save(store);
+  }
+
+  async suspendStore(
+    storeId: string,
+    userId: string,
+    userRoles: string[],
+  ): Promise<Store> {
+    const store = await this.storeRepository.findOne({
+      where: { id: storeId },
+      relations: ['creator'],
+    });
+
+    if (!store) {
+      throw new NotFoundException('Store not found');
+    }
+
+    // Check if user has permission to suspend stores (only SUPER_ADMIN and ADMIN)
+    // Check for both uppercase and lowercase versions
+    const hasSuperAdmin = userRoles.includes('SUPER_ADMIN') || userRoles.includes('super_admin');
+    const hasAdmin = userRoles.includes('ADMIN') || userRoles.includes('admin');
+    
+    if (!hasSuperAdmin && !hasAdmin) {
+      throw new ForbiddenException('Only SUPER_ADMIN and ADMIN can suspend stores');
+    }
+
+    // Update store status to suspended
+    store.status = StoreStatus.SUSPENDED;
+    store.updatedAt = new Date();
+
+    return this.storeRepository.save(store);
+  }
+
+  async reactivateStore(
+    storeId: string,
+    userId: string,
+    userRoles: string[],
+  ): Promise<Store> {
+    const store = await this.storeRepository.findOne({
+      where: { id: storeId },
+      relations: ['creator'],
+    });
+
+    if (!store) {
+      throw new NotFoundException('Store not found');
+    }
+
+    // Check if user has permission to reactivate stores (only SUPER_ADMIN and ADMIN)
+    // Check for both uppercase and lowercase versions
+    const hasSuperAdmin = userRoles.includes('SUPER_ADMIN') || userRoles.includes('super_admin');
+    const hasAdmin = userRoles.includes('ADMIN') || userRoles.includes('admin');
+    
+    if (!hasSuperAdmin && !hasAdmin) {
+      throw new ForbiddenException('Only SUPER_ADMIN and ADMIN can reactivate stores');
+    }
+
+    // Update store status to active
+    store.status = StoreStatus.ACTIVE;
+    store.updatedAt = new Date();
+
     return this.storeRepository.save(store);
   }
 
@@ -520,15 +648,19 @@ export class StoresService {
     store: Store,
     currentUser: any,
   ): { allowed: boolean; reason?: string } {
-    const userRoles = currentUser.roles?.map((role) => role.name) || [];
+    // Handle both array of strings and array of objects with name property
+    const userRoles = Array.isArray(currentUser.roles) 
+      ? currentUser.roles.map(role => typeof role === 'string' ? role : role.name)
+      : [];
 
     // SUPER_ADMIN and ADMIN can view all stores
-    if (userRoles.includes('SUPER_ADMIN') || userRoles.includes('ADMIN')) {
+    if (userRoles.includes('SUPER_ADMIN') || userRoles.includes('ADMIN') || 
+        userRoles.includes('super_admin') || userRoles.includes('admin')) {
       return { allowed: true };
     }
 
     // STORE_ADMIN can only view stores they created
-    if (userRoles.includes('STORE_ADMIN')) {
+    if (userRoles.includes('STORE_ADMIN') || userRoles.includes('store_admin')) {
       if (store.createdBy === currentUser.id) {
         return { allowed: true };
       }
@@ -548,20 +680,23 @@ export class StoresService {
     store: Store,
     currentUser: any,
   ): { allowed: boolean; reason?: string } {
-    const userRoles = currentUser.roles?.map((role) => role.name) || [];
+    // Handle both array of strings and array of objects with name property
+    const userRoles = Array.isArray(currentUser.roles) 
+      ? currentUser.roles.map(role => typeof role === 'string' ? role : role.name)
+      : [];
 
     // SUPER_ADMIN can update any store
-    if (userRoles.includes('super_admin')) {
+    if (userRoles.includes('SUPER_ADMIN') || userRoles.includes('super_admin')) {
       return { allowed: true };
     }
 
     // ADMIN can update any store
-    if (userRoles.includes('admin')) {
+    if (userRoles.includes('ADMIN') || userRoles.includes('admin')) {
       return { allowed: true };
     }
 
     // STORE_ADMIN can only update stores they created
-    if (userRoles.includes('store_admin')) {
+    if (userRoles.includes('STORE_ADMIN') || userRoles.includes('store_admin')) {
       if (store.createdBy === currentUser.id) {
         return { allowed: true };
       }
@@ -584,7 +719,7 @@ export class StoresService {
     const userRoles = currentUser.roles?.map((role) => role.name) || [];
 
     // Only SUPER_ADMIN can delete stores
-    if (userRoles.includes('super_admin')) {
+    if (userRoles.includes('SUPER_ADMIN')) {
       return { allowed: true };
     }
 
@@ -598,12 +733,12 @@ export class StoresService {
     const userRoles = currentUser.roles?.map((role) => role.name) || [];
 
     // SUPER_ADMIN and ADMIN can manage locations for any store
-    if (userRoles.includes('super_admin') || userRoles.includes('admin')) {
+    if (userRoles.includes('SUPER_ADMIN') || userRoles.includes('ADMIN')) {
       return { allowed: true };
     }
 
     // STORE_ADMIN can only manage locations for their own stores
-    if (userRoles.includes('store_admin')) {
+    if (userRoles.includes('STORE_ADMIN')) {
       if (store.createdBy === currentUser.id) {
         return { allowed: true };
       }
@@ -642,7 +777,7 @@ export class StoresService {
       createdBy: store.createdBy,
       createdAt: store.createdAt,
       updatedAt: store.updatedAt,
-      creator: {
+      creator: store.creator ? {
         id: store.creator.id,
         username: store.creator.username,
         email: store.creator.email,
@@ -652,7 +787,7 @@ export class StoresService {
             name: role.name,
             displayName: role.displayName,
           })) || [],
-      },
+      } : null,
       storeProductsCount: store.storeProducts?.length || 0,
       physicalLocationsCount: store.physicalLocations?.length || 0,
       verificationStatus: store.isVerified

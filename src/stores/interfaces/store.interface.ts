@@ -29,7 +29,7 @@ export interface IStoreResponse
       name: string;
       displayName: string;
     }>;
-  };
+  } | null;
   storeProductsCount: number;
   physicalLocationsCount: number;
   isVerified: boolean;

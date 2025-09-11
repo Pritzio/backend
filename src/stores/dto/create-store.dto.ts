@@ -9,6 +9,7 @@ import {
   IsObject,
   MaxLength,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 import {
   StoreType,
@@ -43,11 +44,14 @@ export class CreateStoreDto {
     description: 'Store website URL (must be unique)',
     example: 'https://electronicsstore.com',
     maxLength: 500,
+    required: false,
   })
+  @IsOptional()
+  @ValidateIf((o) => o.website && o.website.trim() !== '')
   @IsString()
-  @IsUrl()
+  @IsUrl({}, { message: 'website must be a valid URL address' })
   @MaxLength(500)
-  website: string;
+  website?: string;
 
   @ApiProperty({
     description: 'Store logo URL',
@@ -56,8 +60,9 @@ export class CreateStoreDto {
     maxLength: 500,
   })
   @IsOptional()
+  @ValidateIf((o) => o.logo && o.logo.trim() !== '')
   @IsString()
-  @IsUrl()
+  @IsUrl({}, { message: 'logo must be a valid URL address' })
   @MaxLength(500)
   logo?: string;
 
@@ -106,7 +111,8 @@ export class CreateStoreDto {
     maxLength: 255,
   })
   @IsOptional()
-  @IsEmail()
+  @ValidateIf((o) => o.email && o.email.trim() !== '')
+  @IsEmail({}, { message: 'email must be a valid email address' })
   @MaxLength(255)
   email?: string;
 
@@ -140,4 +146,30 @@ export class CreateStoreDto {
   @IsOptional()
   @IsObject()
   metadata?: Record<string, any>;
+
+  @ApiProperty({
+    description: 'Store verification status',
+    example: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isVerified?: boolean;
+
+  @ApiProperty({
+    description: 'Store verification date',
+    example: '2024-01-16T10:30:00.000Z',
+    required: false,
+  })
+  @IsOptional()
+  verifiedAt?: Date;
+
+  @ApiProperty({
+    description: 'User ID who verified the store',
+    example: 'user-uuid',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  verifiedBy?: string;
 }

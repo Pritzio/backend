@@ -87,6 +87,78 @@ export class StoresController {
     return this.storesService.createStore(createStoreDto, req.user);
   }
 
+  @Get('admin')
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
+  @ApiOperation({
+    summary: 'Admin: Get all stores for management',
+    description:
+      'Retrieve all stores for administrative purposes. Only SUPER_ADMIN and ADMIN can access.',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page (default: 50)',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: StoreStatus,
+    description: 'Filter by store status',
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    enum: StoreType,
+    description: 'Filter by store type',
+  })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    enum: StoreCategory,
+    description: 'Filter by store category',
+  })
+  @ApiQuery({
+    name: 'isVerified',
+    required: false,
+    type: Boolean,
+    description: 'Filter by verification status',
+  })
+  @ApiOkResponse({
+    description: 'Admin stores list retrieved successfully',
+    type: Object, // IStoreListResponse
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized - invalid or missing JWT token',
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden - insufficient permissions for admin access',
+  })
+  async getAdminStores(
+    @Request() req: any,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 50,
+    @Query('status') status?: StoreStatus,
+    @Query('type') type?: StoreType,
+    @Query('category') category?: StoreCategory,
+    @Query('isVerified') isVerified?: boolean,
+  ): Promise<IStoreListResponse> {
+    const filters = {
+      status,
+      type,
+      category,
+      isVerified,
+    };
+
+    return this.storesService.getAllStores(page, limit, filters, req.user);
+  }
+
   @Get()
   @ApiOperation({
     summary: 'Get all stores with pagination and filters',
@@ -219,14 +291,19 @@ export class StoresController {
     @Param('id') id: string,
     @Request() req: any,
   ): Promise<IStoreResponse> {
-    return this.storesService.getStoreById(id, req.user);
+    // Pass roles as separate parameter to avoid serialization issues
+    const userId = req.user.id;
+    const userRoles = req.user.roles || [];
+    
+    return this.storesService.getStoreById(id, userId, userRoles);
   }
 
   @Put(':id')
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
   @ApiOperation({
     summary: 'Update store by ID',
     description:
-      'Update a specific store by its ID. Access depends on user role.',
+      'Update a specific store by its ID. SUPER_ADMIN and ADMIN can update any store, STORE_ADMIN can only update their own stores.',
   })
   @ApiParam({ name: 'id', description: 'Store ID (UUID)' })
   @ApiBody({ type: UpdateStoreDto })
@@ -251,7 +328,11 @@ export class StoresController {
     @Body() updateStoreDto: UpdateStoreDto,
     @Request() req: any,
   ): Promise<Store> {
-    return this.storesService.updateStore(id, updateStoreDto, req.user);
+    // Pass roles as separate parameter to avoid serialization issues
+    const userId = req.user.id;
+    const userRoles = req.user.roles || [];
+    
+    return this.storesService.updateStore(id, updateStoreDto, userId, userRoles);
   }
 
   @Delete(':id')
@@ -437,79 +518,7 @@ export class StoresController {
 
   // ===== ADMIN ENDPOINTS =====
 
-  @Get('admin/stores')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
-  @ApiOperation({
-    summary: 'Admin: Get all stores for management',
-    description:
-      'Retrieve all stores for administrative purposes. Only SUPER_ADMIN and ADMIN can access.',
-  })
-  @ApiQuery({
-    name: 'page',
-    required: false,
-    type: Number,
-    description: 'Page number (default: 1)',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    type: Number,
-    description: 'Items per page (default: 50)',
-  })
-  @ApiQuery({
-    name: 'status',
-    required: false,
-    enum: StoreStatus,
-    description: 'Filter by store status',
-  })
-  @ApiQuery({
-    name: 'type',
-    required: false,
-    enum: StoreType,
-    description: 'Filter by store type',
-  })
-  @ApiQuery({
-    name: 'category',
-    required: false,
-    enum: StoreCategory,
-    description: 'Filter by store category',
-  })
-  @ApiQuery({
-    name: 'isVerified',
-    required: false,
-    type: Boolean,
-    description: 'Filter by verification status',
-  })
-  @ApiOkResponse({
-    description: 'Admin stores list retrieved successfully',
-    type: Object, // IStoreListResponse
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized - invalid or missing JWT token',
-  })
-  @ApiForbiddenResponse({
-    description: 'Forbidden - insufficient permissions for admin access',
-  })
-  async getAdminStores(
-    @Request() req: any,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 50,
-    @Query('status') status?: StoreStatus,
-    @Query('type') type?: StoreType,
-    @Query('category') category?: StoreCategory,
-    @Query('isVerified') isVerified?: boolean,
-  ): Promise<IStoreListResponse> {
-    const filters = {
-      status,
-      type,
-      category,
-      isVerified,
-    };
-
-    return this.storesService.getAllStores(page, limit, filters, req.user);
-  }
-
-  @Put('admin/stores/:id/verify')
+  @Put('admin/:id/verify')
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
   @ApiOperation({
     summary: 'Admin: Verify store',
@@ -534,16 +543,14 @@ export class StoresController {
     @Param('id') id: string,
     @Request() req: any,
   ): Promise<Store> {
-    return this.storesService.updateStore(
-      id,
-      {
-        status: StoreStatus.ACTIVE,
-      },
-      req.user,
-    );
+    // Pass roles as separate parameter to avoid serialization issues
+    const userId = req.user.id;
+    const userRoles = req.user.roles || [];
+    
+    return this.storesService.verifyStore(id, userId, userRoles);
   }
 
-  @Put('admin/stores/:id/suspend')
+  @Put('admin/:id/suspend')
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
   @ApiOperation({
     summary: 'Admin: Suspend store',
@@ -568,12 +575,42 @@ export class StoresController {
     @Param('id') id: string,
     @Request() req: any,
   ): Promise<Store> {
-    return this.storesService.updateStore(
-      id,
-      {
-        status: StoreStatus.SUSPENDED,
-      },
-      req.user,
-    );
+    // Pass roles as separate parameter to avoid serialization issues
+    const userId = req.user.id;
+    const userRoles = req.user.roles || [];
+    
+    return this.storesService.suspendStore(id, userId, userRoles);
+  }
+
+  @Put('admin/:id/reactivate')
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
+  @ApiOperation({
+    summary: 'Admin: Reactivate store',
+    description:
+      'Reactivate a suspended store. Only SUPER_ADMIN and ADMIN can reactivate stores.',
+  })
+  @ApiParam({ name: 'id', description: 'Store ID (UUID)' })
+  @ApiOkResponse({
+    description: 'Store reactivated successfully',
+    type: Store,
+  })
+  @ApiNotFoundResponse({
+    description: 'Store not found',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized - invalid or missing JWT token',
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden - insufficient permissions for admin access',
+  })
+  async reactivateStore(
+    @Param('id') id: string,
+    @Request() req: any,
+  ): Promise<Store> {
+    // Pass roles as separate parameter to avoid serialization issues
+    const userId = req.user.id;
+    const userRoles = req.user.roles || [];
+    
+    return this.storesService.reactivateStore(id, userId, userRoles);
   }
 }
