@@ -60,6 +60,7 @@ export interface IStoreProductFilter {
   createdBy?: string;
   dateFrom?: Date;
   dateTo?: Date;
+  storeId?: string;
 }
 
 export interface IStoreProductSearchResult {

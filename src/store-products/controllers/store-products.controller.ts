@@ -107,6 +107,7 @@ export class StoreProductsController {
   @ApiQuery({ name: 'createdBy', required: false, type: String })
   @ApiQuery({ name: 'dateFrom', required: false, type: String })
   @ApiQuery({ name: 'dateTo', required: false, type: String })
+  @ApiQuery({ name: 'storeId', required: false, type: String })
   async getAllStoreProducts(
     @Request() req: any,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -115,12 +116,14 @@ export class StoreProductsController {
     @Query('createdBy') createdBy?: string,
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
+    @Query('storeId') storeId?: string,
   ): Promise<{ data: IStoreProductResponse[]; total: number; page: number; limit: number }> {
     const filter: IStoreProductFilter = {
       search,
       createdBy,
       dateFrom: dateFrom ? new Date(dateFrom) : undefined,
       dateTo: dateTo ? new Date(dateTo) : undefined,
+      storeId,
     };
 
     return this.storeProductsService.getAllStoreProducts(req.user, filter, page, limit);

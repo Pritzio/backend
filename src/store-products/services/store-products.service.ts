@@ -247,6 +247,12 @@ export class StoreProductsService {
         dateTo: filter.dateTo,
       });
     }
+
+    if (filter.storeId) {
+      queryBuilder.andWhere('storeProduct.storeId = :storeId', {
+        storeId: filter.storeId,
+      });
+    }
   }
 
   private mapToStoreProductResponse(storeProduct: StoreProduct): IStoreProductResponse {
