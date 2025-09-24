@@ -124,5 +124,5 @@ tsconfig*.json
 nest-cli.json
 
 # Package files
-package-lock.json
+# package-lock.json - needed for Docker build
 yarn.lock
