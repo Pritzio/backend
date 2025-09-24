@@ -120,8 +120,8 @@ jest.config.js
 jest-e2e.json
 
 # TypeScript
-tsconfig*.json
-nest-cli.json
+# tsconfig*.json - needed for TypeScript build
+# nest-cli.json - needed for NestJS build
 
 # Package files
 # package-lock.json - needed for Docker build
