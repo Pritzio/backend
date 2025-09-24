@@ -1,4 +1,4 @@
-FROM node:24.6.0-alpine3.18 as dev
+FROM node:24.6.0-alpine AS dev
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ EXPOSE 3000
 
 CMD ["npm", "run", "start:dev"]
 
-FROM node:24.6.0-alpine3.18 as dev-deps
+FROM node:24.6.0-alpine AS dev-deps
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ COPY package.json package-lock.json ./
 
 RUN npm install --frozen-lockfile
 
-FROM node:24.6.0-alpine3.18 as builder
+FROM node:24.6.0-alpine AS builder
 
 WORKDIR /app
 
@@ -30,7 +30,7 @@ COPY . .
 
 RUN npm run build
 
-FROM node:24.6.0-alpine3.18 as prod-deps
+FROM node:24.6.0-alpine AS prod-deps
 
 WORKDIR /app
 
@@ -38,7 +38,7 @@ COPY package.json package-lock.json ./
 
 RUN npm install --production --frozen-lockfile
 
-FROM node:24.6.0-alpine3.18 as prod
+FROM node:24.6.0-alpine AS prod
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs
