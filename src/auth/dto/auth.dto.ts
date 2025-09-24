@@ -180,3 +180,35 @@ export class UpdateUserStatusDto {
   @IsEnum(UserStatus)
   status: UserStatus;
 }
+
+export class CreateSuperAdminDto {
+  @ApiProperty({ description: 'Super Admin email address' })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ description: 'Super Admin username' })
+  @IsString()
+  @MinLength(3)
+  @MaxLength(50)
+  username: string;
+
+  @ApiProperty({ description: 'Super Admin password' })
+  @IsString()
+  @MinLength(8)
+  @MaxLength(128)
+  password: string;
+
+  @ApiPropertyOptional({ description: 'Super Admin first name' })
+  @IsString()
+  @MinLength(2)
+  @MaxLength(100)
+  @IsOptional()
+  firstName?: string;
+
+  @ApiPropertyOptional({ description: 'Super Admin last name' })
+  @IsString()
+  @MinLength(2)
+  @MaxLength(100)
+  @IsOptional()
+  lastName?: string;
+}

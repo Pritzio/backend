@@ -460,4 +460,135 @@ export class AuthService {
 
     return Array.from(permissions);
   }
+
+  private parseJwtExpiresIn(expiresIn: string): number {
+    // Parse JWT_EXPIRES_IN format (e.g., "15m", "1h", "7d") to seconds
+    const match = expiresIn.match(/^(\d+)([smhd])$/);
+    if (!match) {
+      return 900; // Default to 15 minutes if format is invalid
+    }
+
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
+
+    switch (unit) {
+      case 's':
+        return value;
+      case 'm':
+        return value * 60;
+      case 'h':
+        return value * 60 * 60;
+      case 'd':
+        return value * 60 * 60 * 24;
+      default:
+        return 900; // Default to 15 minutes
+    }
+  }
+
+  /**
+   * Create Super Admin - Endpoint without authentication
+   * Only works if no SUPER_ADMIN exists in the system
+   */
+  async createSuperAdmin(createSuperAdminDto: {
+    email: string;
+    username: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+  }): Promise<AuthResponseDto> {
+    console.log('🚀 Creating Super Admin via API endpoint...');
+
+    // Check if any SUPER_ADMIN already exists
+    const existingSuperAdmin = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.roles', 'role')
+      .where('role.name = :roleName', { roleName: RoleType.SUPER_ADMIN })
+      .getOne();
+
+    if (existingSuperAdmin) {
+      throw new ConflictException(
+        'Super Admin already exists in the system. Cannot create another one.',
+      );
+    }
+
+    // Validate input
+    if (!createSuperAdminDto.email || !createSuperAdminDto.username || !createSuperAdminDto.password) {
+      throw new BadRequestException('Email, username, and password are required');
+    }
+
+    // Check if user with same email or username already exists
+    const existingUser = await this.userRepository.findOne({
+      where: [
+        { email: createSuperAdminDto.email },
+        { username: createSuperAdminDto.username },
+      ],
+    });
+
+    if (existingUser) {
+      throw new ConflictException(
+        'User with this email or username already exists',
+      );
+    }
+
+    // Get SUPER_ADMIN role
+    const superAdminRole = await this.roleRepository.findOne({
+      where: { name: RoleType.SUPER_ADMIN },
+      relations: ['permissions'],
+    });
+
+    if (!superAdminRole) {
+      throw new NotFoundException(
+        'SUPER_ADMIN role not found. Please run the auth seeder first.',
+      );
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(createSuperAdminDto.password, 12);
+
+    // Create Super Admin user
+    const superAdminUser = this.userRepository.create({
+      username: createSuperAdminDto.username,
+      email: createSuperAdminDto.email,
+      password: hashedPassword,
+      firstName: createSuperAdminDto.firstName || 'Super',
+      lastName: createSuperAdminDto.lastName || 'Admin',
+      type: UserType.SYSTEM,
+      status: UserStatus.ACTIVE,
+      emailVerified: true,
+      phoneVerified: false,
+      isVerified: true,
+      roles: [superAdminRole],
+      metadata: {
+        createdBy: 'api_endpoint',
+        purpose: 'super_admin_initial_setup',
+        notes: 'Super Admin created via API endpoint',
+      },
+    });
+
+    try {
+      const savedUser = await this.userRepository.save(superAdminUser);
+      
+      console.log('✅ Super Admin created successfully via API:');
+      console.log(`   👤 Username: ${savedUser.username}`);
+      console.log(`   📧 Email: ${savedUser.email}`);
+      console.log(`   🔐 Roles: ${savedUser.roles.map((role) => role.name).join(', ')}`);
+
+      // Generate tokens
+      const tokens = this.jwtService.generateTokenPair(savedUser);
+
+      // Convert JWT_EXPIRES_IN to seconds
+      const expiresInString = this.configService.get<string>('JWT_EXPIRES_IN', '15m');
+      const expiresInSeconds = this.parseJwtExpiresIn(expiresInString);
+
+      return {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        user: this.mapUserToResponse(savedUser),
+        expiresIn: expiresInSeconds,
+      };
+    } catch (error) {
+      console.error('❌ Error creating Super Admin via API:', error.message);
+      throw new BadRequestException('Failed to create Super Admin: ' + error.message);
+    }
+  }
 }

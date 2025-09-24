@@ -37,6 +37,7 @@ import {
   AssignRoleDto,
   RemoveRoleDto,
   UpdateUserStatusDto,
+  CreateSuperAdminDto,
 } from '../dto/auth.dto';
 import { RegisterDto } from '../dto/register.dto';
 
@@ -329,5 +330,30 @@ export class AuthController {
     @Body() updateUserStatusDto: UpdateUserStatusDto,
   ): Promise<MessageResponseDto> {
     return this.authService.updateUserStatus(updateUserStatusDto);
+  }
+
+  @Post('create-super-admin')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ 
+    summary: 'Create Super Admin (No authentication required)',
+    description: 'Creates the first Super Admin user. Only works if no SUPER_ADMIN exists in the system.'
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Super Admin successfully created',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Super Admin already exists or user with email/username already exists',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input data or SUPER_ADMIN role not found',
+  })
+  async createSuperAdmin(
+    @Body() createSuperAdminDto: CreateSuperAdminDto,
+  ): Promise<AuthResponseDto> {
+    return this.authService.createSuperAdmin(createSuperAdminDto);
   }
 }
