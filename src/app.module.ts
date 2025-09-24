@@ -28,13 +28,13 @@ const isStaging = process.env.NODE_ENV === 'staging';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'pritzio_user',
-      password: 'pritzio_password',
-      database: 'pritzio',
+      host: process.env.DATABASE_HOST,
+      port: parseInt(process.env.DATABASE_PORT || '5432', 10),
+      username: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASSWORD,
+      database: process.env.DATABASE_NAME,
       autoLoadEntities: true,
-      synchronize: true, // Habilitado para desarrollo - actualización automática de esquema
+      synchronize: true,
       logging: process.env.TYPEORM_LOGGING === 'true' ? true : false,
       extra: {
         timezone: process.env.TIMEZONE || 'America/Santiago',
