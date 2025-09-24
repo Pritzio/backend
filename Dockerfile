@@ -47,9 +47,9 @@ RUN adduser -S nestjs -u 1001
 WORKDIR /app
 
 # Set environment variables
-ENV NODE_ENV=production
-ENV BACKEND_PORT=3000
-ENV API_PREFIX=/api/v1
+#ENV NODE_ENV=production
+#ENV BACKEND_PORT=3000
+#ENV API_PREFIX=/api/v1
 
 EXPOSE ${BACKEND_PORT}
 
