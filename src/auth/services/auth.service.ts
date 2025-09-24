@@ -39,6 +39,7 @@ import {
   ActivityType,
   ActivityLevel,
 } from '../../users/entities/user-activity.entity';
+import { AuthSeeder } from '../seeds/auth.seeder';
 
 @Injectable()
 export class AuthService {
@@ -52,6 +53,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly usersSeeder: UsersSeeder,
+    private readonly authSeeder: AuthSeeder,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
@@ -482,6 +484,26 @@ export class AuthService {
         return value * 60 * 60 * 24;
       default:
         return 900; // Default to 15 minutes
+    }
+  }
+
+  /**
+   * Run Authentication Seeder - Endpoint without authentication
+   * Creates all roles and permissions in the system
+   */
+  async runAuthSeeder(): Promise<MessageResponseDto> {
+    console.log('🌱 Running Authentication Seeder via API endpoint...');
+
+    try {
+      await this.authSeeder.seed();
+
+      console.log('✅ Authentication Seeder completed successfully via API');
+      return {
+        message: 'Authentication seeder completed successfully. All roles and permissions have been created.',
+      };
+    } catch (error) {
+      console.error('❌ Error running Authentication Seeder via API:', error.message);
+      throw new BadRequestException('Failed to run authentication seeder: ' + error.message);
     }
   }
 

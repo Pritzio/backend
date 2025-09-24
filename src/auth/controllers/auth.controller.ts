@@ -332,6 +332,25 @@ export class AuthController {
     return this.authService.updateUserStatus(updateUserStatusDto);
   }
 
+  @Post('run-seeder')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ 
+    summary: 'Run Authentication Seeder (No authentication required)',
+    description: 'Creates all roles and permissions in the system. Safe to run multiple times.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Authentication seeder completed successfully',
+    type: MessageResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Failed to run authentication seeder',
+  })
+  async runAuthSeeder(): Promise<MessageResponseDto> {
+    return this.authService.runAuthSeeder();
+  }
+
   @Post('create-super-admin')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ 
