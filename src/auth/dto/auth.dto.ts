@@ -7,6 +7,7 @@ import {
   IsEnum,
   IsUUID,
   IsBoolean,
+  Matches,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserType, UserStatus } from '../entities/user.entity';
@@ -117,11 +118,35 @@ export class VerifyEmailDto {
 }
 
 export class VerifyPhoneDto {
+  @ApiProperty({ description: 'Phone number to verify' })
+  @IsString()
+  @MinLength(10)
+  @MaxLength(20)
+  phone: string;
+
   @ApiProperty({ description: 'Phone verification code' })
   @IsString()
   @MinLength(4)
   @MaxLength(6)
   code: string;
+}
+
+export class CheckUsernameDto {
+  @ApiProperty({ description: 'Username to check' })
+  @IsString()
+  @MinLength(3)
+  @MaxLength(50)
+  @Matches(/^[a-zA-Z0-9_]+$/, {
+    message: 'Username can only contain letters, numbers, and underscores'
+  })
+  username: string;
+}
+
+export class CheckEmailDto {
+  @ApiProperty({ description: 'Email to check' })
+  @IsString()
+  @IsEmail()
+  email: string;
 }
 
 export class UpdateProfileDto {

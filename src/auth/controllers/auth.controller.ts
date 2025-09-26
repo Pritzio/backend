@@ -38,6 +38,8 @@ import {
   RemoveRoleDto,
   UpdateUserStatusDto,
   CreateSuperAdminDto,
+  CheckUsernameDto,
+  CheckEmailDto,
 } from '../dto/auth.dto';
 import { RegisterDto } from '../dto/register.dto';
 
@@ -212,8 +214,43 @@ export class AuthController {
   async verifyEmail(
     @Body() verifyEmailDto: VerifyEmailDto,
   ): Promise<MessageResponseDto> {
-    // TODO: Implement email verification
-    return { message: 'Email verification endpoint - implementation pending' };
+    return this.authService.verifyEmail(verifyEmailDto);
+  }
+
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Resend email verification' })
+  @ApiResponse({
+    status: 200,
+    description: 'Verification email sent successfully',
+    type: MessageResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
+  })
+  async resendVerification(
+    @Body() body: { email: string },
+  ): Promise<MessageResponseDto> {
+    return this.authService.resendVerification(body.email);
+  }
+
+  @Get('verify-email/:token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify email with token from URL' })
+  @ApiResponse({
+    status: 200,
+    description: 'Email successfully verified',
+    type: MessageResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid verification token',
+  })
+  async verifyEmailFromUrl(
+    @Param('token') token: string,
+  ): Promise<MessageResponseDto> {
+    return this.authService.verifyEmail({ token });
   }
 
   @Post('verify-phone')
@@ -374,5 +411,59 @@ export class AuthController {
     @Body() createSuperAdminDto: CreateSuperAdminDto,
   ): Promise<AuthResponseDto> {
     return this.authService.createSuperAdmin(createSuperAdminDto);
+  }
+
+  @Post('check-username')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ 
+    summary: 'Check if username exists',
+    description: 'Checks if a username is already taken. Useful for real-time validation in registration forms.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Username availability checked successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        exists: { type: 'boolean', description: 'Whether the username exists' },
+        message: { type: 'string', description: 'Status message' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid username format',
+  })
+  async checkUsername(
+    @Body() checkUsernameDto: CheckUsernameDto,
+  ): Promise<{ exists: boolean; message: string }> {
+    return this.authService.checkUsernameExists(checkUsernameDto.username);
+  }
+
+  @Post('check-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ 
+    summary: 'Check if email exists',
+    description: 'Checks if an email is already registered. Useful for real-time validation in registration forms.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Email availability checked successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        exists: { type: 'boolean', description: 'Whether the email exists' },
+        message: { type: 'string', description: 'Status message' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid email format',
+  })
+  async checkEmail(
+    @Body() checkEmailDto: CheckEmailDto,
+  ): Promise<{ exists: boolean; message: string }> {
+    return this.authService.checkEmailExists(checkEmailDto.email);
   }
 }

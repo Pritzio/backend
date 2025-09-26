@@ -40,6 +40,9 @@ import {
   ActivityLevel,
 } from '../../users/entities/user-activity.entity';
 import { AuthSeeder } from '../seeds/auth.seeder';
+import { EmailService } from '../../common/services/email.service';
+import { VerificationTokenService } from './verification-token.service';
+import { VerificationToken, TokenType } from '../entities/verification-token.entity';
 
 @Injectable()
 export class AuthService {
@@ -54,6 +57,8 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly usersSeeder: UsersSeeder,
     private readonly authSeeder: AuthSeeder,
+    private readonly emailService: EmailService,
+    private readonly verificationTokenService: VerificationTokenService,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
@@ -64,13 +69,25 @@ export class AuthService {
       );
     }
 
-    const existingUser = await this.userRepository.findOne({
-      where: [{ email: registerDto.email }, { username: registerDto.username }],
+    // Check for existing email
+    const existingEmail = await this.userRepository.findOne({
+      where: { email: registerDto.email },
     });
 
-    if (existingUser) {
+    if (existingEmail) {
       throw new ConflictException(
-        'User with this email or username already exists',
+        'User with this email already exists',
+      );
+    }
+
+    // Check for existing username
+    const existingUsername = await this.userRepository.findOne({
+      where: { username: registerDto.username },
+    });
+
+    if (existingUsername) {
+      throw new ConflictException(
+        'User with this username already exists',
       );
     }
 
@@ -114,6 +131,35 @@ export class AuthService {
         'Failed to create default user profile/preferences:',
         error.message,
       );
+    }
+
+    // Generate email verification token and send verification email
+    try {
+      const verificationToken = await this.verificationTokenService.generateEmailVerificationToken(savedUser);
+      await this.emailService.sendEmailVerificationEmail(
+        {
+          email: savedUser.email,
+          firstName: savedUser.firstName,
+          lastName: savedUser.lastName,
+        },
+        verificationToken.token,
+      );
+    } catch (error) {
+      console.warn('Failed to send verification email:', error.message);
+      // Don't fail registration if email sending fails
+    }
+
+    // Send welcome email
+    try {
+      await this.emailService.sendWelcomeEmail({
+        email: savedUser.email,
+        firstName: savedUser.firstName,
+        lastName: savedUser.lastName,
+        username: savedUser.username,
+      });
+    } catch (error) {
+      console.warn('Failed to send welcome email:', error.message);
+      // Don't fail registration if email sending fails
     }
 
     const tokens = this.jwtService.generateTokenPair(savedUser);
@@ -233,10 +279,23 @@ export class AuthService {
       };
     }
 
-    // Generate reset token (in production, send email)
-    const resetToken = uuidv4();
-    // TODO: Send email with reset token
-    // await this.emailService.sendPasswordReset(user.email, resetToken);
+    try {
+      // Generate password reset token
+      const verificationToken = await this.verificationTokenService.generatePasswordResetToken(user);
+      
+      // Send password reset email
+      await this.emailService.sendPasswordResetEmail(
+        {
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+        verificationToken.token,
+      );
+    } catch (error) {
+      console.warn('Failed to send password reset email:', error.message);
+      // Don't reveal if email sending failed
+    }
 
     return {
       message: 'If the email exists, a password reset link has been sent',
@@ -246,25 +305,29 @@ export class AuthService {
   async resetPassword(
     resetPasswordDto: ResetPasswordDto,
   ): Promise<MessageResponseDto> {
-    // TODO: Implement token validation from database or cache
-    // For now, we'll assume the token is valid
+    // Validate reset token
+    const verificationToken = await this.verificationTokenService.validateToken(
+      resetPasswordDto.token,
+      TokenType.PASSWORD_RESET,
+    );
 
+    if (!verificationToken) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    // Hash new password
     const saltRounds = this.configService.get<number>('BCRYPT_ROUNDS', 12);
     const hashedPassword = await bcrypt.hash(resetPasswordDto.newPassword, 12);
 
-    // Find user by token (implement proper token lookup)
-    // const user = await this.findUserByResetToken(resetPasswordDto.token);
+    // Update password and invalidate all refresh tokens
+    await this.userRepository.update(verificationToken.userId, {
+      password: hashedPassword,
+      refreshToken: undefined,
+      refreshTokenExpiresAt: undefined,
+    });
 
-    // if (!user) {
-    //   throw new BadRequestException('Invalid or expired reset token');
-    // }
-
-    // Update password
-    // await this.userRepository.update(user.id, {
-    //   password: hashedPassword,
-    //   refreshToken: null,
-    //   refreshTokenExpiresAt: null,
-    // });
+    // Mark token as used
+    await this.verificationTokenService.markTokenAsUsed(verificationToken.id);
 
     return { message: 'Password successfully reset' };
   }
@@ -302,6 +365,91 @@ export class AuthService {
     });
 
     return { message: 'Password successfully changed' };
+  }
+
+  async verifyEmail(verifyEmailDto: VerifyEmailDto): Promise<MessageResponseDto> {
+    // Validate verification token
+    const verificationToken = await this.verificationTokenService.validateToken(
+      verifyEmailDto.token,
+      TokenType.EMAIL_VERIFICATION,
+    );
+
+    if (!verificationToken) {
+      throw new BadRequestException('Invalid or expired verification token');
+    }
+
+    // Update user email verification status
+    await this.userRepository.update(verificationToken.userId, {
+      emailVerified: true,
+      status: UserStatus.ACTIVE, // Activate user after email verification
+    });
+
+    // Mark token as used
+    await this.verificationTokenService.markTokenAsUsed(verificationToken.id);
+
+    return { message: 'Email successfully verified' };
+  }
+
+  async resendVerification(email: string): Promise<MessageResponseDto> {
+    // Find user by email
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.emailVerified) {
+      throw new BadRequestException('Email already verified');
+    }
+
+    // Generate new verification token
+    const verificationToken = await this.verificationTokenService.generateEmailVerificationToken(user);
+
+    // Send verification email
+    await this.emailService.sendEmailVerificationEmail(
+      {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      verificationToken.token,
+    );
+
+    return { message: 'Verification email sent successfully' };
+  }
+
+  async verifyPhone(verifyPhoneDto: VerifyPhoneDto): Promise<MessageResponseDto> {
+    // Find user by phone
+    const user = await this.userRepository.findOne({
+      where: { phone: verifyPhoneDto.phone },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Validate phone verification code
+    const verificationToken = await this.verificationTokenService.validatePhoneCode(
+      user.id,
+      verifyPhoneDto.phone,
+      verifyPhoneDto.code,
+    );
+
+    if (!verificationToken) {
+      throw new BadRequestException('Invalid or expired verification code');
+    }
+
+    // Update user phone verification status
+    await this.userRepository.update(user.id, {
+      phoneVerified: true,
+    });
+
+    // Mark token as used
+    await this.verificationTokenService.markTokenAsUsed(verificationToken.id);
+
+    return { message: 'Phone successfully verified' };
   }
 
   async updateProfile(
@@ -539,16 +687,25 @@ export class AuthService {
     }
 
     // Check if user with same email or username already exists
-    const existingUser = await this.userRepository.findOne({
-      where: [
-        { email: createSuperAdminDto.email },
-        { username: createSuperAdminDto.username },
-      ],
+    // Check for existing email
+    const existingEmail = await this.userRepository.findOne({
+      where: { email: createSuperAdminDto.email },
     });
 
-    if (existingUser) {
+    if (existingEmail) {
       throw new ConflictException(
-        'User with this email or username already exists',
+        'User with this email already exists',
+      );
+    }
+
+    // Check for existing username
+    const existingUsername = await this.userRepository.findOne({
+      where: { username: createSuperAdminDto.username },
+    });
+
+    if (existingUsername) {
+      throw new ConflictException(
+        'User with this username already exists',
       );
     }
 
@@ -612,5 +769,27 @@ export class AuthService {
       console.error('❌ Error creating Super Admin via API:', error.message);
       throw new BadRequestException('Failed to create Super Admin: ' + error.message);
     }
+  }
+
+  async checkUsernameExists(username: string): Promise<{ exists: boolean; message: string }> {
+    const existingUser = await this.userRepository.findOne({
+      where: { username },
+    });
+
+    return {
+      exists: !!existingUser,
+      message: existingUser ? 'Username already exists' : 'Username is available',
+    };
+  }
+
+  async checkEmailExists(email: string): Promise<{ exists: boolean; message: string }> {
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    return {
+      exists: !!existingUser,
+      message: existingUser ? 'Email already exists' : 'Email is available',
+    };
   }
 }

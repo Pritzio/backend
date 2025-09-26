@@ -7,6 +7,9 @@ This directory contains comprehensive documentation for the Pritzio Backend APIs
 ## 📁 Documentation Structure
 
 ### **Core Documentation**
+- **[AUTHENTICATION_API_ENDPOINTS.md](./AUTHENTICATION_API_ENDPOINTS.md)** - Complete authentication API reference with all endpoints ✅ **NUEVO**
+- **[AUTHENTICATION_API_EXAMPLES.md](./AUTHENTICATION_API_EXAMPLES.md)** - Practical authentication examples for frontend implementation ✅ **NUEVO**
+- **[AUTHENTICATION_API_POSTMAN_COLLECTION.json](./AUTHENTICATION_API_POSTMAN_COLLECTION.json)** - Postman collection for testing authentication endpoints ✅ **NUEVO**
 - **[PRODUCTS_API_ENDPOINTS.md](./PRODUCTS_API_ENDPOINTS.md)** - Complete API reference with all endpoints, request/response formats, and examples
 - **[PRODUCTS_API_EXAMPLES.md](./PRODUCTS_API_EXAMPLES.md)** - Practical examples and use cases for frontend implementation
 - **[PRODUCTS_API_POSTMAN_COLLECTION.json](./PRODUCTS_API_POSTMAN_COLLECTION.json)** - Postman collection for testing all endpoints

@@ -18,13 +18,17 @@ import { AuthSeeder } from './seeds/auth.seeder';
 import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
 import { Permission } from './entities/permission.entity';
+import { VerificationToken } from './entities/verification-token.entity';
 import { UsersModule } from '../users/users.module';
+import { EmailModule } from '../common/modules/email.module';
+import { VerificationTokenService } from './services/verification-token.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Role, Permission]),
+    TypeOrmModule.forFeature([User, Role, Permission, VerificationToken]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     UsersModule,
+    EmailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -48,6 +52,7 @@ import { UsersModule } from '../users/users.module';
     RolesGuard,
     PermissionsGuard,
     AuthSeeder,
+    VerificationTokenService,
   ],
   exports: [
     AuthService,
@@ -57,6 +62,7 @@ import { UsersModule } from '../users/users.module';
     RolesGuard,
     PermissionsGuard,
     TypeOrmModule,
+    EmailModule,
   ],
 })
 export class AuthModule {}
