@@ -73,12 +73,8 @@ export class StoreProductsService {
       try {
         const categories = await this.categoriesService.findOrCreateCategories(categoryNames);
         
-        // Use query builder to safely add categories without duplicates
-        await this.storeProductRepository
-          .createQueryBuilder()
-          .relation(StoreProduct, 'categories')
-          .of(savedStoreProduct.id)
-          .add(categories.map(cat => cat.id));
+        // Safely associate categories without duplicates
+        await this.associateCategoriesSafely(savedStoreProduct.id, categories);
           
         this.logger.log(`Successfully associated ${categories.length} categories with store product ${savedStoreProduct.id}`);
       } catch (error) {
@@ -124,12 +120,8 @@ export class StoreProductsService {
       try {
         const categories = await this.categoriesService.findOrCreateCategories(categoryNames);
         
-        // Use query builder to safely add categories without duplicates
-        await this.storeProductRepository
-          .createQueryBuilder()
-          .relation(StoreProduct, 'categories')
-          .of(savedStoreProduct.id)
-          .add(categories.map(cat => cat.id));
+        // Safely associate categories without duplicates
+        await this.associateCategoriesSafely(savedStoreProduct.id, categories);
           
         this.logger.log(`Successfully associated ${categories.length} categories with store product ${savedStoreProduct.id}`);
       } catch (error) {
@@ -944,5 +936,56 @@ export class StoreProductsService {
       })),
       total: storeProducts.length
     };
+  }
+
+  /**
+   * Safely associate categories with a store product, avoiding duplicates
+   */
+  private async associateCategoriesSafely(
+    storeProductId: string,
+    categories: any[],
+  ): Promise<void> {
+    if (!categories || categories.length === 0) {
+      return;
+    }
+
+    try {
+      // First, get existing category associations
+      const existingCategories = await this.storeProductRepository
+        .createQueryBuilder('sp')
+        .leftJoinAndSelect('sp.categories', 'category')
+        .where('sp.id = :storeProductId', { storeProductId })
+        .getOne();
+
+      const existingCategoryIds = existingCategories?.categories?.map(cat => cat.id) || [];
+      
+      // Filter out categories that are already associated
+      const newCategoryIds = categories
+        .map(cat => cat.id)
+        .filter(categoryId => !existingCategoryIds.includes(categoryId));
+
+      if (newCategoryIds.length === 0) {
+        this.logger.log(`All categories already associated with store product ${storeProductId}`);
+        return;
+      }
+
+      // Insert only new category associations using raw SQL to avoid TypeORM issues
+      if (newCategoryIds.length > 0) {
+        const values = newCategoryIds
+          .map(categoryId => `('${storeProductId}', '${categoryId}')`)
+          .join(', ');
+
+        await this.storeProductRepository.query(`
+          INSERT INTO store_product_categories ("storeProductId", "categoryId") 
+          VALUES ${values}
+          ON CONFLICT ("storeProductId", "categoryId") DO NOTHING
+        `);
+
+        this.logger.log(`Associated ${newCategoryIds.length} new categories with store product ${storeProductId}`);
+      }
+    } catch (error) {
+      this.logger.error(`Error in associateCategoriesSafely for store product ${storeProductId}:`, error);
+      throw error;
+    }
   }
 }
