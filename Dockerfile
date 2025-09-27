@@ -62,11 +62,11 @@ EXPOSE ${BACKEND_PORT}
 COPY --from=prod-deps --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 
-# Install only Playwright browsers (no system Chromium)
-RUN npx playwright install chromium
-
-# Switch to non-root user
+# Switch to non-root user before installing Playwright browsers
 USER nestjs
+
+# Install Playwright browsers as the nestjs user
+RUN npx playwright install chromium
 
 # Health check using wget (available in Alpine)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
