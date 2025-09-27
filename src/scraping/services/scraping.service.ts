@@ -188,7 +188,6 @@ export class ScrapingService {
 
       return await chromium.launch({
         headless: true,
-        executablePath: process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : undefined,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -326,15 +325,17 @@ export class ScrapingService {
         return originalQuery(parameters);
       };
 
-      // Mock chrome runtime
-      Object.defineProperty(window, 'chrome', {
-        writable: true,
-        enumerable: true,
-        configurable: true,
-        value: {
-          runtime: {},
-        },
-      });
+      // Mock chrome runtime only if it doesn't exist
+      if (!window.chrome) {
+        Object.defineProperty(window, 'chrome', {
+          writable: true,
+          enumerable: true,
+          configurable: true,
+          value: {
+            runtime: {},
+          },
+        });
+      }
     });
 
     return page;
@@ -568,7 +569,6 @@ export class ScrapingService {
     try {
       const browser = await chromium.launch({ 
         headless: true,
-        executablePath: process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : undefined,
       });
       await browser.close();
       return true;

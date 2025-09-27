@@ -40,9 +40,8 @@ RUN npm install --production --frozen-lockfile
 
 FROM node:24.6.0-alpine AS prod
 
-# Install dependencies for Playwright and Chromium
+# Install only essential dependencies for Playwright
 RUN apk add --no-cache \
-    chromium \
     nss \
     freetype \
     freetype-dev \
@@ -57,18 +56,13 @@ RUN adduser -S nestjs -u 1001
 
 WORKDIR /app
 
-# Set environment variables
-#ENV NODE_ENV=production
-#ENV BACKEND_PORT=3000
-#ENV API_PREFIX=/api/v1
-
 EXPOSE ${BACKEND_PORT}
 
 # Copy production dependencies and built application
 COPY --from=prod-deps --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 
-# Install Playwright browsers as root before switching to non-root user
+# Install only Playwright browsers (no system Chromium)
 RUN npx playwright install chromium
 
 # Switch to non-root user
