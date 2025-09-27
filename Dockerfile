@@ -70,7 +70,6 @@ COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 
 # Install Playwright browsers as root before switching to non-root user
 RUN npx playwright install chromium
-RUN npx playwright install-deps chromium
 
 # Switch to non-root user
 USER nestjs
