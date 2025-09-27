@@ -70,9 +70,21 @@ export class StoreProductsService {
 
     // Handle categories if provided
     if (categoryNames && categoryNames.length > 0) {
-      const categories = await this.categoriesService.findOrCreateCategories(categoryNames);
-      savedStoreProduct.categories = categories;
-      await this.storeProductRepository.save(savedStoreProduct);
+      try {
+        const categories = await this.categoriesService.findOrCreateCategories(categoryNames);
+        
+        // Use query builder to safely add categories without duplicates
+        await this.storeProductRepository
+          .createQueryBuilder()
+          .relation(StoreProduct, 'categories')
+          .of(savedStoreProduct.id)
+          .add(categories.map(cat => cat.id));
+          
+        this.logger.log(`Successfully associated ${categories.length} categories with store product ${savedStoreProduct.id}`);
+      } catch (error) {
+        this.logger.error(`Error associating categories with store product ${savedStoreProduct.id}:`, error);
+        // Continue execution even if categories fail
+      }
     }
 
     // Update base product counters
@@ -109,9 +121,21 @@ export class StoreProductsService {
 
     // Handle categories if provided
     if (categoryNames && categoryNames.length > 0) {
-      const categories = await this.categoriesService.findOrCreateCategories(categoryNames);
-      savedStoreProduct.categories = categories;
-      await this.storeProductRepository.save(savedStoreProduct);
+      try {
+        const categories = await this.categoriesService.findOrCreateCategories(categoryNames);
+        
+        // Use query builder to safely add categories without duplicates
+        await this.storeProductRepository
+          .createQueryBuilder()
+          .relation(StoreProduct, 'categories')
+          .of(savedStoreProduct.id)
+          .add(categories.map(cat => cat.id));
+          
+        this.logger.log(`Successfully associated ${categories.length} categories with store product ${savedStoreProduct.id}`);
+      } catch (error) {
+        this.logger.error(`Error associating categories with store product ${savedStoreProduct.id}:`, error);
+        // Continue execution even if categories fail
+      }
     }
 
     // Update base product counters (async, don't wait)
