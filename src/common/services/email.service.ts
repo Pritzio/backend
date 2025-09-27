@@ -95,8 +95,8 @@ export class EmailService {
     verificationToken: string,
   ): Promise<boolean> {
     const subject = 'Verifica tu dirección de correo electrónico';
-    const backendUrl = this.configService.get<string>('FRONTEND_URL');
-    const verificationUrl = `${backendUrl}/api/v1/auth/verify-email/${verificationToken}`;
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    const verificationUrl = `${frontendUrl}/auth/verify-email/${verificationToken}`;
     const html = this.emailTemplateService.getEmailVerificationTemplate(user, verificationUrl);
 
     return this.sendEmail({
