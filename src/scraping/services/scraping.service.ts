@@ -188,6 +188,7 @@ export class ScrapingService {
 
       return await chromium.launch({
         headless: true,
+        executablePath: process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : undefined,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -565,7 +566,10 @@ export class ScrapingService {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const browser = await chromium.launch({ headless: true });
+      const browser = await chromium.launch({ 
+        headless: true,
+        executablePath: process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : undefined,
+      });
       await browser.close();
       return true;
     } catch (error) {
