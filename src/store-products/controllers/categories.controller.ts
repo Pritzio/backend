@@ -42,7 +42,7 @@ export class CategoriesController {
   ) {}
 
   @Get()
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
   @ApiOperation({ summary: 'Get all categories' })
   @ApiResponse({
     status: 200,
@@ -65,7 +65,7 @@ export class CategoriesController {
   }
 
   @Get('with-counts')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
   @ApiOperation({ summary: 'Get all categories with product counts' })
   @ApiResponse({
     status: 200,
@@ -88,7 +88,7 @@ export class CategoriesController {
   }
 
   @Get(':id')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
   @ApiOperation({ summary: 'Get category by ID' })
   @ApiResponse({
     status: 200,

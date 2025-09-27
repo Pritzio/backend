@@ -18,12 +18,15 @@ import {
 import { ProductMatchingService } from '../services/product-matching.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
+import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
+import { Permissions } from '../../auth/decorators/permissions.decorator';
 import { RoleType } from '../../auth/entities/role.entity';
+import { PermissionType } from '../../auth/entities/permission.entity';
 
 @ApiTags('Product Comparison')
 @Controller('product-comparison')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @ApiBearerAuth()
 export class ProductComparisonController {
   private readonly _logger = new Logger(ProductComparisonController.name);
@@ -33,7 +36,8 @@ export class ProductComparisonController {
   ) {}
 
   @Get('search')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
+  @Permissions(PermissionType.PRODUCT_READ, PermissionType.PRICE_READ)
   @ApiOperation({ summary: 'Search products for comparison' })
   @ApiQuery({ name: 'q', description: 'Search query', example: 'nova papel 70m' })
   @ApiResponse({
@@ -175,7 +179,8 @@ export class ProductComparisonController {
   }
 
   @Get(':id')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
+  @Permissions(PermissionType.PRODUCT_READ, PermissionType.PRICE_READ)
   @ApiOperation({ summary: 'Get product comparison by base product ID' })
   @ApiParam({ name: 'id', description: 'Base product ID' })
   @ApiResponse({

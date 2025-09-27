@@ -95,7 +95,7 @@ export class StoreProductsController {
   }
 
   @Get()
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
   @ApiOperation({ summary: 'Get all store products with filters' })
   @ApiResponse({
     status: 200,
@@ -216,7 +216,7 @@ export class StoreProductsController {
   }
 
   @Get(':id')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
   @ApiOperation({ summary: 'Get store product by ID' })
   @ApiResponse({
     status: 200,
