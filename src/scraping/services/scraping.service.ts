@@ -326,7 +326,7 @@ export class ScrapingService {
       };
 
       // Mock chrome runtime only if it doesn't exist
-      if (!window.chrome) {
+      if (!(window as any).chrome) {
         Object.defineProperty(window, 'chrome', {
           writable: true,
           enumerable: true,
