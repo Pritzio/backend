@@ -142,35 +142,44 @@ export class StoreProductsController {
     return this.storeProductsService.getAllStoreProducts(req.user, {}, 1, 100);
   }
 
-  @Get('check-url-exists')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth()
+  @Post('check-url-exists')
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
   @ApiOperation({
     summary: 'Check if URL exists in database',
-    description: 'Verifies if a URL already exists in the database associated with a product. Returns true if exists, false otherwise.',
+    description: 'Verifies if a URL already exists in the database. Returns the same data sent plus existence status.',
   })
-  @ApiQuery({
-    name: 'url',
-    description: 'URL to check in database',
-    example: 'https://www.example.com/product/123',
-    required: true,
-    type: String,
+  @ApiBody({
+    description: 'Any data with URL to check existence. Only URL is required, rest can be any structure.',
+    schema: {
+      type: 'object',
+      properties: {
+        url: { 
+          type: 'string', 
+          description: 'URL to check in database (REQUIRED)',
+          example: 'https://www.example.com/product/123'
+        },
+        // Any other properties are allowed
+      },
+      required: ['url'],
+      additionalProperties: true
+    }
   })
   @ApiResponse({
     status: 200,
-    description: 'URL check completed successfully',
+    description: 'URL check completed successfully. Returns the same data sent plus exists status.',
     schema: {
       type: 'object',
       properties: {
         exists: { type: 'boolean', description: 'Whether the URL exists in database' },
         url: { type: 'string', description: 'The URL that was checked' },
+        // All other properties from the original request will be included
       },
+      additionalProperties: true
     },
   })
   @ApiResponse({
     status: 400,
-    description: 'Invalid URL format',
+    description: 'Invalid request data',
   })
   @ApiResponse({
     status: 401,
@@ -180,27 +189,33 @@ export class StoreProductsController {
     status: 403,
     description: 'Forbidden - Insufficient permissions',
   })
-  async checkUrlExists(@Query('url') url: string): Promise<{
-    exists: boolean;
-    url: string;
-  }> {
+  async checkUrlExists(@Body() data: any): Promise<any> {
+    this.logger.log('=== CHECK URL EXISTS CALLED ===');
+    this.logger.log('Received data:', JSON.stringify(data, null, 2));
+    
     try {
-      if (!url) {
+      if (!data || !data.url) {
+        this.logger.error('URL is missing from request body');
         throw new HttpException(
-          'URL parameter is required',
+          'URL is required in request body',
           HttpStatus.BAD_REQUEST,
         );
       }
 
-      const exists = await this.storeProductsService.checkUrlExists(url);
+      this.logger.log(`Checking URL existence for: ${data.url}`);
+      const exists = await this.storeProductsService.checkUrlExists(data.url);
+      this.logger.log(`URL exists: ${exists}`);
 
-      return {
+      const response = {
         exists,
-        url,
+        ...data, // Esto incluye todos los campos que enviaste
       };
+      
+      this.logger.log('Returning response:', JSON.stringify(response, null, 2));
+      return response;
     } catch (error) {
       this.logger.error(
-        `URL check error for ${url}: ${error.message}`,
+        `URL check error for ${data?.url || 'unknown'}: ${error.message}`,
         error.stack,
       );
 
@@ -214,6 +229,7 @@ export class StoreProductsController {
       );
     }
   }
+
 
   @Get(':id')
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
@@ -239,15 +255,12 @@ export class StoreProductsController {
     description: 'Store product updated successfully',
   })
   @ApiResponse({ status: 404, description: 'Store product not found' })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - Insufficient permissions',
-  })
+  @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiParam({ name: 'id', description: 'Store product ID' })
   @ApiBody({ type: CreateStoreProductDto })
   async updateStoreProduct(
     @Param('id') id: string,
-    @Body() updateStoreProductDto: Partial<CreateStoreProductDto>,
+    @Body() updateStoreProductDto: CreateStoreProductDto,
     @Request() req: any,
   ): Promise<IStoreProductResponse> {
     return this.storeProductsService.updateStoreProduct(
@@ -258,14 +271,13 @@ export class StoreProductsController {
   }
 
   @Delete(':id')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
   @ApiOperation({ summary: 'Delete store product' })
-  @ApiResponse({ status: 200, description: 'Store product deleted successfully' })
-  @ApiResponse({ status: 404, description: 'Store product not found' })
   @ApiResponse({
-    status: 403,
-    description: 'Forbidden - Insufficient permissions',
+    status: 200,
+    description: 'Store product deleted successfully',
   })
+  @ApiResponse({ status: 404, description: 'Store product not found' })
   @ApiParam({ name: 'id', description: 'Store product ID' })
   async deleteStoreProduct(
     @Param('id') id: string,
@@ -410,47 +422,27 @@ export class StoreProductsController {
         const newBaseProducts = new Set(results.map(r => r.matchedBaseProduct?.id).filter(Boolean)).size;
 
         return {
-          message: 'Scraped products processed with automatic matching',
-          total: data.length,
-          successful: successful,
-          failed: failed,
-          matched: matched,
-          newBaseProducts: newBaseProducts,
-          results: results,
-          logs: {
-            endpoint: 'store-products/scraping/add-products',
-            timestamp: new Date().toISOString(),
-            user: req.user?.username || 'unknown',
-            matchingStrategy: 'automatic-similarity-based'
-          }
+          message: `Scraping completed. ${successful} products added successfully, ${failed} failed. ${matched} products matched to base products, ${newBaseProducts} new base products created.`,
+          results,
+          statistics: {
+            total: data.length,
+            successful,
+            failed,
+            matched,
+            newBaseProducts,
+            successRate: Math.round((successful / data.length) * 100)
+          },
+          timestamp: new Date().toISOString()
         };
-        
       } else {
-        return {
-          error: 'Data must be an array of products',
-          received: typeof data,
-          logs: {
-            endpoint: 'store-products/scraping/add-products',
-            timestamp: new Date().toISOString(),
-            user: req.user?.username || 'unknown'
-          }
-        };
+        throw new Error('Request body must be an array of products');
       }
-      
     } catch (error) {
-      this.logger.error('Error in addScrapedProducts:', error);
-      
-      return {
-        error: 'Critical error processing request',
-        message: error.message,
-        logs: {
-          endpoint: 'store-products/scraping/add-products',
-          timestamp: new Date().toISOString(),
-          user: req.user?.username || 'unknown'
-        }
-      };
+      this.logger.error('Scraping add products error:', error);
+      throw new HttpException(
+        `Scraping failed: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
-
 }
-
