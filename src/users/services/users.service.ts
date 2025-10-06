@@ -702,10 +702,10 @@ export class UsersService {
     isSelfDeletion: boolean,
   ): { allowed: boolean; reason?: string } {
     // Handle both string arrays and role object arrays
-    const currentRoleNames = currentUserRoles.map(role => 
-      typeof role === 'string' ? role : role.name
+    const currentRoleNames = currentUserRoles.map((role) =>
+      typeof role === 'string' ? role : role.name,
     );
-    
+
     const isSuperAdmin = currentRoleNames.includes('super_admin');
     const isAdmin = currentRoleNames.includes('admin');
     const targetIsSuperAdmin = targetUserRoles.includes('super_admin');

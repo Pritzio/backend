@@ -294,7 +294,7 @@ export class StoresController {
     // Pass roles as separate parameter to avoid serialization issues
     const userId = req.user.id;
     const userRoles = req.user.roles || [];
-    
+
     return this.storesService.getStoreById(id, userId, userRoles);
   }
 
@@ -331,8 +331,13 @@ export class StoresController {
     // Pass roles as separate parameter to avoid serialization issues
     const userId = req.user.id;
     const userRoles = req.user.roles || [];
-    
-    return this.storesService.updateStore(id, updateStoreDto, userId, userRoles);
+
+    return this.storesService.updateStore(
+      id,
+      updateStoreDto,
+      userId,
+      userRoles,
+    );
   }
 
   @Delete(':id')
@@ -546,7 +551,7 @@ export class StoresController {
     // Pass roles as separate parameter to avoid serialization issues
     const userId = req.user.id;
     const userRoles = req.user.roles || [];
-    
+
     return this.storesService.verifyStore(id, userId, userRoles);
   }
 
@@ -578,7 +583,7 @@ export class StoresController {
     // Pass roles as separate parameter to avoid serialization issues
     const userId = req.user.id;
     const userRoles = req.user.roles || [];
-    
+
     return this.storesService.suspendStore(id, userId, userRoles);
   }
 
@@ -610,7 +615,7 @@ export class StoresController {
     // Pass roles as separate parameter to avoid serialization issues
     const userId = req.user.id;
     const userRoles = req.user.roles || [];
-    
+
     return this.storesService.reactivateStore(id, userId, userRoles);
   }
 }

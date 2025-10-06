@@ -63,8 +63,7 @@ export class RolesService {
     limit: number = 20,
     isSystem?: boolean,
   ): Promise<{ roles: IRoleSummary[]; pagination: IPagination }> {
-    const queryBuilder = this.roleRepository
-      .createQueryBuilder('role');
+    const queryBuilder = this.roleRepository.createQueryBuilder('role');
 
     if (isSystem !== undefined) {
       queryBuilder.andWhere('role.isSystem = :isSystem', { isSystem });
@@ -415,7 +414,9 @@ export class RolesService {
     return categories;
   }
 
-  async getRoleCounts(roleId: string): Promise<{ userCount: number; permissionCount: number }> {
+  async getRoleCounts(
+    roleId: string,
+  ): Promise<{ userCount: number; permissionCount: number }> {
     try {
       const userCount = await this.userRepository
         .createQueryBuilder('user')
@@ -485,7 +486,7 @@ export class RolesService {
               updatedAt: basicRole.updatedAt,
             };
           }
-        })
+        }),
       );
 
       return rolesWithCounts;

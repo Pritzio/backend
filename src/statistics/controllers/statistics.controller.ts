@@ -289,10 +289,22 @@ export class StatisticsController {
     schema: {
       type: 'object',
       properties: {
-        total: { type: 'number', description: 'Total number of store products' },
-        withCategories: { type: 'number', description: 'Number of products with categories' },
-        withoutCategories: { type: 'number', description: 'Number of products without categories' },
-        lastScraped: { type: 'number', description: 'Number of products with last scraped date' },
+        total: {
+          type: 'number',
+          description: 'Total number of store products',
+        },
+        withCategories: {
+          type: 'number',
+          description: 'Number of products with categories',
+        },
+        withoutCategories: {
+          type: 'number',
+          description: 'Number of products without categories',
+        },
+        lastScraped: {
+          type: 'number',
+          description: 'Number of products with last scraped date',
+        },
       },
     },
   })
@@ -316,9 +328,18 @@ export class StatisticsController {
       properties: {
         total: { type: 'number', description: 'Total number of categories' },
         active: { type: 'number', description: 'Number of active categories' },
-        inactive: { type: 'number', description: 'Number of inactive categories' },
-        withProducts: { type: 'number', description: 'Number of categories with products' },
-        withoutProducts: { type: 'number', description: 'Number of categories without products' },
+        inactive: {
+          type: 'number',
+          description: 'Number of inactive categories',
+        },
+        withProducts: {
+          type: 'number',
+          description: 'Number of categories with products',
+        },
+        withoutProducts: {
+          type: 'number',
+          description: 'Number of categories without products',
+        },
       },
     },
   })
@@ -342,7 +363,7 @@ export class StatisticsController {
         type: 'number',
       },
       example: {
-        'Electrónicos': 50,
+        Electrónicos: 50,
         'Hogar y Jardín': 30,
         'Ropa y Accesorios': 25,
       },

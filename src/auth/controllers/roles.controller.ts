@@ -41,11 +41,32 @@ export class RolesController {
   @Get()
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
   @Permissions(PermissionType.ROLE_LIST)
-  @ApiOperation({ summary: 'List all roles', description: 'Get a list of all roles with pagination (Admin only)' })
-  @ApiQuery({ name: 'page', description: 'Page number', required: false, type: Number })
-  @ApiQuery({ name: 'limit', description: 'Items per page', required: false, type: Number })
-  @ApiQuery({ name: 'isSystem', description: 'Filter by system roles', required: false, type: Boolean })
-  @ApiResponse({ status: 200, description: 'Roles list retrieved successfully' })
+  @ApiOperation({
+    summary: 'List all roles',
+    description: 'Get a list of all roles with pagination (Admin only)',
+  })
+  @ApiQuery({
+    name: 'page',
+    description: 'Page number',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Items per page',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'isSystem',
+    description: 'Filter by system roles',
+    required: false,
+    type: Boolean,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Roles list retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   async getRoles(
@@ -59,7 +80,10 @@ export class RolesController {
   @Get('all')
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
   @Permissions(PermissionType.ROLE_READ)
-  @ApiOperation({ summary: 'Get all roles without pagination', description: 'Get all roles for dropdowns and forms (Admin only)' })
+  @ApiOperation({
+    summary: 'Get all roles without pagination',
+    description: 'Get all roles for dropdowns and forms (Admin only)',
+  })
   @ApiResponse({ status: 200, description: 'All roles retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
@@ -70,8 +94,14 @@ export class RolesController {
   @Get('all/with-counts')
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
   @Permissions(PermissionType.ROLE_READ)
-  @ApiOperation({ summary: 'Get all roles with user and permission counts', description: 'Get all roles with detailed counts (Admin only)' })
-  @ApiResponse({ status: 200, description: 'All roles with counts retrieved successfully' })
+  @ApiOperation({
+    summary: 'Get all roles with user and permission counts',
+    description: 'Get all roles with detailed counts (Admin only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'All roles with counts retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   async getAllRolesWithCounts() {
@@ -81,7 +111,10 @@ export class RolesController {
   @Get(':id')
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
   @Permissions(PermissionType.ROLE_READ)
-  @ApiOperation({ summary: 'Get role by ID', description: 'Get complete role information by ID (Admin only)' })
+  @ApiOperation({
+    summary: 'Get role by ID',
+    description: 'Get complete role information by ID (Admin only)',
+  })
   @ApiParam({ name: 'id', description: 'Role ID' })
   @ApiResponse({ status: 200, description: 'Role retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -94,13 +127,19 @@ export class RolesController {
   @Post()
   @Roles(RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.ROLE_CREATE)
-  @ApiOperation({ summary: 'Create new role', description: 'Create a new role (Super Admin only)' })
+  @ApiOperation({
+    summary: 'Create new role',
+    description: 'Create a new role (Super Admin only)',
+  })
   @ApiBody({ type: CreateRoleDto })
   @ApiResponse({ status: 201, description: 'Role created successfully' })
   @ApiResponse({ status: 400, description: 'Invalid data' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
-  @ApiResponse({ status: 409, description: 'Role with this name already exists' })
+  @ApiResponse({
+    status: 409,
+    description: 'Role with this name already exists',
+  })
   @HttpCode(HttpStatus.CREATED)
   async createRole(@Body() createRoleDto: CreateRoleDto) {
     return this.rolesService.createRole(createRoleDto);
@@ -109,7 +148,10 @@ export class RolesController {
   @Put(':id')
   @Roles(RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.ROLE_UPDATE)
-  @ApiOperation({ summary: 'Update role', description: 'Update role information (Super Admin only)' })
+  @ApiOperation({
+    summary: 'Update role',
+    description: 'Update role information (Super Admin only)',
+  })
   @ApiParam({ name: 'id', description: 'Role ID' })
   @ApiBody({ type: UpdateRoleDto })
   @ApiResponse({ status: 200, description: 'Role updated successfully' })
@@ -117,7 +159,10 @@ export class RolesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   @ApiResponse({ status: 404, description: 'Role not found' })
-  @ApiResponse({ status: 409, description: 'Role with this name already exists' })
+  @ApiResponse({
+    status: 409,
+    description: 'Role with this name already exists',
+  })
   async updateRole(
     @Param('id') id: string,
     @Body() updateRoleDto: UpdateRoleDto,
@@ -128,7 +173,10 @@ export class RolesController {
   @Delete(':id')
   @Roles(RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.ROLE_DELETE)
-  @ApiOperation({ summary: 'Delete role', description: 'Delete a role (Super Admin only)' })
+  @ApiOperation({
+    summary: 'Delete role',
+    description: 'Delete a role (Super Admin only)',
+  })
   @ApiParam({ name: 'id', description: 'Role ID' })
   @ApiResponse({ status: 200, description: 'Role deleted successfully' })
   @ApiResponse({ status: 400, description: 'Cannot delete system role' })
@@ -143,7 +191,10 @@ export class RolesController {
   @Post(':id/permissions')
   @Roles(RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.ROLE_UPDATE)
-  @ApiOperation({ summary: 'Assign permission to role', description: 'Assign a permission to a role (Super Admin only)' })
+  @ApiOperation({
+    summary: 'Assign permission to role',
+    description: 'Assign a permission to a role (Super Admin only)',
+  })
   @ApiParam({ name: 'id', description: 'Role ID' })
   @ApiBody({ type: AssignPermissionDto })
   @ApiResponse({ status: 200, description: 'Permission assigned successfully' })
@@ -156,13 +207,19 @@ export class RolesController {
     @Param('id') roleId: string,
     @Body() assignPermissionDto: AssignPermissionDto,
   ) {
-    return this.rolesService.assignPermission(roleId, assignPermissionDto.permissionId);
+    return this.rolesService.assignPermission(
+      roleId,
+      assignPermissionDto.permissionId,
+    );
   }
 
   @Delete(':id/permissions/:permissionId')
   @Roles(RoleType.SUPER_ADMIN)
   @Permissions(PermissionType.ROLE_UPDATE)
-  @ApiOperation({ summary: 'Remove permission from role', description: 'Remove a permission from a role (Super Admin only)' })
+  @ApiOperation({
+    summary: 'Remove permission from role',
+    description: 'Remove a permission from a role (Super Admin only)',
+  })
   @ApiParam({ name: 'id', description: 'Role ID' })
   @ApiParam({ name: 'permissionId', description: 'Permission ID' })
   @ApiResponse({ status: 200, description: 'Permission removed successfully' })
@@ -179,11 +236,27 @@ export class RolesController {
   @Get(':id/users')
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
   @Permissions(PermissionType.ROLE_READ)
-  @ApiOperation({ summary: 'Get users with this role', description: 'Get list of users assigned to a specific role (Admin only)' })
+  @ApiOperation({
+    summary: 'Get users with this role',
+    description: 'Get list of users assigned to a specific role (Admin only)',
+  })
   @ApiParam({ name: 'id', description: 'Role ID' })
-  @ApiQuery({ name: 'page', description: 'Page number', required: false, type: Number })
-  @ApiQuery({ name: 'limit', description: 'Items per page', required: false, type: Number })
-  @ApiResponse({ status: 200, description: 'Users list retrieved successfully' })
+  @ApiQuery({
+    name: 'page',
+    description: 'Page number',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Items per page',
+    required: false,
+    type: Number,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Users list retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   @ApiResponse({ status: 404, description: 'Role not found' })
@@ -198,8 +271,15 @@ export class RolesController {
   @Get('permissions/all')
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
   @Permissions(PermissionType.ROLE_READ)
-  @ApiOperation({ summary: 'Get all permissions', description: 'Get all available permissions for role assignment (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Permissions list retrieved successfully' })
+  @ApiOperation({
+    summary: 'Get all permissions',
+    description:
+      'Get all available permissions for role assignment (Admin only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Permissions list retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   async getAllPermissions() {
@@ -209,8 +289,14 @@ export class RolesController {
   @Get('permissions/categories')
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
   @Permissions(PermissionType.ROLE_READ)
-  @ApiOperation({ summary: 'Get permissions by category', description: 'Get permissions organized by category (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Permissions by category retrieved successfully' })
+  @ApiOperation({
+    summary: 'Get permissions by category',
+    description: 'Get permissions organized by category (Admin only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Permissions by category retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   async getPermissionsByCategory() {

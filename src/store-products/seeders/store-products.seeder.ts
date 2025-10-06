@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  StoreProduct,
-} from '../entities/store-product.entity';
+import { StoreProduct } from '../entities/store-product.entity';
 
 import { User } from '../../auth/entities/user.entity';
 import { RoleType } from '../../auth/entities/role.entity';
@@ -38,7 +36,8 @@ export class StoreProductsSeeder {
         url: 'https://jumbo.cl/habas-congeladas-500-g-cuisine-and-co-1763679/p',
         sku: 'HABAS-500G-001',
         storeProductId: '75413',
-        image: 'https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg',
+        image:
+          'https://jumbocl.vteximg.com.br/arquivos/ids/363133-250-250/Habas-congeladas-500-g.jpg',
         metadata: {
           brand: 'Cuisine & Co',
           rating: 5,
@@ -55,7 +54,8 @@ export class StoreProductsSeeder {
         url: 'https://jumbo.cl/arroz-integral-1kg',
         sku: 'ARROZ-INT-1KG-001',
         storeProductId: '75414',
-        image: 'https://jumbocl.vteximg.com.br/arquivos/ids/363134-250-250/arroz-integral-1kg.jpg',
+        image:
+          'https://jumbocl.vteximg.com.br/arquivos/ids/363134-250-250/arroz-integral-1kg.jpg',
         metadata: {
           brand: 'Granos Premium',
           rating: 4,
@@ -75,11 +75,14 @@ export class StoreProductsSeeder {
       });
 
       if (!existingStoreProduct) {
-        const storeProduct = this.storeProductRepository.create(storeProductData);
+        const storeProduct =
+          this.storeProductRepository.create(storeProductData);
         await this.storeProductRepository.save(storeProduct);
         console.log(`✅ Created store product: ${storeProductData.name}`);
       } else {
-        console.log(`⏭️  Store product already exists: ${storeProductData.name}`);
+        console.log(
+          `⏭️  Store product already exists: ${storeProductData.name}`,
+        );
       }
     }
 

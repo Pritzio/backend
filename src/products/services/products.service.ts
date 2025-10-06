@@ -719,11 +719,15 @@ export class ProductsService {
 
     // Validate input
     if (!products || !Array.isArray(products) || products.length === 0) {
-      throw new BadRequestException('Products array is required and cannot be empty');
+      throw new BadRequestException(
+        'Products array is required and cannot be empty',
+      );
     }
 
     if (products.length > 100) {
-      throw new BadRequestException('Cannot create more than 100 products at once');
+      throw new BadRequestException(
+        'Cannot create more than 100 products at once',
+      );
     }
 
     const results: Array<{
@@ -741,14 +745,14 @@ export class ProductsService {
     if (skipDuplicates) {
       const existingProducts = await this.productRepository.find({
         select: ['code'],
-        where: { code: In(products.map(p => p.code)) },
+        where: { code: In(products.map((p) => p.code)) },
       });
-      existingProducts.forEach(p => existingCodes.add(p.code));
+      existingProducts.forEach((p) => existingCodes.add(p.code));
     }
 
     for (let i = 0; i < products.length; i++) {
       const productData = products[i];
-      
+
       try {
         // Check for duplicates if skipDuplicates is enabled
         if (skipDuplicates && existingCodes.has(productData.code)) {
@@ -805,7 +809,6 @@ export class ProductsService {
 
         created++;
         existingCodes.add(productData.code); // Add to existing codes to prevent duplicates in same batch
-
       } catch (error) {
         results.push({
           success: false,
@@ -830,7 +833,9 @@ export class ProductsService {
     };
   }
 
-  private async _validateProductData(productData: CreateProductDto): Promise<string[]> {
+  private async _validateProductData(
+    productData: CreateProductDto,
+  ): Promise<string[]> {
     const errors: string[] = [];
 
     // Basic validation
@@ -882,7 +887,10 @@ export class ProductsService {
 
     // Filter by scraping priority (stored in metadata)
     if (priority && priority !== 'all') {
-      queryBuilder.andWhere("product.metadata->>'scrapingPriority' = :priority", { priority });
+      queryBuilder.andWhere(
+        "product.metadata->>'scrapingPriority' = :priority",
+        { priority },
+      );
     }
 
     // Filter by last scraped date
@@ -890,13 +898,13 @@ export class ProductsService {
       const date = new Date(lastScrapedBefore);
       queryBuilder.andWhere(
         "(product.metadata->>'lastScraped' IS NULL OR (product.metadata->>'lastScraped')::timestamp < :date)",
-        { date }
+        { date },
       );
     }
 
     const products = await queryBuilder.getMany();
 
-    const scrapingProducts = products.map(product => ({
+    const scrapingProducts = products.map((product) => ({
       id: product.id,
       name: product.name,
       code: product.code,

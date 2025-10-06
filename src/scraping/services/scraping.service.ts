@@ -188,7 +188,10 @@ export class ScrapingService {
 
       return await chromium.launch({
         headless: true,
-        executablePath: process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : undefined,
+        executablePath:
+          process.env.NODE_ENV === 'production'
+            ? '/usr/bin/chromium-browser'
+            : undefined,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -256,11 +259,11 @@ export class ScrapingService {
     await page.route('**/*', (route) => {
       const resourceType = route.request().resourceType();
       const url = route.request().url();
-      
+
       // Allow document, script, and XHR/fetch requests
       if (['document', 'script', 'xhr', 'fetch'].includes(resourceType)) {
         route.continue();
-      } 
+      }
       // Block only images and media (heavy resources)
       else if (['image', 'media'].includes(resourceType)) {
         route.abort();
@@ -562,15 +565,17 @@ export class ScrapingService {
     };
   }
 
-
   /**
    * Health check method for the scraping service
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const browser = await chromium.launch({ 
+      const browser = await chromium.launch({
         headless: true,
-        executablePath: process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : undefined,
+        executablePath:
+          process.env.NODE_ENV === 'production'
+            ? '/usr/bin/chromium-browser'
+            : undefined,
       });
       await browser.close();
       return true;

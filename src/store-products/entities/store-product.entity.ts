@@ -22,7 +22,10 @@ import { BaseProduct } from './base-product.entity';
 @Index(['lastScraped'])
 @Index(['createdBy'])
 @Index(['storeId'])
-@Index(['storeProductId'], { unique: true, where: '"storeProductId" IS NOT NULL' })
+@Index(['storeProductId'], {
+  unique: true,
+  where: '"storeProductId" IS NOT NULL',
+})
 @Index(['url'], { unique: true, where: 'url IS NOT NULL' })
 @Index(['baseProductId'])
 export class StoreProduct {
@@ -41,7 +44,12 @@ export class StoreProduct {
   @Column({ type: 'varchar', length: 100, nullable: true })
   sku: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true, name: 'storeProductId' })
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+    name: 'storeProductId',
+  })
   storeProductId: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
@@ -103,7 +111,9 @@ export class StoreProduct {
   })
   physicalLocations: PhysicalLocation[];
 
-  @ManyToOne(() => BaseProduct, (baseProduct) => baseProduct.storeProducts, { nullable: true })
+  @ManyToOne(() => BaseProduct, (baseProduct) => baseProduct.storeProducts, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'baseProductId' })
   baseProduct: BaseProduct;
 

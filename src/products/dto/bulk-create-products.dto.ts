@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsOptional, IsBoolean, ValidateNested, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import {
+  IsArray,
+  IsOptional,
+  IsBoolean,
+  ValidateNested,
+  ArrayMinSize,
+  ArrayMaxSize,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateProductDto } from './create-product.dto';
 
@@ -56,7 +63,11 @@ export class BulkCreateProductsDto {
         status: 'active',
         condition: 'new',
         description: 'Latest Samsung flagship smartphone',
-        specifications: { color: 'Titanium Gray', storage: '256GB', ram: '12GB' },
+        specifications: {
+          color: 'Titanium Gray',
+          storage: '256GB',
+          ram: '12GB',
+        },
         features: ['5G', 'S Pen', 'AI Camera'],
         tags: ['smartphone', '5G', 'android', 'premium'],
       },
@@ -64,7 +75,9 @@ export class BulkCreateProductsDto {
   })
   @IsArray()
   @ArrayMinSize(1, { message: 'At least one product is required' })
-  @ArrayMaxSize(100, { message: 'Cannot create more than 100 products at once' })
+  @ArrayMaxSize(100, {
+    message: 'Cannot create more than 100 products at once',
+  })
   @ValidateNested({ each: true })
   @Type(() => CreateProductDto)
   products: CreateProductDto[];

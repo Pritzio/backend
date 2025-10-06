@@ -24,7 +24,9 @@ export class DateFormatterUtil {
    * Gets current date in Chile timezone
    */
   static getCurrentChileTime(): Date {
-    return new Date(new Date().toLocaleString('en-US', { timeZone: this.CHILE_TIMEZONE }));
+    return new Date(
+      new Date().toLocaleString('en-US', { timeZone: this.CHILE_TIMEZONE }),
+    );
   }
 
   /**
@@ -32,7 +34,9 @@ export class DateFormatterUtil {
    */
   static toChileTimezone(date: Date | string): Date {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return new Date(dateObj.toLocaleString('en-US', { timeZone: this.CHILE_TIMEZONE }));
+    return new Date(
+      dateObj.toLocaleString('en-US', { timeZone: this.CHILE_TIMEZONE }),
+    );
   }
 
   /**
@@ -43,4 +47,3 @@ export class DateFormatterUtil {
     return this.toChileTimezone(dateObj).toISOString();
   }
 }
-

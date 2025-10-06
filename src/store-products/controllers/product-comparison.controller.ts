@@ -36,10 +36,19 @@ export class ProductComparisonController {
   ) {}
 
   @Get('search')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
+  @Roles(
+    RoleType.SUPER_ADMIN,
+    RoleType.ADMIN,
+    RoleType.STORE_ADMIN,
+    RoleType.CUSTOMER,
+  )
   @Permissions(PermissionType.PRODUCT_READ, PermissionType.PRICE_READ)
   @ApiOperation({ summary: 'Search products for comparison' })
-  @ApiQuery({ name: 'q', description: 'Search query', example: 'nova papel 70m' })
+  @ApiQuery({
+    name: 'q',
+    description: 'Search query',
+    example: 'nova papel 70m',
+  })
   @ApiResponse({
     status: 200,
     description: 'Products found successfully with price information',
@@ -65,8 +74,8 @@ export class ProductComparisonController {
                 properties: {
                   min: { type: 'number' },
                   max: { type: 'number' },
-                  avg: { type: 'number' }
-                }
+                  avg: { type: 'number' },
+                },
               },
               stores: {
                 type: 'array',
@@ -75,18 +84,18 @@ export class ProductComparisonController {
                   properties: {
                     store: { type: 'object' },
                     product: { type: 'object' },
-                    price: { type: 'number' }
-                  }
-                }
+                    price: { type: 'number' },
+                  },
+                },
               },
-              createdAt: { type: 'string' }
-            }
-          }
+              createdAt: { type: 'string' },
+            },
+          },
         },
         total: { type: 'number' },
-        query: { type: 'string' }
-      }
-    }
+        query: { type: 'string' },
+      },
+    },
   })
   async searchProducts(@Query('q') query: string) {
     if (!query || query.trim().length < 2) {
@@ -94,19 +103,25 @@ export class ProductComparisonController {
     }
 
     const products = await this._productMatchingService.searchProducts(query);
-    
+
     // Filter out inactive products as an additional safety measure
-    const activeProducts = products.filter(product => product.isActive);
-    
-    this._logger.log(`Search returned ${products.length} products, ${activeProducts.length} active`);
-    
+    const activeProducts = products.filter((product) => product.isActive);
+
+    this._logger.log(
+      `Search returned ${products.length} products, ${activeProducts.length} active`,
+    );
+
     // Get detailed info for each product including price data
     const productsWithDetails = await Promise.all(
       activeProducts.map(async (product) => {
         try {
-          const details = await this._productMatchingService.getProductWithImagesAndSpecs(product.id);
-          const comparison = await this._productMatchingService.getProductComparison(product.id);
-          
+          const details =
+            await this._productMatchingService.getProductWithImagesAndSpecs(
+              product.id,
+            );
+          const comparison =
+            await this._productMatchingService.getProductComparison(product.id);
+
           return {
             id: product.id,
             name: product.name,
@@ -118,7 +133,7 @@ export class ProductComparisonController {
             image: details.image,
             specifications: details.specifications,
             priceRange: comparison.priceRange,
-            stores: comparison.stores.map(store => ({
+            stores: comparison.stores.map((store) => ({
               store: {
                 id: store.store.id,
                 name: store.store.name,
@@ -133,13 +148,17 @@ export class ProductComparisonController {
                 url: store.product.url,
                 image: store.product.image,
                 lastScraped: store.product.lastScraped,
+                metadata: store.product.metadata,
               },
               price: store.price,
             })),
             createdAt: product.createdAt,
           };
         } catch (error) {
-          this._logger.warn(`Failed to get detailed info for product ${product.id}:`, error.message);
+          this._logger.warn(
+            `Failed to get detailed info for product ${product.id}:`,
+            error.message,
+          );
           // Fallback to basic product info if detailed fetch fails
           return {
             id: product.id,
@@ -152,25 +171,25 @@ export class ProductComparisonController {
             image: product.image,
             specifications: {
               rating: null,
-              categories: ["Toallas de Papel"],
+              categories: ['Toallas de Papel'],
               originalData: {
                 brand: product.brand,
-                categories: ["Toallas de Papel"],
-                highResImageUrl: product.image
-              }
+                categories: ['Toallas de Papel'],
+                highResImageUrl: product.image,
+              },
             },
             priceRange: {
               min: 0,
               max: 0,
-              avg: 0
+              avg: 0,
             },
             stores: [],
             createdAt: product.createdAt,
           };
         }
-      })
+      }),
     );
-    
+
     return {
       data: productsWithDetails,
       total: activeProducts.length,
@@ -178,8 +197,113 @@ export class ProductComparisonController {
     };
   }
 
+  @Get('duplicates')
+  @Roles(
+    RoleType.SUPER_ADMIN,
+    RoleType.ADMIN,
+    RoleType.STORE_ADMIN,
+    RoleType.CUSTOMER,
+  )
+  @Permissions(PermissionType.PRODUCT_READ, PermissionType.PRICE_READ)
+  @ApiOperation({
+    summary: 'Find duplicate products using traditional algorithm',
+    description:
+      'Uses traditional similarity algorithm to find duplicate products. Fast and efficient.',
+  })
+  @ApiQuery({
+    name: 'threshold',
+    description: 'Similarity threshold (0.1-1.0)',
+    required: false,
+    example: 0.7,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Maximum number of groups to return',
+    required: false,
+    example: 50,
+  })
+  @ApiQuery({
+    name: 'brand',
+    description: 'Filter by specific brand',
+    required: false,
+    example: 'Nova',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Duplicate groups found successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        groups: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              count: { type: 'number' },
+              products: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    name: { type: 'string' },
+                    brand: { type: 'string' },
+                    image: { type: 'string' },
+                    store: { type: 'string' },
+                    price: { type: 'number' },
+                  },
+                },
+              },
+            },
+          },
+        },
+        total: { type: 'number' },
+        threshold: { type: 'number' },
+      },
+    },
+  })
+  async findDuplicates(
+    @Query('threshold') threshold?: string,
+    @Query('limit') limit?: string,
+    @Query('brand') brand?: string,
+  ) {
+    const thresholdNum = threshold ? parseFloat(threshold) : 0.3;
+    const limitNum = limit ? parseInt(limit) : 200;
+
+    if (thresholdNum < 0.1 || thresholdNum > 1.0) {
+      throw new BadRequestException('Threshold must be between 0.1 and 1.0');
+    }
+
+    if (limitNum < 1 || limitNum > 200) {
+      throw new BadRequestException('Limit must be between 1 and 200');
+    }
+
+    this._logger.log(
+      `Finding duplicates with traditional algorithm - threshold: ${thresholdNum}, limit: ${limitNum}`,
+    );
+
+    // Use traditional duplicate detection
+    const groups = await this._productMatchingService.findDuplicateGroups({
+      threshold: thresholdNum,
+      limit: limitNum,
+      brand,
+    });
+
+    return {
+      groups,
+      total: groups.length,
+      threshold: thresholdNum,
+    };
+  }
+
   @Get(':id')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
+  @Roles(
+    RoleType.SUPER_ADMIN,
+    RoleType.ADMIN,
+    RoleType.STORE_ADMIN,
+    RoleType.CUSTOMER,
+  )
   @Permissions(PermissionType.PRODUCT_READ, PermissionType.PRICE_READ)
   @ApiOperation({ summary: 'Get product comparison by base product ID' })
   @ApiParam({ name: 'id', description: 'Base product ID' })
@@ -189,13 +313,17 @@ export class ProductComparisonController {
   })
   async getProductComparison(@Param('id') id: string) {
     // Validar que el ID sea un UUID válido
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(id)) {
-      throw new BadRequestException('Invalid product ID format. Must be a valid UUID.');
+      throw new BadRequestException(
+        'Invalid product ID format. Must be a valid UUID.',
+      );
     }
 
-    const comparison = await this._productMatchingService.getProductComparison(id);
-    
+    const comparison =
+      await this._productMatchingService.getProductComparison(id);
+
     return {
       product: {
         id: comparison.baseProduct.id,
@@ -210,7 +338,7 @@ export class ProductComparisonController {
         totalVariants: comparison.baseProduct.totalVariants,
       },
       priceRange: comparison.priceRange,
-      stores: comparison.stores.map(store => ({
+      stores: comparison.stores.map((store) => ({
         store: {
           id: store.store.id,
           name: store.store.name,
@@ -225,6 +353,7 @@ export class ProductComparisonController {
           url: store.product.url,
           image: store.product.image,
           lastScraped: store.product.lastScraped,
+          metadata: store.product.metadata,
         },
         price: store.price,
       })),

@@ -203,9 +203,13 @@ export class PhysicalLocation {
   @JoinColumn({ name: 'createdBy' })
   creator: User;
 
-  @ManyToOne(() => StoreProduct, (storeProduct) => storeProduct.physicalLocations, {
-    nullable: true,
-  })
+  @ManyToOne(
+    () => StoreProduct,
+    (storeProduct) => storeProduct.physicalLocations,
+    {
+      nullable: true,
+    },
+  )
   @JoinColumn({ name: 'storeProductId' })
   storeProduct: StoreProduct;
 

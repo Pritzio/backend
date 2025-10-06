@@ -18,14 +18,14 @@ export class CategoriesService {
     }
 
     const categories: Category[] = [];
-    
+
     for (const categoryName of categoryNames) {
       if (!categoryName || categoryName.trim() === '') {
         continue;
       }
 
       const trimmedName = categoryName.trim();
-      
+
       try {
         // Find existing category
         let category = await this.categoryRepository.findOne({
@@ -42,8 +42,10 @@ export class CategoriesService {
           });
 
           category = await this.categoryRepository.save(category);
-          
-          this.logger.log(`Created new category: ${trimmedName} (ID: ${category.id})`);
+
+          this.logger.log(
+            `Created new category: ${trimmedName} (ID: ${category.id})`,
+          );
         }
 
         categories.push(category);
@@ -126,7 +128,7 @@ export class CategoriesService {
     });
 
     // Map categories to include product count
-    return categories.map(category => {
+    return categories.map((category) => {
       category.productCount = category.storeProducts?.length || 0;
       return category;
     });

@@ -371,9 +371,10 @@ export class AuthController {
 
   @Post('run-seeder')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Run Authentication Seeder (No authentication required)',
-    description: 'Creates all roles and permissions in the system. Safe to run multiple times.'
+    description:
+      'Creates all roles and permissions in the system. Safe to run multiple times.',
   })
   @ApiResponse({
     status: 200,
@@ -390,9 +391,10 @@ export class AuthController {
 
   @Post('create-super-admin')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Create Super Admin (No authentication required)',
-    description: 'Creates the first Super Admin user. Only works if no SUPER_ADMIN exists in the system.'
+    description:
+      'Creates the first Super Admin user. Only works if no SUPER_ADMIN exists in the system.',
   })
   @ApiResponse({
     status: 201,
@@ -401,7 +403,8 @@ export class AuthController {
   })
   @ApiResponse({
     status: 409,
-    description: 'Super Admin already exists or user with email/username already exists',
+    description:
+      'Super Admin already exists or user with email/username already exists',
   })
   @ApiResponse({
     status: 400,
@@ -415,9 +418,10 @@ export class AuthController {
 
   @Post('check-username')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Check if username exists',
-    description: 'Checks if a username is already taken. Useful for real-time validation in registration forms.'
+    description:
+      'Checks if a username is already taken. Useful for real-time validation in registration forms.',
   })
   @ApiResponse({
     status: 200,
@@ -426,9 +430,9 @@ export class AuthController {
       type: 'object',
       properties: {
         exists: { type: 'boolean', description: 'Whether the username exists' },
-        message: { type: 'string', description: 'Status message' }
-      }
-    }
+        message: { type: 'string', description: 'Status message' },
+      },
+    },
   })
   @ApiResponse({
     status: 400,
@@ -442,9 +446,10 @@ export class AuthController {
 
   @Post('check-email')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Check if email exists',
-    description: 'Checks if an email is already registered. Useful for real-time validation in registration forms.'
+    description:
+      'Checks if an email is already registered. Useful for real-time validation in registration forms.',
   })
   @ApiResponse({
     status: 200,
@@ -453,9 +458,9 @@ export class AuthController {
       type: 'object',
       properties: {
         exists: { type: 'boolean', description: 'Whether the email exists' },
-        message: { type: 'string', description: 'Status message' }
-      }
-    }
+        message: { type: 'string', description: 'Status message' },
+      },
+    },
   })
   @ApiResponse({
     status: 400,

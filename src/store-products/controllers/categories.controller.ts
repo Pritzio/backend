@@ -37,12 +37,15 @@ import { RoleType } from '../../auth/entities/role.entity';
 export class CategoriesController {
   private readonly logger = new Logger(CategoriesController.name);
 
-  constructor(
-    private readonly categoriesService: CategoriesService,
-  ) {}
+  constructor(private readonly categoriesService: CategoriesService) {}
 
   @Get()
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
+  @Roles(
+    RoleType.SUPER_ADMIN,
+    RoleType.ADMIN,
+    RoleType.STORE_ADMIN,
+    RoleType.CUSTOMER,
+  )
   @ApiOperation({ summary: 'Get all categories' })
   @ApiResponse({
     status: 200,
@@ -50,7 +53,7 @@ export class CategoriesController {
   })
   async getAllCategories(): Promise<ICategoryResponse[]> {
     const categories = await this.categoriesService.getAllCategories();
-    return categories.map(category => ({
+    return categories.map((category) => ({
       id: category.id,
       name: category.name,
       description: category.description,
@@ -65,15 +68,21 @@ export class CategoriesController {
   }
 
   @Get('with-counts')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
+  @Roles(
+    RoleType.SUPER_ADMIN,
+    RoleType.ADMIN,
+    RoleType.STORE_ADMIN,
+    RoleType.CUSTOMER,
+  )
   @ApiOperation({ summary: 'Get all categories with product counts' })
   @ApiResponse({
     status: 200,
     description: 'Categories with product counts retrieved successfully',
   })
   async getCategoriesWithProductCount(): Promise<ICategoryResponse[]> {
-    const categories = await this.categoriesService.getCategoriesWithProductCount();
-    return categories.map(category => ({
+    const categories =
+      await this.categoriesService.getCategoriesWithProductCount();
+    return categories.map((category) => ({
       id: category.id,
       name: category.name,
       description: category.description,
@@ -88,7 +97,12 @@ export class CategoriesController {
   }
 
   @Get(':id')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
+  @Roles(
+    RoleType.SUPER_ADMIN,
+    RoleType.ADMIN,
+    RoleType.STORE_ADMIN,
+    RoleType.CUSTOMER,
+  )
   @ApiOperation({ summary: 'Get category by ID' })
   @ApiResponse({
     status: 200,
@@ -171,7 +185,10 @@ export class CategoriesController {
     @Param('id') id: string,
     @Body() updateCategoryDto: IUpdateCategoryDto,
   ): Promise<ICategoryResponse> {
-    const category = await this.categoriesService.updateCategory(id, updateCategoryDto);
+    const category = await this.categoriesService.updateCategory(
+      id,
+      updateCategoryDto,
+    );
     if (!category) {
       throw new Error(`Category with ID ${id} not found`);
     }

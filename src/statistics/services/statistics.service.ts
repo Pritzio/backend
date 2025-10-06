@@ -158,23 +158,24 @@ export class StatisticsService {
    * Obtiene estadísticas completas de store products
    */
   async getStoreProductStatistics(): Promise<StoreProductStatistics> {
-    const [total, withCategories, withoutCategories, lastScraped] = await Promise.all([
-      this.storeProductRepository.count(),
-      this.storeProductRepository
-        .createQueryBuilder('storeProduct')
-        .leftJoin('storeProduct.categories', 'category')
-        .where('category.id IS NOT NULL')
-        .getCount(),
-      this.storeProductRepository
-        .createQueryBuilder('storeProduct')
-        .leftJoin('storeProduct.categories', 'category')
-        .where('category.id IS NULL')
-        .getCount(),
-      this.storeProductRepository
-        .createQueryBuilder('storeProduct')
-        .where('storeProduct.lastScraped IS NOT NULL')
-        .getCount(),
-    ]);
+    const [total, withCategories, withoutCategories, lastScraped] =
+      await Promise.all([
+        this.storeProductRepository.count(),
+        this.storeProductRepository
+          .createQueryBuilder('storeProduct')
+          .leftJoin('storeProduct.categories', 'category')
+          .where('category.id IS NOT NULL')
+          .getCount(),
+        this.storeProductRepository
+          .createQueryBuilder('storeProduct')
+          .leftJoin('storeProduct.categories', 'category')
+          .where('category.id IS NULL')
+          .getCount(),
+        this.storeProductRepository
+          .createQueryBuilder('storeProduct')
+          .where('storeProduct.lastScraped IS NOT NULL')
+          .getCount(),
+      ]);
 
     return {
       total,
@@ -188,21 +189,22 @@ export class StatisticsService {
    * Obtiene estadísticas completas de categorías
    */
   async getCategoryStatistics(): Promise<CategoryStatistics> {
-    const [total, active, inactive, withProducts, withoutProducts] = await Promise.all([
-      this.categoryRepository.count(),
-      this.categoryRepository.count({ where: { isActive: true } }),
-      this.categoryRepository.count({ where: { isActive: false } }),
-      this.categoryRepository
-        .createQueryBuilder('category')
-        .leftJoin('category.storeProducts', 'storeProduct')
-        .where('storeProduct.id IS NOT NULL')
-        .getCount(),
-      this.categoryRepository
-        .createQueryBuilder('category')
-        .leftJoin('category.storeProducts', 'storeProduct')
-        .where('storeProduct.id IS NULL')
-        .getCount(),
-    ]);
+    const [total, active, inactive, withProducts, withoutProducts] =
+      await Promise.all([
+        this.categoryRepository.count(),
+        this.categoryRepository.count({ where: { isActive: true } }),
+        this.categoryRepository.count({ where: { isActive: false } }),
+        this.categoryRepository
+          .createQueryBuilder('category')
+          .leftJoin('category.storeProducts', 'storeProduct')
+          .where('storeProduct.id IS NOT NULL')
+          .getCount(),
+        this.categoryRepository
+          .createQueryBuilder('category')
+          .leftJoin('category.storeProducts', 'storeProduct')
+          .where('storeProduct.id IS NULL')
+          .getCount(),
+      ]);
 
     return {
       total,
@@ -217,13 +219,14 @@ export class StatisticsService {
    * Obtiene estadísticas completas del sistema
    */
   async getSystemStatistics(): Promise<SystemStatistics> {
-    const [users, stores, products, storeProducts, categories] = await Promise.all([
-      this.getUserStatistics(),
-      this.getStoreStatistics(),
-      this.getProductStatistics(),
-      this.getStoreProductStatistics(),
-      this.getCategoryStatistics(),
-    ]);
+    const [users, stores, products, storeProducts, categories] =
+      await Promise.all([
+        this.getUserStatistics(),
+        this.getStoreStatistics(),
+        this.getProductStatistics(),
+        this.getStoreProductStatistics(),
+        this.getCategoryStatistics(),
+      ]);
 
     return {
       users,

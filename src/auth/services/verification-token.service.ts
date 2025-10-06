@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { VerificationToken, TokenType } from '../entities/verification-token.entity';
+import {
+  VerificationToken,
+  TokenType,
+} from '../entities/verification-token.entity';
 import { User } from '../entities/user.entity';
 import * as crypto from 'crypto';
 
@@ -54,7 +57,10 @@ export class VerificationTokenService {
     return this.verificationTokenRepository.save(verificationToken);
   }
 
-  async generatePhoneVerificationCode(user: User, phone: string): Promise<VerificationToken> {
+  async generatePhoneVerificationCode(
+    user: User,
+    phone: string,
+  ): Promise<VerificationToken> {
     // Delete any existing phone verification tokens for this user
     await this.verificationTokenRepository.delete({
       userId: user.id,
@@ -77,7 +83,10 @@ export class VerificationTokenService {
     return this.verificationTokenRepository.save(verificationToken);
   }
 
-  async validateToken(token: string, type: TokenType): Promise<VerificationToken | null> {
+  async validateToken(
+    token: string,
+    type: TokenType,
+  ): Promise<VerificationToken | null> {
     const verificationToken = await this.verificationTokenRepository.findOne({
       where: { token, type },
       relations: ['user'],
@@ -90,13 +99,17 @@ export class VerificationTokenService {
     return verificationToken;
   }
 
-  async validatePhoneCode(userId: string, phone: string, code: string): Promise<VerificationToken | null> {
+  async validatePhoneCode(
+    userId: string,
+    phone: string,
+    code: string,
+  ): Promise<VerificationToken | null> {
     const verificationToken = await this.verificationTokenRepository.findOne({
-      where: { 
-        userId, 
-        phone, 
-        code, 
-        type: TokenType.PHONE_VERIFICATION 
+      where: {
+        userId,
+        phone,
+        code,
+        type: TokenType.PHONE_VERIFICATION,
       },
       relations: ['user'],
     });

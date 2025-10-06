@@ -57,7 +57,9 @@ export class EmailService {
       };
 
       const result = await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Email sent successfully to ${options.to}: ${result.messageId}`);
+      this.logger.log(
+        `Email sent successfully to ${options.to}: ${result.messageId}`,
+      );
       return true;
     } catch (error) {
       this.logger.error(`Failed to send email to ${options.to}:`, error);
@@ -97,7 +99,10 @@ export class EmailService {
     const subject = 'Verifica tu dirección de correo electrónico';
     const frontendUrl = this.configService.get<string>('FRONTEND_URL');
     const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}`;
-    const html = this.emailTemplateService.getEmailVerificationTemplate(user, verificationUrl);
+    const html = this.emailTemplateService.getEmailVerificationTemplate(
+      user,
+      verificationUrl,
+    );
 
     return this.sendEmail({
       to: user.email,
@@ -116,7 +121,10 @@ export class EmailService {
   ): Promise<boolean> {
     const subject = 'Restablece tu contraseña';
     const resetUrl = `${this.configService.get<string>('FRONTEND_URL')}/reset-password?token=${resetToken}`;
-    const html = this.emailTemplateService.getPasswordResetTemplate(user, resetUrl);
+    const html = this.emailTemplateService.getPasswordResetTemplate(
+      user,
+      resetUrl,
+    );
 
     return this.sendEmail({
       to: user.email,
@@ -124,5 +132,4 @@ export class EmailService {
       html,
     });
   }
-
 }

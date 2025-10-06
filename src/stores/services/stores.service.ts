@@ -16,9 +16,7 @@ import {
   PhysicalLocation,
   LocationStatus,
 } from '../../physical-locations/entities/physical-location.entity';
-import {
-  StoreProduct,
-} from '../../store-products/entities/store-product.entity';
+import { StoreProduct } from '../../store-products/entities/store-product.entity';
 import { CreateStoreDto } from '../dto/create-store.dto';
 import { UpdateStoreDto } from '../dto/update-store.dto';
 import { CreateStoreLocationDto } from '../dto/create-store-location.dto';
@@ -46,7 +44,7 @@ export class StoresService {
 
   async findOrCreateStore(storeName: string, website?: string): Promise<Store> {
     // First, try to find existing store by name
-    let store = await this.storeRepository.findOne({
+    const store = await this.storeRepository.findOne({
       where: { name: storeName },
     });
 
@@ -189,9 +187,15 @@ export class StoresService {
       });
     }
 
-    const [stores, total] = await query.getManyAndCount();
+    // Get total count first
+    const total = await query.getCount();
 
-    const storeSummaries: IStoreSummary[] = stores.map((store) => ({
+    // Get stores with calculated fields
+    const result = await query.getRawAndEntities();
+    const stores = result.entities;
+    const rawResults = result.raw;
+
+    const storeSummaries: IStoreSummary[] = stores.map((store, index) => ({
       id: store.id,
       name: store.name,
       website: store.website,
@@ -201,8 +205,10 @@ export class StoresService {
       category: store.category,
       country: store.country,
       isVerified: store.isVerified,
-      storeProductsCount: parseInt(store['productsCount'] || '0'),
-      physicalLocationsCount: parseInt(store['locationsCount'] || '0'),
+      storeProductsCount: parseInt(rawResults[index]['productsCount'] || '0'),
+      physicalLocationsCount: parseInt(
+        rawResults[index]['locationsCount'] || '0',
+      ),
       createdAt: store.createdAt,
       updatedAt: store.updatedAt,
     }));
@@ -250,18 +256,21 @@ export class StoresService {
       name: store.name,
       hasCreator: !!store.creator,
       creatorId: store.creator?.id,
-      creatorRoles: store.creator?.roles?.length || 0
+      creatorRoles: store.creator?.roles?.length || 0,
     });
 
     // Check if user has permission to view this store
-    const canView = this.validateStoreViewPermissions(store, { id: userId, roles: userRoles });
+    const canView = this.validateStoreViewPermissions(store, {
+      id: userId,
+      roles: userRoles,
+    });
     if (!canView.allowed) {
       console.log('❌ Permission denied:', canView.reason);
       throw new ForbiddenException(canView.reason);
     }
 
     console.log('✅ Permission granted, mapping store to response...');
-    
+
     try {
       const response = this.mapStoreToResponse(store);
       console.log('✅ Store mapped successfully');
@@ -288,7 +297,10 @@ export class StoresService {
     }
 
     // Check if user has permission to update this store
-    const canUpdate = this.validateStoreUpdatePermissions(store, { id: userId, roles: userRoles });
+    const canUpdate = this.validateStoreUpdatePermissions(store, {
+      id: userId,
+      roles: userRoles,
+    });
     if (!canUpdate.allowed) {
       throw new ForbiddenException(canUpdate.reason);
     }
@@ -304,7 +316,11 @@ export class StoresService {
     }
 
     // Only check website uniqueness if it's not empty
-    if (updateStoreDto.website && updateStoreDto.website.trim() !== '' && updateStoreDto.website !== store.website) {
+    if (
+      updateStoreDto.website &&
+      updateStoreDto.website.trim() !== '' &&
+      updateStoreDto.website !== store.website
+    ) {
       const existingStore = await this.storeRepository.findOne({
         where: { website: updateStoreDto.website },
       });
@@ -343,11 +359,14 @@ export class StoresService {
 
     // Check if user has permission to verify stores (only SUPER_ADMIN and ADMIN)
     // Check for both uppercase and lowercase versions
-    const hasSuperAdmin = userRoles.includes('SUPER_ADMIN') || userRoles.includes('super_admin');
+    const hasSuperAdmin =
+      userRoles.includes('SUPER_ADMIN') || userRoles.includes('super_admin');
     const hasAdmin = userRoles.includes('ADMIN') || userRoles.includes('admin');
-    
+
     if (!hasSuperAdmin && !hasAdmin) {
-      throw new ForbiddenException('Only SUPER_ADMIN and ADMIN can verify stores');
+      throw new ForbiddenException(
+        'Only SUPER_ADMIN and ADMIN can verify stores',
+      );
     }
 
     // Update store verification status
@@ -375,11 +394,14 @@ export class StoresService {
 
     // Check if user has permission to suspend stores (only SUPER_ADMIN and ADMIN)
     // Check for both uppercase and lowercase versions
-    const hasSuperAdmin = userRoles.includes('SUPER_ADMIN') || userRoles.includes('super_admin');
+    const hasSuperAdmin =
+      userRoles.includes('SUPER_ADMIN') || userRoles.includes('super_admin');
     const hasAdmin = userRoles.includes('ADMIN') || userRoles.includes('admin');
-    
+
     if (!hasSuperAdmin && !hasAdmin) {
-      throw new ForbiddenException('Only SUPER_ADMIN and ADMIN can suspend stores');
+      throw new ForbiddenException(
+        'Only SUPER_ADMIN and ADMIN can suspend stores',
+      );
     }
 
     // Update store status to suspended
@@ -405,11 +427,14 @@ export class StoresService {
 
     // Check if user has permission to reactivate stores (only SUPER_ADMIN and ADMIN)
     // Check for both uppercase and lowercase versions
-    const hasSuperAdmin = userRoles.includes('SUPER_ADMIN') || userRoles.includes('super_admin');
+    const hasSuperAdmin =
+      userRoles.includes('SUPER_ADMIN') || userRoles.includes('super_admin');
     const hasAdmin = userRoles.includes('ADMIN') || userRoles.includes('admin');
-    
+
     if (!hasSuperAdmin && !hasAdmin) {
-      throw new ForbiddenException('Only SUPER_ADMIN and ADMIN can reactivate stores');
+      throw new ForbiddenException(
+        'Only SUPER_ADMIN and ADMIN can reactivate stores',
+      );
     }
 
     // Update store status to active
@@ -649,18 +674,27 @@ export class StoresService {
     currentUser: any,
   ): { allowed: boolean; reason?: string } {
     // Handle both array of strings and array of objects with name property
-    const userRoles = Array.isArray(currentUser.roles) 
-      ? currentUser.roles.map(role => typeof role === 'string' ? role : role.name)
+    const userRoles = Array.isArray(currentUser.roles)
+      ? currentUser.roles.map((role) =>
+          typeof role === 'string' ? role : role.name,
+        )
       : [];
 
     // SUPER_ADMIN and ADMIN can view all stores
-    if (userRoles.includes('SUPER_ADMIN') || userRoles.includes('ADMIN') || 
-        userRoles.includes('super_admin') || userRoles.includes('admin')) {
+    if (
+      userRoles.includes('SUPER_ADMIN') ||
+      userRoles.includes('ADMIN') ||
+      userRoles.includes('super_admin') ||
+      userRoles.includes('admin')
+    ) {
       return { allowed: true };
     }
 
     // STORE_ADMIN can only view stores they created
-    if (userRoles.includes('STORE_ADMIN') || userRoles.includes('store_admin')) {
+    if (
+      userRoles.includes('STORE_ADMIN') ||
+      userRoles.includes('store_admin')
+    ) {
       if (store.createdBy === currentUser.id) {
         return { allowed: true };
       }
@@ -681,12 +715,17 @@ export class StoresService {
     currentUser: any,
   ): { allowed: boolean; reason?: string } {
     // Handle both array of strings and array of objects with name property
-    const userRoles = Array.isArray(currentUser.roles) 
-      ? currentUser.roles.map(role => typeof role === 'string' ? role : role.name)
+    const userRoles = Array.isArray(currentUser.roles)
+      ? currentUser.roles.map((role) =>
+          typeof role === 'string' ? role : role.name,
+        )
       : [];
 
     // SUPER_ADMIN can update any store
-    if (userRoles.includes('SUPER_ADMIN') || userRoles.includes('super_admin')) {
+    if (
+      userRoles.includes('SUPER_ADMIN') ||
+      userRoles.includes('super_admin')
+    ) {
       return { allowed: true };
     }
 
@@ -696,7 +735,10 @@ export class StoresService {
     }
 
     // STORE_ADMIN can only update stores they created
-    if (userRoles.includes('STORE_ADMIN') || userRoles.includes('store_admin')) {
+    if (
+      userRoles.includes('STORE_ADMIN') ||
+      userRoles.includes('store_admin')
+    ) {
       if (store.createdBy === currentUser.id) {
         return { allowed: true };
       }
@@ -777,17 +819,19 @@ export class StoresService {
       createdBy: store.createdBy,
       createdAt: store.createdAt,
       updatedAt: store.updatedAt,
-      creator: store.creator ? {
-        id: store.creator.id,
-        username: store.creator.username,
-        email: store.creator.email,
-        roles:
-          store.creator.roles?.map((role) => ({
-            id: role.id,
-            name: role.name,
-            displayName: role.displayName,
-          })) || [],
-      } : null,
+      creator: store.creator
+        ? {
+            id: store.creator.id,
+            username: store.creator.username,
+            email: store.creator.email,
+            roles:
+              store.creator.roles?.map((role) => ({
+                id: role.id,
+                name: role.name,
+                displayName: role.displayName,
+              })) || [],
+          }
+        : null,
       storeProductsCount: store.storeProducts?.length || 0,
       physicalLocationsCount: store.physicalLocations?.length || 0,
       verificationStatus: store.isVerified

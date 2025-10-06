@@ -29,7 +29,6 @@ export class ProductsSeeder {
     const users = await this.userRepository.find();
 
     if (users.length === 0) {
-
       return;
     }
 
@@ -49,8 +48,6 @@ export class ProductsSeeder {
 
     // Create products
     await this.createProducts(adminUser.id, categories, brands);
-
-
   }
 
   private async createCategories(
@@ -124,7 +121,6 @@ export class ProductsSeeder {
 
         const savedCategory = await this.categoryRepository.save(category);
         categories.push(savedCategory);
-
       } else {
         categories.push(existingCategory);
       }
@@ -242,7 +238,6 @@ export class ProductsSeeder {
 
         const savedBrand = await this.brandRepository.save(brand);
         brands.push(savedBrand);
-
       } else {
         brands.push(existingBrand);
       }
@@ -451,7 +446,6 @@ export class ProductsSeeder {
         });
 
         await this.productRepository.save(product);
-
       }
     }
   }

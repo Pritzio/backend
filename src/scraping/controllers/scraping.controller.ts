@@ -46,14 +46,16 @@ export class ScrapingController {
   })
   @ApiQuery({
     name: 'timeout',
-    description: 'Timeout in milliseconds (5000-15000). Only used when waitForSelector is not provided.',
+    description:
+      'Timeout in milliseconds (5000-15000). Only used when waitForSelector is not provided.',
     example: 8000,
     required: false,
     type: Number,
   })
   @ApiQuery({
     name: 'waitForSelector',
-    description: 'CSS selector to wait for before scraping. If provided, timeout is ignored and uses 5s fixed timeout.',
+    description:
+      'CSS selector to wait for before scraping. If provided, timeout is ignored and uses 5s fixed timeout.',
     example: '[data-cnstrc-item-id]',
     required: false,
     type: String,
@@ -79,7 +81,9 @@ export class ScrapingController {
     status: 500,
     description: 'Internal server error - Scraping failed',
   })
-  async scrapeUrlFast(@Query() query: ScrapeUrlDto): Promise<ScrapingResponseDto> {
+  async scrapeUrlFast(
+    @Query() query: ScrapeUrlDto,
+  ): Promise<ScrapingResponseDto> {
     try {
       if (!query.url) {
         throw new HttpException(

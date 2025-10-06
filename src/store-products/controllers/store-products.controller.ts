@@ -27,9 +27,7 @@ import {
 } from '@nestjs/swagger';
 import { StoreProductsService } from '../services/store-products.service';
 import { ProductMatchingService } from '../services/product-matching.service';
-import {
-  CreateStoreProductDto,
-} from '../dto';
+import { CreateStoreProductDto } from '../dto';
 import {
   IStoreProductResponse,
   IStoreProductFilter,
@@ -64,10 +62,10 @@ export class StoreProductsController {
         createdAt: new Date(),
         updatedAt: new Date(),
         lastScraped: new Date(),
-        regularField: 'test value'
-      }
+        regularField: 'test value',
+      },
     };
-    
+
     return testData;
   }
 
@@ -95,7 +93,12 @@ export class StoreProductsController {
   }
 
   @Get()
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
+  @Roles(
+    RoleType.SUPER_ADMIN,
+    RoleType.ADMIN,
+    RoleType.STORE_ADMIN,
+    RoleType.CUSTOMER,
+  )
   @ApiOperation({ summary: 'Get all store products with filters' })
   @ApiResponse({
     status: 200,
@@ -117,7 +120,12 @@ export class StoreProductsController {
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
     @Query('storeId') storeId?: string,
-  ): Promise<{ data: IStoreProductResponse[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: IStoreProductResponse[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const filter: IStoreProductFilter = {
       search,
       createdBy,
@@ -126,7 +134,12 @@ export class StoreProductsController {
       storeId,
     };
 
-    return this.storeProductsService.getAllStoreProducts(req.user, filter, page, limit);
+    return this.storeProductsService.getAllStoreProducts(
+      req.user,
+      filter,
+      page,
+      limit,
+    );
   }
 
   @Get('admin')
@@ -136,9 +149,12 @@ export class StoreProductsController {
     status: 200,
     description: 'Store products retrieved successfully',
   })
-  async getAdminStoreProducts(
-    @Request() req: any,
-  ): Promise<{ data: IStoreProductResponse[]; total: number; page: number; limit: number }> {
+  async getAdminStoreProducts(@Request() req: any): Promise<{
+    data: IStoreProductResponse[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     return this.storeProductsService.getAllStoreProducts(req.user, {}, 1, 100);
   }
 
@@ -146,35 +162,41 @@ export class StoreProductsController {
   @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN)
   @ApiOperation({
     summary: 'Check if URL exists in database',
-    description: 'Verifies if a URL already exists in the database. Returns the same data sent plus existence status.',
+    description:
+      'Verifies if a URL already exists in the database. Returns the same data sent plus existence status.',
   })
   @ApiBody({
-    description: 'Any data with URL to check existence. Only URL is required, rest can be any structure.',
+    description:
+      'Any data with URL to check existence. Only URL is required, rest can be any structure.',
     schema: {
       type: 'object',
       properties: {
-        url: { 
-          type: 'string', 
+        url: {
+          type: 'string',
           description: 'URL to check in database (REQUIRED)',
-          example: 'https://www.example.com/product/123'
+          example: 'https://www.example.com/product/123',
         },
         // Any other properties are allowed
       },
       required: ['url'],
-      additionalProperties: true
-    }
+      additionalProperties: true,
+    },
   })
   @ApiResponse({
     status: 200,
-    description: 'URL check completed successfully. Returns the same data sent plus exists status.',
+    description:
+      'URL check completed successfully. Returns the same data sent plus exists status.',
     schema: {
       type: 'object',
       properties: {
-        exists: { type: 'boolean', description: 'Whether the URL exists in database' },
+        exists: {
+          type: 'boolean',
+          description: 'Whether the URL exists in database',
+        },
         url: { type: 'string', description: 'The URL that was checked' },
         // All other properties from the original request will be included
       },
-      additionalProperties: true
+      additionalProperties: true,
     },
   })
   @ApiResponse({
@@ -192,7 +214,7 @@ export class StoreProductsController {
   async checkUrlExists(@Body() data: any): Promise<any> {
     this.logger.log('=== CHECK URL EXISTS CALLED ===');
     this.logger.log('Received data:', JSON.stringify(data, null, 2));
-    
+
     try {
       if (!data || !data.url) {
         this.logger.error('URL is missing from request body');
@@ -210,7 +232,7 @@ export class StoreProductsController {
         exists,
         ...data, // Esto incluye todos los campos que enviaste
       };
-      
+
       this.logger.log('Returning response:', JSON.stringify(response, null, 2));
       return response;
     } catch (error) {
@@ -230,9 +252,13 @@ export class StoreProductsController {
     }
   }
 
-
   @Get(':id')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STORE_ADMIN, RoleType.CUSTOMER)
+  @Roles(
+    RoleType.SUPER_ADMIN,
+    RoleType.ADMIN,
+    RoleType.STORE_ADMIN,
+    RoleType.CUSTOMER,
+  )
   @ApiOperation({ summary: 'Get store product by ID' })
   @ApiResponse({
     status: 200,
@@ -304,25 +330,30 @@ export class StoreProductsController {
     @Request() req: any,
   ): Promise<any> {
     this.logger.log('=== SCRAPING ADD PRODUCTS ENDPOINT CALLED ===');
-    this.logger.log(`Processing ${Array.isArray(data) ? data.length : 0} products with automatic matching`);
-    
+    this.logger.log(
+      `Processing ${Array.isArray(data) ? data.length : 0} products with automatic matching`,
+    );
+
     try {
       if (Array.isArray(data)) {
         // Prepare data for batch matching
-        const productsForMatching = data.map(product => ({
+        const productsForMatching = data.map((product) => ({
           name: product.name || 'Unnamed Product',
           brand: product.brand || product.metadata?.brand,
           specifications: {
             categories: product.categories || [],
             rating: product.rating,
-            originalData: product
+            originalData: product,
           },
-          storeId: product.storeId || product.store?.id || null
+          storeId: product.storeId || product.store?.id || null,
         }));
 
         // Process batch matching
-        const matchingResults = await this.productMatchingService.processBatchProducts(productsForMatching);
-        
+        const matchingResults =
+          await this.productMatchingService.processBatchProducts(
+            productsForMatching,
+          );
+
         const results: Array<{
           success: boolean;
           originalId: any;
@@ -330,15 +361,15 @@ export class StoreProductsController {
           error?: string;
           matchedBaseProduct?: any;
         }> = [];
-        
+
         for (let i = 0; i < data.length; i++) {
           const product = data[i];
-          
+
           try {
             // Get corresponding base product
             const productKey = product.name || 'Unnamed Product';
             const baseProduct = matchingResults.get(productKey);
-            
+
             if (!baseProduct) {
               throw new Error('Failed to match or create base product');
             }
@@ -349,9 +380,20 @@ export class StoreProductsController {
               description: product.description || null,
               url: product.url || null,
               sku: product.sku || null,
-              storeProductId: product.id && typeof product.id === 'string' && product.id.length >= 3 ? product.id : `scraped-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              storeProductId:
+                product.id &&
+                typeof product.id === 'string' &&
+                product.id.length >= 3
+                  ? product.id
+                  : `scraped-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
               image: product.imageUrl || product.image || null,
-              price: product.price ? Math.round(parseFloat(product.price.toString().replace(/[^0-9.-]/g, ''))) : undefined,
+              price: product.price
+                ? Math.round(
+                    parseFloat(
+                      product.price.toString().replace(/[^0-9.-]/g, ''),
+                    ),
+                  )
+                : undefined,
               metadata: {
                 brand: product.brand || null,
                 rating: product.rating || null,
@@ -365,48 +407,55 @@ export class StoreProductsController {
                   id: baseProduct.id,
                   name: baseProduct.name,
                   brand: baseProduct.brand,
-                  similarity: 'auto-matched'
-                }
+                  similarity: 'auto-matched',
+                },
               },
-              notes: `Product added from scraping with auto-matching - ${new Date().toISOString()}`
+              notes: `Product added from scraping with auto-matching - ${new Date().toISOString()}`,
             };
-            
+
             // Check for duplicates
-            const existingProduct = await this.storeProductsService.checkDuplicateStoreProduct(
-              createStoreProductDto.storeProductId,
-              createStoreProductDto.url
-            );
-            
+            const existingProduct =
+              await this.storeProductsService.checkDuplicateStoreProduct(
+                createStoreProductDto.storeProductId,
+                createStoreProductDto.url,
+              );
+
             if (existingProduct) {
               results.push({
                 success: false,
                 originalId: product.id,
                 error: 'Product already exists',
-                matchedBaseProduct: baseProduct
+                matchedBaseProduct: baseProduct,
               });
               continue;
             }
-            
+
             // Create product with automatic association
-            const createdProduct = await this.storeProductsService.createStoreProductWithBase(
-              createStoreProductDto,
-              req.user,
-              baseProduct.id,
-              product.categories || [],
-              product.storeName || product.store || product.source || 'Unknown Store',
-              product.storeWebsite || product.storeUrl || null
-            );
-            
+            const createdProduct =
+              await this.storeProductsService.createStoreProductWithBase(
+                createStoreProductDto,
+                req.user,
+                baseProduct.id,
+                product.categories || [],
+                product.storeName ||
+                  product.store ||
+                  product.source ||
+                  'Unknown Store',
+                product.storeWebsite || product.storeUrl || null,
+              );
+
             results.push({
               success: true,
               originalId: product.id,
               createdProduct: createdProduct,
-              matchedBaseProduct: baseProduct
+              matchedBaseProduct: baseProduct,
             });
-            
           } catch (productError) {
-            this.logger.error(`Error processing product ${i + 1}:`, productError);
-            
+            this.logger.error(
+              `Error processing product ${i + 1}:`,
+              productError,
+            );
+
             results.push({
               success: false,
               originalId: product.id,
@@ -414,12 +463,14 @@ export class StoreProductsController {
             });
           }
         }
-        
+
         // Final statistics
-        const successful = results.filter(r => r.success).length;
-        const failed = results.filter(r => !r.success).length;
-        const matched = results.filter(r => r.matchedBaseProduct).length;
-        const newBaseProducts = new Set(results.map(r => r.matchedBaseProduct?.id).filter(Boolean)).size;
+        const successful = results.filter((r) => r.success).length;
+        const failed = results.filter((r) => !r.success).length;
+        const matched = results.filter((r) => r.matchedBaseProduct).length;
+        const newBaseProducts = new Set(
+          results.map((r) => r.matchedBaseProduct?.id).filter(Boolean),
+        ).size;
 
         return {
           message: `Scraping completed. ${successful} products added successfully, ${failed} failed. ${matched} products matched to base products, ${newBaseProducts} new base products created.`,
@@ -430,9 +481,9 @@ export class StoreProductsController {
             failed,
             matched,
             newBaseProducts,
-            successRate: Math.round((successful / data.length) * 100)
+            successRate: Math.round((successful / data.length) * 100),
           },
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
       } else {
         throw new Error('Request body must be an array of products');

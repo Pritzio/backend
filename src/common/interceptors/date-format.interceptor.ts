@@ -41,10 +41,15 @@ export class DateFormatInterceptor implements NestInterceptor {
           if (this.isDateField(key)) {
             const dateValue = obj[key];
             if (dateValue instanceof Date) {
-              formatted[key] = DateFormatterUtil.formatToChileanDateTime(dateValue);
-            } else if (typeof dateValue === 'string' && this.isValidDateString(dateValue)) {
+              formatted[key] =
+                DateFormatterUtil.formatToChileanDateTime(dateValue);
+            } else if (
+              typeof dateValue === 'string' &&
+              this.isValidDateString(dateValue)
+            ) {
               const dateObj = new Date(dateValue);
-              formatted[key] = DateFormatterUtil.formatToChileanDateTime(dateObj);
+              formatted[key] =
+                DateFormatterUtil.formatToChileanDateTime(dateObj);
             } else {
               formatted[key] = dateValue;
             }
@@ -70,8 +75,8 @@ export class DateFormatInterceptor implements NestInterceptor {
       'date',
       'timestamp',
     ];
-    return dateFields.some((field) => 
-      fieldName.toLowerCase().includes(field.toLowerCase())
+    return dateFields.some((field) =>
+      fieldName.toLowerCase().includes(field.toLowerCase()),
     );
   }
 

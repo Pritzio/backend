@@ -14,11 +14,36 @@ import { BaseProduct } from './entities/base-product.entity';
 import { Store } from '../stores/entities/store.entity';
 import { PhysicalLocation } from '../physical-locations/entities/physical-location.entity';
 import { StoresService } from '../stores/services/stores.service';
+import {
+  ProductNormalizationService,
+  ProductSimilarityService,
+} from './services/product-matching';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([StoreProduct, Category, BaseProduct, Store, PhysicalLocation])],
-  controllers: [StoreProductsController, CategoriesController, ProductComparisonController, AdminProductsController, SimilarityController],
-  providers: [StoreProductsService, CategoriesService, ProductMatchingService, StoresService],
+  imports: [
+    TypeOrmModule.forFeature([
+      StoreProduct,
+      Category,
+      BaseProduct,
+      Store,
+      PhysicalLocation,
+    ]),
+  ],
+  controllers: [
+    StoreProductsController,
+    CategoriesController,
+    ProductComparisonController,
+    AdminProductsController,
+    SimilarityController,
+  ],
+  providers: [
+    StoreProductsService,
+    CategoriesService,
+    ProductMatchingService,
+    StoresService,
+    ProductNormalizationService,
+    ProductSimilarityService,
+  ],
   exports: [StoreProductsService, CategoriesService, ProductMatchingService],
 })
 export class StoreProductsModule {}

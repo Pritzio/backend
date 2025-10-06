@@ -42,7 +42,10 @@ import {
 import { AuthSeeder } from '../seeds/auth.seeder';
 import { EmailService } from '../../common/services/email.service';
 import { VerificationTokenService } from './verification-token.service';
-import { VerificationToken, TokenType } from '../entities/verification-token.entity';
+import {
+  VerificationToken,
+  TokenType,
+} from '../entities/verification-token.entity';
 
 @Injectable()
 export class AuthService {
@@ -75,9 +78,7 @@ export class AuthService {
     });
 
     if (existingEmail) {
-      throw new ConflictException(
-        'User with this email already exists',
-      );
+      throw new ConflictException('User with this email already exists');
     }
 
     // Check for existing username
@@ -86,9 +87,7 @@ export class AuthService {
     });
 
     if (existingUsername) {
-      throw new ConflictException(
-        'User with this username already exists',
-      );
+      throw new ConflictException('User with this username already exists');
     }
 
     const saltRounds = 12;
@@ -135,7 +134,10 @@ export class AuthService {
 
     // Generate email verification token and send verification email
     try {
-      const verificationToken = await this.verificationTokenService.generateEmailVerificationToken(savedUser);
+      const verificationToken =
+        await this.verificationTokenService.generateEmailVerificationToken(
+          savedUser,
+        );
       await this.emailService.sendEmailVerificationEmail(
         {
           email: savedUser.email,
@@ -281,8 +283,9 @@ export class AuthService {
 
     try {
       // Generate password reset token
-      const verificationToken = await this.verificationTokenService.generatePasswordResetToken(user);
-      
+      const verificationToken =
+        await this.verificationTokenService.generatePasswordResetToken(user);
+
       // Send password reset email
       await this.emailService.sendPasswordResetEmail(
         {
@@ -367,7 +370,9 @@ export class AuthService {
     return { message: 'Password successfully changed' };
   }
 
-  async verifyEmail(verifyEmailDto: VerifyEmailDto): Promise<MessageResponseDto> {
+  async verifyEmail(
+    verifyEmailDto: VerifyEmailDto,
+  ): Promise<MessageResponseDto> {
     // Validate verification token
     const verificationToken = await this.verificationTokenService.validateToken(
       verifyEmailDto.token,
@@ -405,7 +410,8 @@ export class AuthService {
     }
 
     // Generate new verification token
-    const verificationToken = await this.verificationTokenService.generateEmailVerificationToken(user);
+    const verificationToken =
+      await this.verificationTokenService.generateEmailVerificationToken(user);
 
     // Send verification email
     await this.emailService.sendEmailVerificationEmail(
@@ -420,7 +426,9 @@ export class AuthService {
     return { message: 'Verification email sent successfully' };
   }
 
-  async verifyPhone(verifyPhoneDto: VerifyPhoneDto): Promise<MessageResponseDto> {
+  async verifyPhone(
+    verifyPhoneDto: VerifyPhoneDto,
+  ): Promise<MessageResponseDto> {
     // Find user by phone
     const user = await this.userRepository.findOne({
       where: { phone: verifyPhoneDto.phone },
@@ -431,11 +439,12 @@ export class AuthService {
     }
 
     // Validate phone verification code
-    const verificationToken = await this.verificationTokenService.validatePhoneCode(
-      user.id,
-      verifyPhoneDto.phone,
-      verifyPhoneDto.code,
-    );
+    const verificationToken =
+      await this.verificationTokenService.validatePhoneCode(
+        user.id,
+        verifyPhoneDto.phone,
+        verifyPhoneDto.code,
+      );
 
     if (!verificationToken) {
       throw new BadRequestException('Invalid or expired verification code');
@@ -647,11 +656,17 @@ export class AuthService {
 
       console.log('✅ Authentication Seeder completed successfully via API');
       return {
-        message: 'Authentication seeder completed successfully. All roles and permissions have been created.',
+        message:
+          'Authentication seeder completed successfully. All roles and permissions have been created.',
       };
     } catch (error) {
-      console.error('❌ Error running Authentication Seeder via API:', error.message);
-      throw new BadRequestException('Failed to run authentication seeder: ' + error.message);
+      console.error(
+        '❌ Error running Authentication Seeder via API:',
+        error.message,
+      );
+      throw new BadRequestException(
+        'Failed to run authentication seeder: ' + error.message,
+      );
     }
   }
 
@@ -682,8 +697,14 @@ export class AuthService {
     }
 
     // Validate input
-    if (!createSuperAdminDto.email || !createSuperAdminDto.username || !createSuperAdminDto.password) {
-      throw new BadRequestException('Email, username, and password are required');
+    if (
+      !createSuperAdminDto.email ||
+      !createSuperAdminDto.username ||
+      !createSuperAdminDto.password
+    ) {
+      throw new BadRequestException(
+        'Email, username, and password are required',
+      );
     }
 
     // Check if user with same email or username already exists
@@ -693,9 +714,7 @@ export class AuthService {
     });
 
     if (existingEmail) {
-      throw new ConflictException(
-        'User with this email already exists',
-      );
+      throw new ConflictException('User with this email already exists');
     }
 
     // Check for existing username
@@ -704,9 +723,7 @@ export class AuthService {
     });
 
     if (existingUsername) {
-      throw new ConflictException(
-        'User with this username already exists',
-      );
+      throw new ConflictException('User with this username already exists');
     }
 
     // Get SUPER_ADMIN role
@@ -746,17 +763,22 @@ export class AuthService {
 
     try {
       const savedUser = await this.userRepository.save(superAdminUser);
-      
+
       console.log('✅ Super Admin created successfully via API:');
       console.log(`   👤 Username: ${savedUser.username}`);
       console.log(`   📧 Email: ${savedUser.email}`);
-      console.log(`   🔐 Roles: ${savedUser.roles.map((role) => role.name).join(', ')}`);
+      console.log(
+        `   🔐 Roles: ${savedUser.roles.map((role) => role.name).join(', ')}`,
+      );
 
       // Generate tokens
       const tokens = this.jwtService.generateTokenPair(savedUser);
 
       // Convert JWT_EXPIRES_IN to seconds
-      const expiresInString = this.configService.get<string>('JWT_EXPIRES_IN', '15m');
+      const expiresInString = this.configService.get<string>(
+        'JWT_EXPIRES_IN',
+        '15m',
+      );
       const expiresInSeconds = this.parseJwtExpiresIn(expiresInString);
 
       return {
@@ -767,22 +789,30 @@ export class AuthService {
       };
     } catch (error) {
       console.error('❌ Error creating Super Admin via API:', error.message);
-      throw new BadRequestException('Failed to create Super Admin: ' + error.message);
+      throw new BadRequestException(
+        'Failed to create Super Admin: ' + error.message,
+      );
     }
   }
 
-  async checkUsernameExists(username: string): Promise<{ exists: boolean; message: string }> {
+  async checkUsernameExists(
+    username: string,
+  ): Promise<{ exists: boolean; message: string }> {
     const existingUser = await this.userRepository.findOne({
       where: { username },
     });
 
     return {
       exists: !!existingUser,
-      message: existingUser ? 'Username already exists' : 'Username is available',
+      message: existingUser
+        ? 'Username already exists'
+        : 'Username is available',
     };
   }
 
-  async checkEmailExists(email: string): Promise<{ exists: boolean; message: string }> {
+  async checkEmailExists(
+    email: string,
+  ): Promise<{ exists: boolean; message: string }> {
     const existingUser = await this.userRepository.findOne({
       where: { email },
     });

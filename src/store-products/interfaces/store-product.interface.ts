@@ -1,6 +1,4 @@
-import {
-  StoreProduct,
-} from '../entities/store-product.entity';
+import { StoreProduct } from '../entities/store-product.entity';
 import { ICategoryResponse } from './category.interface';
 
 export interface IStoreResponse {
@@ -17,7 +15,17 @@ export interface IStoreResponse {
 export interface IStoreProductResponse
   extends Omit<
     StoreProduct,
-    'creator' | 'verifier' | 'categories' | 'store' | 'storeId' | 'price' | 'createdAt' | 'updatedAt' | 'lastScraped' | 'baseProduct' | 'baseProductId'
+    | 'creator'
+    | 'verifier'
+    | 'categories'
+    | 'store'
+    | 'storeId'
+    | 'price'
+    | 'createdAt'
+    | 'updatedAt'
+    | 'lastScraped'
+    | 'baseProduct'
+    | 'baseProductId'
   > {
   creatorId: string;
   creatorName: string;

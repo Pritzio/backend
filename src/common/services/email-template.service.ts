@@ -12,7 +12,7 @@ export class EmailTemplateService {
     email: string;
   }): string {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-    
+
     return `
       <!DOCTYPE html>
       <html lang="es">
