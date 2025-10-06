@@ -31,6 +31,8 @@ export interface DuplicateGroup {
     name: string;
     brand?: string | null;
     image?: string | null;
+    url: string | null;
+    storeName: string | undefined;
     storeCount: number;
     variants: number;
     createdAt: Date;
@@ -3120,15 +3122,20 @@ export class ProductMatchingService {
       image: productImage,
       totalStores,
       totalVariants,
-      products: products.map((p) => ({
-        id: p.id,
-        name: p.name,
-        brand: p.brand,
-        image: p.image || p.storeProducts?.[0]?.image || productImage,
-        storeCount: p.storeProducts?.length || 0,
-        variants: p.totalVariants || 0,
-        createdAt: p.createdAt,
-      })),
+      products: products.map((p) => {
+        const firstStoreProduct = p.storeProducts?.[0];
+        return {
+          id: p.id,
+          name: p.name,
+          brand: p.brand,
+          image: p.image || firstStoreProduct?.image || productImage,
+          url: firstStoreProduct?.url || null,
+          storeName: firstStoreProduct?.store?.name,
+          storeCount: p.storeProducts?.length || 0,
+          variants: p.totalVariants || 0,
+          createdAt: p.createdAt,
+        };
+      }),
     };
 
     return group;
