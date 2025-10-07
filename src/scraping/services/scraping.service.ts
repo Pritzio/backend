@@ -515,7 +515,9 @@ export class ScrapingService {
    */
   private validateUrl(url: string): void {
     try {
-      const urlObj = new URL(url);
+      // Decode the URL before validation to handle encoded characters properly
+      const decodedUrl = decodeURIComponent(url);
+      const urlObj = new URL(decodedUrl);
 
       // Check if it's a valid HTTP/HTTPS URL
       if (!['http:', 'https:'].includes(urlObj.protocol)) {
