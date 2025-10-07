@@ -37,8 +37,8 @@ const isStaging = process.env.NODE_ENV === 'staging';
       synchronize: true,
       logging: process.env.TYPEORM_LOGGING === 'true' ? true : false,
       extra: {
-        timezone: process.env.TIMEZONE || 'America/Santiago',
         application_name: 'pritzio-backend',
+        options: `-c TimeZone=${process.env.TIMEZONE || 'America/Santiago'}`,
       },
       ...(process.env.TYPEORM_LOGGING === 'true' && {
         logger: 'advanced-console',
