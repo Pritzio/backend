@@ -84,7 +84,6 @@ export class StoreProduct {
 
   @UpdateDateColumn({
     type: 'timestamp with time zone',
-    default: () => 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
 

@@ -255,54 +255,39 @@ export class StoreProductsService {
       throw new NotFoundException(`Store product with ID ${id} not found`);
     }
 
-    // Update only the fields that are provided (not undefined)
-    Object.keys(updateData).forEach((key) => {
-      if (updateData[key] !== undefined) {
-        if (
-          key === 'metadata' &&
-          typeof updateData[key] === 'object' &&
-          updateData[key] !== null
-        ) {
-          // Merge metadata instead of replacing it completely
-          const currentMetadata = storeProduct[key] || {};
-          const newMetadata = updateData[key];
-          const mergedMetadata = {
-            ...currentMetadata,
-            ...newMetadata,
-          };
-
-          storeProduct[key] = mergedMetadata;
-        } else {
-          storeProduct[key] = updateData[key];
-        }
-      }
+    // Force update by explicitly setting new values and saving
+    const productToUpdate = await this.storeProductRepository.preload({
+      id: id,
+      ...updateData,
     });
 
-    // Use direct SQL update for metadata to ensure it gets saved properly
-    if (updateData.metadata) {
-      const mergedMetadata = {
-        ...storeProduct.metadata,
-        ...updateData.metadata,
-      };
-
-      await this.storeProductRepository.query(
-        'UPDATE store_products SET metadata = $1 WHERE id = $2',
-        [JSON.stringify(mergedMetadata), id],
+    if (!productToUpdate) {
+      throw new NotFoundException(
+        `Store product with ID ${id} could not be preloaded for update`,
       );
     }
 
-    const updatedStoreProduct = await this.storeProductRepository.findOne({
+    const savedProduct = await this.storeProductRepository.save(productToUpdate);
+
+    // Force update of updatedAt field manually
+    await this.storeProductRepository.query(
+      'UPDATE store_products SET "updatedAt" = NOW() WHERE id = $1',
+      [id],
+    );
+
+    // Fetch the updated product to get the correct updatedAt value
+    const finalProduct = await this.storeProductRepository.findOne({
       where: { id },
       relations: ['creator', 'store', 'categories'],
     });
 
-    if (!updatedStoreProduct) {
+    if (!finalProduct) {
       throw new NotFoundException(
         `Store product with ID ${id} not found after update`,
       );
     }
 
-    return this.mapToStoreProductResponse(updatedStoreProduct);
+    return this.mapToStoreProductResponse(finalProduct);
   }
 
   async deleteStoreProduct(id: string, user: User): Promise<void> {
